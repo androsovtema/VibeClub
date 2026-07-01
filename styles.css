@@ -2948,3 +2948,211 @@ body.menu-open {
   overflow: hidden;
   height: 100vh;
 }
+
+/*************************
+ *  HEADER: СОСТОЯНИЕ АВТОРИЗАЦИИ  *
+ *************************/
+.header-auth {
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-signout {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+/*************************
+ *  AUTH MODAL  *
+ *************************/
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xs);
+  background: rgb(8 8 16 / 78%);
+  backdrop-filter: blur(6px);
+  animation: auth-overlay-in var(--duration-base) var(--ease-out);
+}
+
+.auth-modal-overlay[hidden] {
+  display: none;
+}
+
+@keyframes auth-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.auth-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), var(--glow-violet);
+  padding: var(--space-xs) var(--space-xs) var(--space-sm);
+  animation: auth-modal-in var(--duration-slow) var(--ease-spring);
+}
+
+@keyframes auth-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+}
+
+.auth-modal-close:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-hover);
+}
+
+.auth-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: var(--space-2xs);
+  margin-bottom: var(--space-2xs);
+}
+
+.auth-modal-glyph {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--color-accent-violet);
+}
+
+.auth-modal-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.auth-modal-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: var(--space-xs);
+  background: var(--color-bg-sunken);
+  border-radius: var(--radius-full);
+}
+
+.auth-modal-tab {
+  flex: 1;
+  padding: 10px 16px;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color var(--duration-base) var(--ease-out), background var(--duration-base) var(--ease-out);
+}
+
+.auth-modal-tab.is-active {
+  color: var(--color-text-on-accent);
+  background: var(--gradient-electric);
+}
+
+.auth-modal-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-modal-form[hidden] {
+  display: none;
+}
+
+.auth-modal-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.auth-modal-link {
+  align-self: center;
+  margin-top: var(--space-2xs);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-modal-link:hover {
+  color: var(--color-text-secondary);
+}
+
+.auth-modal-error {
+  font-size: 13px;
+  color: var(--color-error);
+  margin: -6px 0 4px;
+}
+
+.auth-modal-success {
+  font-size: 13.5px;
+  color: var(--color-success);
+  margin: -6px 0 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-modal-overlay,
+  .auth-modal {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-modal {
+    padding: var(--space-2xs) var(--space-2xs) var(--space-xs);
+  }
+}

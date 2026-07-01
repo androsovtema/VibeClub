@@ -441,24 +441,4 @@
       + '<span class="member-chip member-chip-more">+1 236 ещё</span>';
   }
 
-  /* ====================
-     ВСТУПИТЬ — тост об успехе
-     ==================== */
-  const joinToast = document.getElementById('join-toast');
-  let joinToastTimer = null;
-
-  document.querySelectorAll('[data-join]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!joinToast) return;
-
-      joinToast.textContent = 'Готово — добро пожаловать в We Designerz ✦';
-      joinToast.classList.add('is-visible');
-
-      clearTimeout(joinToastTimer);
-      joinToastTimer = setTimeout(() => {
-        joinToast.classList.remove('is-visible');
-      }, 3200);
-    });
-  });
 })();
