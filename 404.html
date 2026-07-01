@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
 
   <!-- External CSS -->
@@ -32,25 +32,28 @@
     }
 
     .error-code {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: var(--font-mono);
       font-size: clamp(120px, 20vw, 200px);
       line-height: 1;
-      color: var(--cream-dark);
+      background: var(--gradient-electric);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
       margin-bottom: var(--space-xs);
-      font-weight: 400;
+      font-weight: 600;
     }
 
     .error-title {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: var(--font-display);
       font-size: clamp(32px, 5vw, 48px);
       margin-bottom: var(--space-xs);
-      color: var(--deep-forest);
-      font-weight: 400;
+      color: var(--color-text-primary);
+      font-weight: 600;
     }
 
     .error-text {
       font-size: 16px;
-      color: var(--stone);
+      color: var(--color-text-secondary);
       max-width: 400px;
       margin-bottom: var(--space-sm);
       font-weight: 300;
@@ -70,8 +73,7 @@
   <!-- Header -->
   <header class="header">
     <a class="logo" href="index.html" aria-label="We Designerz — на главную">
-      <img src="./assets/logos/WDLogo.svg" alt="" class="logo-desktop" aria-hidden="true">
-      <img src="./assets/logos/WDLogoMobile.svg" alt="" class="logo-mobile" aria-hidden="true">
+      <span class="logo-text">We Designerz</span>
     </a>
 
     <nav class="nav" aria-label="Главная навигация">
@@ -112,10 +114,37 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-logo">We Designerz</div>
-    <div class="footer-links">
-      <a href="https://t.me/androsovart" target="_blank" rel="noopener noreferrer">Telegram</a>
-      <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube</a>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-text">We Designerz</span>
+          </div>
+          <p class="footer-tagline"><strong>design = создавать.</strong> Сообщество тех, кто делает продукты с ИИ — независимо от бэкграунда.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="footer-col-title">Сообщество</div>
+            <div class="footer-col-links">
+              <a href="https://t.me/androsovart" target="_blank" rel="noopener noreferrer">Телеграм-чат</a>
+              <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
+              <a href="projects.html">Витрина проектов</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Команда</div>
+            <div class="footer-col-links">
+              <span>Тёма — канал и вайбкодинг</span>
+              <span>Алина — дизайн</span>
+              <span>Андрей — продюсер</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 We Designerz</span>
+        <span>сделано во вайбкоде ✦</span>
+      </div>
     </div>
   </footer>
 

@@ -5,36 +5,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
-    content="We Designerz — студия дизайна. Веб-дизайн, брендинг, презентации, UX/UI. Дизайн, который не тормозит ваш бизнес. Работаем быстро, точно, без лишних итераций.">
-  <meta name="keywords" content="дизайн студия, веб-дизайн, брендинг, UX/UI, презентации, графический дизайн">
+    content="We Designerz — сообщество тех, кто создаёт продукты с ИИ без программирования. Смотри проекты, добавляй свои, вступай.">
+  <meta name="keywords" content="вайбкодинг, vibe coding, ИИ, нейросети, создание продуктов, no-code, сообщество">
   <meta name="author" content="We Designerz">
   <meta name="robots" content="index, follow">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="We Designerz — Дизайн, который не тормозит ваш бизнес">
+  <meta property="og:title" content="We Designerz — сообщество вайбкодеров">
   <meta property="og:description"
-    content="Студия дизайна. Веб-дизайн, брендинг, презентации, UX/UI. Работаем быстро и точно.">
+    content="Сообщество тех, кто создаёт продукты с ИИ — независимо от бэкграунда. Смотри витрину, вступай.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wedesignerz.com">
   <meta property="og:image" content="./assets/images/og-image.jpg">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="We Designerz — Дизайн, который не тормозит ваш бизнес">
-  <meta name="twitter:description" content="Студия дизайна. Веб-дизайн, брендинг, презентации, UX/UI.">
+  <meta name="twitter:title" content="We Designerz — сообщество вайбкодеров">
+  <meta name="twitter:description" content="Сообщество тех, кто создаёт продукты с ИИ — независимо от бэкграунда.">
   <meta name="twitter:image" content="./assets/images/og-image.jpg">
 
-  <title>We Designerz — Дизайн, который не тормозит ваш бизнес</title>
+  <title>We Designerz — сообщество вайбкодеров</title>
   <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
   <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
   <link rel="canonical" href="https://wedesignerz.com/">
 
-  <!-- Google Fonts: Cormorant Garamond + Inter -->
+  <!-- Google Fonts: Onest + JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
 
   <!-- External CSS -->
@@ -45,15 +45,16 @@
   <!-- Header -->
   <header class="header">
     <a class="logo" href="index.html" aria-label="We Designerz — на главную">
-      <img src="./assets/logos/WDLogo.svg" alt="" class="logo-desktop" aria-hidden="true">
-      <img src="./assets/logos/WDLogoMobile.svg" alt="" class="logo-mobile" aria-hidden="true">
+      <span class="logo-text">We Designerz</span>
     </a>
 
     <nav class="nav" aria-label="Главная навигация">
       <a href="index.html" class="nav-home">Главная</a>
-      <a href="projects.html">Проекты</a>
+      <a href="#showcase">Витрина</a>
+      <a href="#how">Как это</a>
+      <a href="#community">Сообщество</a>
       <a href="about.html">О нас</a>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-start" rel="noopener noreferrer">Начать проект</a>
+      <button type="button" class="btn-start" data-join>Вступить</button>
     </nav>
 
     <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
@@ -71,211 +72,206 @@
   </script>
 
   <main>
+    <div class="glow-blobs" aria-hidden="true">
+      <div class="glow-blob glow-blob-a"></div>
+      <div class="glow-blob glow-blob-b"></div>
+    </div>
+
     <!-- Hero -->
     <section class="hero" id="hero">
-      <h1>
-        Дизайн, который не тормозит ваш
-        <span class="dynamic-text-wrapper">
-          <span class="dynamic-text active">бизнес.</span>
-          <span class="dynamic-text">продукт.</span>
-          <span class="dynamic-text">запуск.</span>
-          <span class="dynamic-text">стартап.</span>
-          <span class="dynamic-text">маркетинг.</span>
-        </span>
-      </h1>
-      <p class="hero-subtitle">
-        Мы берём задачу — и доводим до результата быстро, точно, без лишних итераций. За процессом стоят технологии. За
-        результатом — люди.
-      </p>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-primary btn-start-align">Начать проект</a>
-    </section>
-
-    <!-- Services -->
-    <section class="services" id="services">
-      <div class="section-label">Услуги</div>
-      <h2>Делаем всё, что касается визуального облика бизнеса.</h2>
-
-      <div class="services-list">
-        Веб-дизайн и разработка · Брендинг · Презентации · UX/UI · Графический дизайн · Дизайн-поддержка
-      </div>
-
-      <!-- Карусель работ -->
-      <div class="carousel-wrapper" role="region" aria-label="Галерея работ">
-        <div class="carousel-track">
-          <!-- Первый набор изображений -->
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel01.jpeg" alt="We Designerz — проект" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel02.jpeg" alt="We Designerz — проект" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel03.jpeg" alt="We Designerz — проект" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel04.jpeg" alt="We Designerz — проект" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel05.jpeg" alt="We Designerz — проект" loading="eager"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel06.jpeg" alt="We Designerz — проект" loading="eager"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel07.jpeg" alt="We Designerz — проект" loading="eager"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel08.jpeg" alt="We Designerz — проект" loading="eager"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel09.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel10.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel11.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel12.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel13.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel14.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel15.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel16.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <div class="carousel-item"><img src="./assets/images/carousel/carousel17.jpeg" alt="We Designerz — проект" loading="lazy"></div>
-          <!-- Дублирование для бесконечного цикла -->
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel01.jpeg" alt="" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel02.jpeg" alt="" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel03.jpeg" alt="" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel04.jpeg" alt="" loading="eager" fetchpriority="high"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel05.jpeg" alt="" loading="eager"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel06.jpeg" alt="" loading="eager"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel07.jpeg" alt="" loading="eager"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel08.jpeg" alt="" loading="eager"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel09.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel10.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel11.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel12.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel13.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel14.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel15.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel16.jpeg" alt="" loading="lazy"></div>
-          <div class="carousel-item" aria-hidden="true"><img src="./assets/images/carousel/carousel17.jpeg" alt="" loading="lazy"></div>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="hero-badge-dot" aria-hidden="true"></span>
+          сообщество вайбкодеров
+        </div>
+        <h1>Создавать может <span class="text-gradient">каждый.</span></h1>
+        <p class="hero-lead">
+          Мы вайбкодим продукты с ИИ — без программистского бэкграунда. Учись, делай, показывай своё.
+          А этот сайт сам навайбкоден — листай и смотри.
+        </p>
+        <div class="hero-actions">
+          <button type="button" class="btn-primary" data-join>Вступить в сообщество</button>
+          <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            Телеграм-чат <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-value">1 248</div>
+            <div class="hero-stat-label">участников</div>
+          </div>
+          <div class="hero-stat-divider" aria-hidden="true"></div>
+          <div>
+            <div class="hero-stat-value">320</div>
+            <div class="hero-stat-label">проектов</div>
+          </div>
+          <div class="hero-stat-divider" aria-hidden="true"></div>
+          <div>
+            <div class="hero-stat-value">0</div>
+            <div class="hero-stat-label">строк опыта нужно</div>
+          </div>
         </div>
       </div>
 
-      <p class="services-note">
-        То, что раньше требовало программиста — теперь делает дизайнер. То, что занимало неделю — теперь занимает день.
-        Инструменты изменились. Мы используем лучшие из них.
-      </p>
-
-      <a href="projects.html" class="text-link">Все проекты</a>
-    </section>
-
-    <!-- How We Work -->
-    <section class="how-we-work" id="how">
-      <div class="section-label">Как мы работаем</div>
-      <h2>От первого сообщения до готового дизайна — без потерь по пути.</h2>
-
-      <div class="steps-grid">
-        <div class="step">
-          <div class="step-number">01</div>
-          <h3 class="step-title">Вы описываете задачу</h3>
-          <p class="step-text">Пишете нам в Telegram — коротко или подробно, как удобно. Мы разберёмся.</p>
+      <!-- Живой промпт → собирающийся интерфейс -->
+      <div class="hero-demo">
+        <div class="hero-demo-dots">
+          <span class="hero-demo-dot hero-demo-dot-1"></span>
+          <span class="hero-demo-dot hero-demo-dot-2"></span>
+          <span class="hero-demo-dot hero-demo-dot-3"></span>
+          <span class="hero-demo-label">we-designerz · превью</span>
         </div>
-
-        <div class="step-divider" aria-hidden="true"></div>
-
-        <div class="step">
-          <div class="step-number">02</div>
-          <h3 class="step-title">Мы уточняем детали</h3>
-          <p class="step-text">Задаём нужные вопросы, собираем материалы и формируем бриф.</p>
+        <div class="hero-demo-prompt">
+          <span class="hero-demo-prompt-marker" aria-hidden="true">&gt;</span>
+          <span data-prompt></span><span class="typing-caret" aria-hidden="true"></span>
         </div>
+        <div class="hero-demo-status" data-status></div>
 
-        <div class="step-divider" aria-hidden="true"></div>
-
-        <div class="step">
-          <div class="step-number">03</div>
-          <h3 class="step-title">Дизайнер приступает</h3>
-          <p class="step-text">Получает полную картину с первого раза. Вы не объясняете одно и то же дважды.</p>
+        <div class="hero-demo-preview">
+          <div class="hero-demo-block hero-demo-block-title" data-asm>Кофейня «Зерно»</div>
+          <div class="hero-demo-block hero-demo-block-grid" data-asm>
+            <div class="hero-demo-card">
+              <div class="hero-demo-card-media" style="background: oklch(0.4 0.1 250 / 50%)"></div>
+              <div class="hero-demo-card-line"></div>
+              <div class="hero-demo-card-line hero-demo-card-line-sm"></div>
+            </div>
+            <div class="hero-demo-card">
+              <div class="hero-demo-card-media" style="background: oklch(0.42 0.12 320 / 50%)"></div>
+              <div class="hero-demo-card-line"></div>
+              <div class="hero-demo-card-line hero-demo-card-line-sm"></div>
+            </div>
+          </div>
+          <div class="hero-demo-block hero-demo-block-footer" data-asm>
+            <div class="hero-demo-footer-line"></div>
+            <div class="hero-demo-footer-btn">Открыть</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Why Us -->
-    <section class="why-us" id="why">
-      <div class="section-label">Почему мы</div>
-      <div class="why-grid">
-        <div class="why-left">
-          <h2>Вы можете сделать это сами. Но зачем?</h2>
-          <p class="why-intro">Сегодня любой может собрать сайт, создать лого или сверстать презентацию — с помощью тех
-            же инструментов, что используем мы. Разница в том, что у вас на это уйдёт время, а результат будет «сойдёт».
+    <!-- Showcase -->
+    <section id="showcase" class="showcase">
+      <div class="showcase-head">
+        <div>
+          <div class="section-label">витрина сообщества</div>
+          <h2>Что навайбкодили</h2>
+          <p class="showcase-lead">
+            Живые проекты участников — главное здесь. Звёздочкой <span class="community-core-mark">✦</span>
+            отмечены работы команды We&nbsp;Designerz — ориентир, а не потолок.
           </p>
         </div>
+      </div>
 
-        <div class="why-right">
-          <ul class="why-list">
-            <li>— Презентация за часы, не за неделю</li>
-            <li>— Лендинг без программиста</li>
-            <li>— Сайт без подписки на конструктор</li>
-            <li>— Прототип, а не эскиз</li>
-          </ul>
+      <div class="showcase-chips">
+        <button type="button" class="filter-tag active" data-filter="all">Все</button>
+        <button type="button" class="filter-tag" data-filter="prod">Продуктивность</button>
+        <button type="button" class="filter-tag" data-filter="biz">Бизнес</button>
+        <button type="button" class="filter-tag" data-filter="game">Игры</button>
+        <button type="button" class="filter-tag" data-filter="home">Личное</button>
+        <button type="button" class="filter-tag" data-filter="art">Творчество</button>
+      </div>
+
+      <div class="showcase-grid" id="community-grid"></div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="how-strip">
+      <div class="how-strip-inner">
+        <div class="how-strip-label">
+          <div class="section-label">как работает вайбкодинг</div>
+          <div class="how-strip-headline">Просто объясняешь словами —<br>ИИ создаёт вместе с тобой</div>
+        </div>
+        <div class="how-strip-steps">
+          <div class="how-strip-step">
+            <div class="how-strip-step-number is-blue">01</div>
+            <div class="how-strip-step-title">Идея</div>
+            <div class="how-strip-step-text">расскажи своими словами</div>
+          </div>
+          <span class="how-strip-arrow" aria-hidden="true">→</span>
+          <div class="how-strip-step">
+            <div class="how-strip-step-number is-violet">02</div>
+            <div class="how-strip-step-title">Диалог</div>
+            <div class="how-strip-step-text">ИИ уточняет и предлагает</div>
+          </div>
+          <span class="how-strip-arrow" aria-hidden="true">→</span>
+          <div class="how-strip-step">
+            <div class="how-strip-step-number is-purple">03</div>
+            <div class="how-strip-step-title">Правки</div>
+            <div class="how-strip-step-text">смотришь и меняешь на ходу</div>
+          </div>
+          <span class="how-strip-arrow" aria-hidden="true">→</span>
+          <div class="how-strip-step">
+            <div class="how-strip-step-number is-warm">04</div>
+            <div class="how-strip-step-title">Готово</div>
+            <div class="how-strip-step-text">делишься с сообществом</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Clients Logos -->
-    <section class="clients-logos" id="clients-logos">
-      <div class="section-label">Нам доверяют</div>
-      <div class="logos-marquee-wrap">
-        <div class="logos-marquee-track">
-          <!-- оригинальный список -->
-          <div class="logo-item logo-large"><img src="./assets/logos/clients/emtechinvest.svg" alt="EmTech Invest" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/loyobondar.svg" alt="Loyo&Bondar" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/bloggers.svg" alt="YouTube-блогеры" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/ceskylev.svg" alt="Cesky Lev" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/eazyenergy.svg" alt="Eazy Energy" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/scoville.svg" alt="Scoville" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/fias.svg" alt="Международная организация самбо" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/alexvillas.svg" alt="Alex Villas" decoding="async" draggable="false"></div>
-          <div class="logo-item logo-large"><img src="./assets/logos/clients/gabarshop.svg" alt="ГАБАРШОП" decoding="async" draggable="false"></div>
-          <div class="logo-item"><img src="./assets/logos/clients/viril.svg" alt="Viril" decoding="async" draggable="false"></div>
-          <!-- дубль для бесшовной петли -->
-          <div class="logo-item logo-large" aria-hidden="true"><img src="./assets/logos/clients/emtechinvest.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/loyobondar.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/bloggers.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/ceskylev.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/eazyenergy.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/scoville.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/fias.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/alexvillas.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item logo-large" aria-hidden="true"><img src="./assets/logos/clients/gabarshop.svg" alt="" decoding="async" draggable="false"></div>
-          <div class="logo-item" aria-hidden="true"><img src="./assets/logos/clients/viril.svg" alt="" decoding="async" draggable="false"></div>
+    <!-- Community / Join -->
+    <section id="community" class="community-cta">
+      <div class="community-cta-card">
+        <div class="community-cta-glow" aria-hidden="true"></div>
+        <div class="community-cta-grid">
+          <div>
+            <h2>Вступай — и тебя<br>увидят все</h2>
+            <p class="community-cta-text">
+              «Вступить» добавляет тебя в список участников: можно выкладывать проекты, комментировать
+              чужие и найти своё имя среди тех, кто создаёт. А общаемся мы в Телеграме.
+            </p>
+            <div class="community-cta-actions">
+              <button type="button" class="btn-primary" data-join>Вступить</button>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+                Чат сообщества <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+          <div>
+            <div class="member-list-label">уже с нами</div>
+            <div class="member-chips" id="member-chips"></div>
+          </div>
         </div>
       </div>
-    </section>
-
-    <!-- Pricing -->
-    <section class="pricing" id="pricing">
-      <div class="section-label">Тарифы</div>
-      <h2>Разовый проект или постоянная поддержка — выбирайте формат.</h2>
-
-      <div class="pricing-comparison">
-        <div class="pricing-light">
-          <h3>Проект</h3>
-          <p>Конкретная задача, конкретный результат. Подходит, если нужно сделать что-то одно и быстро.</p>
-        </div>
-
-        <div class="pricing-dark">
-          <h3>Поддержка</h3>
-          <p>Мы работаем как ваша внутренняя дизайн-команда. Фиксированный бюджет в месяц, приоритет в очереди, не нужно
-            каждый раз объяснять кто вы и что у вас за бренд. Чем дольше работаем — тем быстрее и точнее результат.</p>
-        </div>
-      </div>
-
-      <div class="pricing-cta">
-        <a href="https://t.me/androsovart" target="_blank" class="text-link">Выбрать</a>
-      </div>
-    </section>
-
-    <!-- Contact -->
-    <section class="contact" id="contact">
-      <div class="section-label">Контакты</div>
-      <h2>Есть задача? Просто напишите.</h2>
-
-      <p class="contact-subtitle">
-        Не нужно заполнять длинные формы или ждать ответа по email. Напишите в Telegram — и получите ответ в тот же
-        день.
-      </p>
-
-      <a href="https://t.me/androsovart" target="_blank" class="btn-primary btn-margin-xs">Начать проект</a>
-
     </section>
   </main>
 
+  <div class="toast" id="join-toast" role="status" aria-live="polite"></div>
+
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-logo">We Designerz</div>
-    <div class="footer-links">
-      <a href="https://t.me/androsovart" target="_blank" rel="noopener noreferrer">Telegram</a>
-      <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube</a>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-text">We Designerz</span>
+          </div>
+          <p class="footer-tagline"><strong>design = создавать.</strong> Сообщество тех, кто делает продукты с ИИ — независимо от бэкграунда.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="footer-col-title">Сообщество</div>
+            <div class="footer-col-links">
+              <a href="https://t.me/wedesignerz" target="_blank" rel="noopener noreferrer">Telegram-канал</a>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
+              <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
+              <a href="projects.html">Витрина проектов</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Команда</div>
+            <div class="footer-col-links">
+              <span>Тёма — канал и вайбкодинг</span>
+              <span>Алина — дизайн</span>
+              <span>Андрей — продюсер</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 We Designerz</span>
+        <span>сделано во вайбкоде ✦</span>
+      </div>
     </div>
   </footer>
 

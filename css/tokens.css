@@ -1,0 +1,97 @@
+/*
+ * DESIGN TOKENS — "Электрический холст" (направление A)
+ * Источник: дизайн-система Claude Design, проект "We Designerz.dc.html"
+ * We Designerz — единый источник правды для верстки.
+ * См. docs/06-design-direction.md
+ */
+
+:root {
+  /* ===== ЦВЕТ: база (тёмная) ===== */
+  --color-bg: oklch(0.155 0.018 282);
+  --color-bg-elevated: oklch(0.195 0.022 284);
+  --color-surface: oklch(0.195 0.022 284);
+  --color-surface-hover: oklch(0.235 0.024 286);
+  --color-border: oklch(0.27 0.018 286);
+  --color-border-strong: oklch(0.32 0.022 286);
+  --color-bg-sunken: oklch(0.135 0.018 282);
+
+  /* ===== ЦВЕТ: текст ===== */
+  --color-text-primary: oklch(0.97 0.006 286);
+  --color-text-secondary: oklch(0.77 0.014 286);
+  --color-text-tertiary: oklch(0.6 0.018 286);
+  --color-text-on-accent: #0c0c14;
+
+  /* ===== ЦВЕТ: акцентный градиент (электрик-синий → фиолет → пурпур → тёплый) ===== */
+  --color-accent-blue: oklch(0.68 0.16 248);
+  --color-accent-violet: oklch(0.62 0.20 292);
+  --color-accent-purple: oklch(0.64 0.22 332);
+  --color-accent-warm: oklch(0.80 0.15 70);
+
+  --gradient-electric: linear-gradient(100deg, var(--color-accent-blue) 0%, var(--color-accent-violet) 40%, var(--color-accent-purple) 72%, var(--color-accent-warm) 100%);
+  --gradient-warm: linear-gradient(135deg, var(--color-accent-violet) 0%, var(--color-accent-warm) 100%);
+
+  /* ===== ЦВЕТ: семантика ===== */
+  --color-success: oklch(0.74 0.15 152);
+  --color-error: oklch(0.64 0.21 25);
+  --color-warning: oklch(0.8 0.15 85);
+  --color-focus: var(--color-accent-blue);
+
+  /* ===== ТИПОГРАФИКА: семьи ===== */
+  --font-display: 'Onest', system-ui, -apple-system, sans-serif;
+  --font-body: 'Onest', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+
+  /* ===== ТИПОГРАФИКА: шкала ===== */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: clamp(28px, 4vw, 36px);
+  --text-4xl: clamp(32px, 5vw, 48px);
+  --text-5xl: clamp(42px, 7vw, 72px);
+  --text-hero: clamp(42px, 6vw, 78px);
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  /* ===== SPACING (сохранена шкала) ===== */
+  --space-3xs: 6px;
+  --space-2xs: 12px;
+  --space-xs: 24px;
+  --space-sm: 48px;
+  --space-md: 80px;
+  --space-lg: 120px;
+  --space-xl: 180px;
+
+  /* ===== СЕТКА / КОНТЕЙНЕРЫ ===== */
+  --container-max: 1200px;
+
+  /* ===== РАДИУСЫ ===== */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 30px;
+  --radius-full: 999px;
+
+  /* ===== ТЕНИ / СВЕЧЕНИЯ ===== */
+  --shadow-sm: 0 2px 8px rgb(0 0 0 / 30%);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 40%);
+  --shadow-lg: 0 20px 60px rgb(0 0 0 / 50%);
+  --glow-blue: 0 0 40px oklch(0.68 0.16 248 / 35%);
+  --glow-violet: 0 0 40px oklch(0.62 0.2 292 / 35%);
+  --glow-warm: 0 0 40px oklch(0.8 0.15 70 / 30%);
+
+  /* ===== ДВИЖЕНИЕ ===== */
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 600ms;
+  --duration-hero: 1200ms;
+}

@@ -14,7 +14,7 @@
   const burger = document.getElementById('burger');
   const nav = document.querySelector('.nav');
   const header = document.querySelector('.header');
-  const navLinks = document.querySelectorAll('.nav a');
+  const navLinks = document.querySelectorAll('.nav a, .nav button');
 
   function toggleMenu(isOpen) {
     if (!burger || !nav || !header) return;
@@ -293,230 +293,172 @@
   }
 
   /* ====================
-     CAROUSEL INTERACTIVITY & PHYSICS
+     HERO DEMO (главная) — живой промпт → собирающийся интерфейс
      ==================== */
-  const carouselWrapper = document.querySelector('.carousel-wrapper');
-  const carouselTrack = document.querySelector('.carousel-track');
-  const carouselImages = document.querySelectorAll('.carousel-item img');
+  const heroPrompt = document.querySelector('[data-prompt]');
+  const heroStatus = document.querySelector('[data-status]');
+  const heroBlocks = document.querySelectorAll('[data-asm]');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (carouselWrapper && carouselTrack && carouselImages.length > 0) {
-    // 1. Появление изображений
-    let loadedCount = 0;
-    function markImageLoaded(img) {
-      if (img && !img.classList.contains('loaded')) {
-        img.classList.add('loaded');
-        if (img.parentElement) img.parentElement.classList.add('loaded');
+  if (heroPrompt && heroBlocks.length > 0) {
+    const prompts = [
+      'сделай лендинг кофейни с меню',
+      'приложение-трекер привычек',
+      'портфолио фотографа с галереей'
+    ];
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    if (reducedMotion) {
+      heroPrompt.textContent = prompts[0];
+      heroBlocks.forEach((b) => {
+        b.style.opacity = '1';
+        b.style.transform = 'none';
+      });
+      if (heroStatus) {
+        heroStatus.textContent = '✓ готово';
+        heroStatus.classList.add('is-ok');
       }
-    }
-    carouselImages.forEach(img => {
-      // Отключаем нативный drag & drop изображений
-      img.addEventListener('dragstart', e => e.preventDefault());
-
-      if (img.complete && img.naturalHeight !== 0) {
-        markImageLoaded(img);
-        loadedCount++;
-      } else {
-        img.addEventListener('load', () => { markImageLoaded(img); loadedCount++; }, { once: true });
-        img.addEventListener('error', () => { markImageLoaded(img); loadedCount++; }, { once: true });
-      }
-    });
-
-    // Запускаем карусель плавно
-    setTimeout(() => {
-      carouselImages.forEach(markImageLoaded);
-      carouselWrapper.classList.add('loaded');
-    }, 2000);
-
-    // 2. Движение и физика
-    let currentX = 0;
-    let autoScrollingSpeed = 1; // px per frame
-    let isDragging = false;
-    let startX = 0;
-    let currentDragX = 0;
-    let dragVelocity = 0;
-    let lastTime = performance.now();
-    let lastDragX = 0;
-
-    function updateCarousel(time) {
-      if (!lastTime) lastTime = time;
-      lastTime = time;
-
-      // Ширина оригинального набора картинок (трек содержит дубли для бесконечности)
-      const trackWidth = carouselTrack.scrollWidth / 2;
-
-      if (isDragging) {
-        // Движемся за курсором/пальцем
-        const dx = currentDragX - lastDragX;
-        currentX -= dx;
-
-        // Вычисляем скорость
-        dragVelocity = dx;
-        lastDragX = currentDragX;
-      } else {
-        // Авто скролл + инерция
-        currentX += autoScrollingSpeed - dragVelocity;
-        dragVelocity *= 0.95; // затухание
-        if (Math.abs(dragVelocity) < 0.1) dragVelocity = 0;
-      }
-
-      // Бесконечный цикл
-      if (currentX >= trackWidth) {
-        currentX -= trackWidth;
-      } else if (currentX <= 0) {
-        currentX += trackWidth;
-      }
-
-      // Вычисляем наклон в зависимости от скорости
-      const currentSpeed = isDragging ? dragVelocity : (dragVelocity - autoScrollingSpeed);
-      let skewAngle = currentSpeed * 0.3;
-      skewAngle = Math.max(-10, Math.min(10, skewAngle));
-
-      // Применяем трансформации (минус тк мы двигаем влево)
-      carouselTrack.style.transform = `translateX(${-currentX}px) skewX(${skewAngle}deg)`;
-
-      requestAnimationFrame(updateCarousel);
-    }
-
-    requestAnimationFrame(updateCarousel);
-
-    // Обработчики мыши и тачпада
-    let startY = 0;
-    let isTouchMove = false;
-
-    const startDrag = (e) => {
-      isDragging = true;
-      isTouchMove = e.type.includes('touch');
-      startX = isTouchMove ? e.touches[0].pageX : e.pageX;
-      startY = isTouchMove ? e.touches[0].pageY : e.pageY;
-      currentDragX = startX;
-      lastDragX = startX;
-      dragVelocity = 0;
-    };
-
-    const onDrag = (e) => {
-      if (!isDragging) return;
-
-      if (isTouchMove) {
-        const currentY = e.touches[0].pageY;
-        const currentX = e.touches[0].pageX;
-
-        const deltaX = Math.abs(currentX - startX);
-        const deltaY = Math.abs(currentY - startY);
-
-        // Значительное движение по горизонтали предотвращает вертикальный скролл страницы
-        if (deltaX > deltaY && deltaX > 5) {
-          if (e.cancelable) e.preventDefault();
+    } else {
+      (async function runHeroDemo() {
+        let i = 0;
+        for (;;) {
+          const prompt = prompts[i % prompts.length];
+          heroBlocks.forEach((b) => {
+            b.style.opacity = '0';
+            b.style.transform = 'translateY(10px)';
+          });
+          heroPrompt.textContent = '';
+          if (heroStatus) {
+            heroStatus.classList.remove('is-ok');
+            heroStatus.textContent = 'печатаю промпт…';
+          }
+          for (let c = 0; c < prompt.length; c++) {
+            heroPrompt.textContent += prompt[c];
+            await sleep(40);
+          }
+          await sleep(420);
+          if (heroStatus) heroStatus.textContent = '● генерирую интерфейс…';
+          await sleep(620);
+          for (const b of heroBlocks) {
+            b.style.opacity = '1';
+            b.style.transform = 'translateY(0)';
+            await sleep(170);
+          }
+          if (heroStatus) {
+            heroStatus.classList.add('is-ok');
+            heroStatus.textContent = '✓ готово';
+          }
+          await sleep(2600);
+          for (let k = heroBlocks.length - 1; k >= 0; k--) {
+            heroBlocks[k].style.opacity = '0';
+            heroBlocks[k].style.transform = 'translateY(10px)';
+            await sleep(80);
+          }
+          await sleep(320);
+          i++;
         }
+      })();
+    }
+  }
 
-        currentDragX = currentX;
-      } else {
-        currentDragX = e.pageX;
-      }
+  /* ====================
+     ВИТРИНА СООБЩЕСТВА (главная) — карточки проектов + фильтр
+     ==================== */
+  const communityGrid = document.getElementById('community-grid');
+
+  if (communityGrid) {
+    const covers = {
+      a: 'linear-gradient(135deg, oklch(0.34 0.13 250), oklch(0.24 0.07 295))',
+      b: 'linear-gradient(135deg, oklch(0.36 0.14 320), oklch(0.26 0.08 350))',
+      d: 'linear-gradient(135deg, oklch(0.40 0.13 145), oklch(0.26 0.07 200))',
+      e: 'linear-gradient(135deg, oklch(0.42 0.13 60), oklch(0.28 0.09 30))',
+      f: 'linear-gradient(135deg, oklch(0.36 0.13 280), oklch(0.25 0.08 320))',
+      g: 'linear-gradient(135deg, oklch(0.34 0.12 210), oklch(0.24 0.07 260))'
     };
 
-    const stopDrag = () => {
-      if (!isDragging) return;
-      isDragging = false;
-      isTouchMove = false;
-    };
+    // Заглушка на время T2 (реальная витрина будет тянуться из Supabase — см. js/projects.js)
+    const communityProjects = [
+      { title: 'Капля — трекер привычек', author: 'Марина К.', tools: ['Claude', 'React'], tag: 'Продуктивность', filterKey: 'prod', core: false, cover: covers.a, likes: 128, comments: 14 },
+      { title: 'Зерно — сайт кофейни', author: 'We Designerz', tools: ['Claude', 'Astro'], tag: 'Бизнес', filterKey: 'biz', core: true, cover: covers.b, likes: 342, comments: 31 },
+      { title: 'Прыг — мини-платформер', author: 'Денис О.', tools: ['Cursor', 'Phaser'], tag: 'Игры', filterKey: 'game', core: false, cover: covers.f, likes: 97, comments: 8 },
+      { title: 'Муза — AI-дневник настроения', author: 'We Designerz', tools: ['Claude'], tag: 'Личное', filterKey: 'home', core: true, cover: covers.d, likes: 256, comments: 22 },
+      { title: 'Флора — каталог растений', author: 'Алина Г.', tools: ['Claude', 'Next.js'], tag: 'Личное', filterKey: 'home', core: false, cover: covers.g, likes: 74, comments: 6 },
+      { title: 'Сила — дашборд для зала', author: 'Олег П.', tools: ['Claude', 'Supabase'], tag: 'Бизнес', filterKey: 'biz', core: false, cover: covers.e, likes: 61, comments: 5 },
+      { title: 'Свадьба Маши и Кирилла', author: 'Кирилл Р.', tools: ['v0', 'React'], tag: 'Творчество', filterKey: 'art', core: false, cover: covers.b, likes: 189, comments: 27 },
+      { title: 'Репетитор-бот', author: 'We Designerz', tools: ['Claude', 'Telegram'], tag: 'Продуктивность', filterKey: 'prod', core: true, cover: covers.a, likes: 143, comments: 11 }
+    ];
 
-    // Touch events - preventDefault requires non-passive event listeners for touchmove
-    carouselTrack.addEventListener('touchstart', startDrag, { passive: true });
-    window.addEventListener('touchmove', onDrag, { passive: false });
-    window.addEventListener('touchend', stopDrag);
-    window.addEventListener('touchcancel', stopDrag);
+    communityGrid.innerHTML = communityProjects.map((p) => `
+      <article class="community-card" data-tags="${p.filterKey}">
+        <div class="community-cover" style="background:${p.cover}">
+          <span class="community-cover-label">скриншот проекта</span>
+        </div>
+        <div class="community-body">
+          <div>
+            <h3 class="community-title">${p.title}</h3>
+            <div class="community-author">
+              ${p.core ? '<span class="community-core-mark" title="команда We Designerz">✦</span>' : ''}
+              <span>${p.author}</span>
+            </div>
+          </div>
+          <div class="community-tools">
+            ${p.tools.map((tool) => `<span class="community-tool">${tool}</span>`).join('')}
+          </div>
+          <div class="community-footer">
+            <span>♥ ${p.likes}</span>
+            <span>💬 ${p.comments}</span>
+            <span class="community-footer-tag">${p.tag}</span>
+          </div>
+        </div>
+      </article>
+    `).join('');
 
-    // Mouse events
-    carouselTrack.addEventListener('mousedown', startDrag);
-    window.addEventListener('mousemove', onDrag);
-    window.addEventListener('mouseup', stopDrag);
+    const showcaseChips = document.querySelectorAll('.showcase-chips .filter-tag');
+    const communityCards = communityGrid.querySelectorAll('.community-card');
 
-    // Пауза при наведении
-    carouselTrack.addEventListener('mouseenter', () => {
-      autoScrollingSpeed = 0;
-    });
-    carouselTrack.addEventListener('mouseleave', () => {
-      autoScrollingSpeed = 1;
-      stopDrag();
+    showcaseChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        showcaseChips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+
+        const filter = chip.getAttribute('data-filter');
+        communityCards.forEach((card) => {
+          const show = filter === 'all' || card.getAttribute('data-tags') === filter;
+          card.style.display = show ? '' : 'none';
+        });
+      });
     });
   }
 
   /* ====================
-     CLIENTS LOGOS MARQUEE
-     Плавная бегущая строка логотипов
+     СПИСОК УЧАСТНИКОВ (блок "Вступить")
      ==================== */
-  const marqueeTrack = document.querySelector('.logos-marquee-track');
-  if (marqueeTrack) {
-    // Удаляем CSS-анимацию и делаем плавный скролл через JS
-    marqueeTrack.style.animation = 'none';
-    
-    let position = 0;
-    let speed = 0.5; // пикселей за кадр
-    let isPaused = false;
-    let rafId = null;
-    
-    // Получаем ширину оригинального контента (первые 10 элементов)
-    const originalContentWidth = () => {
-      const items = marqueeTrack.querySelectorAll('.logo-item');
-      let width = 0;
-      const gapStr = window.getComputedStyle(marqueeTrack).gap;
-      const gap = gapStr && gapStr !== 'normal' ? parseInt(gapStr) : 80;
-      for (let i = 0; i < 10; i++) {
-        if (items[i]) {
-          width += items[i].offsetWidth + gap; // используем динамический gap
-        }
-      }
-      return width;
-    };
-    
-    let contentWidth = originalContentWidth();
-    
-    function animate() {
-      if (!isPaused) {
-        position += speed;
-        
-        // Когда прошли половину (один полный набор), сбрасываем в 0
-        if (position >= contentWidth) {
-          position = 0;
-        }
-        
-        marqueeTrack.style.transform = `translateX(-${position}px)`;
-      }
-      rafId = requestAnimationFrame(animate);
-    }
-    
-    // Пауза при наведении
-    marqueeTrack.addEventListener('mouseenter', () => {
-      isPaused = true;
-    });
-    marqueeTrack.addEventListener('mouseleave', () => {
-      isPaused = false;
-    });
-    
-    // Обновляем ширину при ресайзе
-    window.addEventListener('resize', () => {
-      contentWidth = originalContentWidth();
-    });
-    
-    // Запускаем анимацию
-    animate();
+  const memberChips = document.getElementById('member-chips');
+  if (memberChips) {
+    const members = ['@tyoma', '@alina', '@andrey', '@marina_k', '@den_o', '@flora_girl', '@kirill_r', '@oleg_p', '@muse_day', '@nikita', '@vera_s', '@sol'];
+    memberChips.innerHTML = members.map((m) => `<span class="member-chip">${m}</span>`).join('')
+      + '<span class="member-chip member-chip-more">+1 236 ещё</span>';
   }
 
   /* ====================
-     CLIENTS LOGOS PROTECTION
-     Защита логотипов от скачивания
+     ВСТУПИТЬ — тост об успехе
      ==================== */
-  const clientLogos = document.querySelectorAll('.clients-logos .logo-item img');
-  clientLogos.forEach(logo => {
-    // Блокировка контекстного меню (правый клик)
-    logo.addEventListener('contextmenu', (e) => {
+  const joinToast = document.getElementById('join-toast');
+  let joinToastTimer = null;
+
+  document.querySelectorAll('[data-join]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
-      return false;
-    });
-    // Блокировка drag & drop
-    logo.addEventListener('dragstart', (e) => {
-      e.preventDefault();
-      return false;
+      if (!joinToast) return;
+
+      joinToast.textContent = 'Готово — добро пожаловать в We Designerz ✦';
+      joinToast.classList.add('is-visible');
+
+      clearTimeout(joinToastTimer);
+      joinToastTimer = setTimeout(() => {
+        joinToast.classList.remove('is-visible');
+      }, 3200);
     });
   });
 })();

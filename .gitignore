@@ -32,3 +32,6 @@ build/
 # Environment
 .env
 .env.local
+# Stray build/audit artifacts
+.astro/
+product-design-audit-homepage/
