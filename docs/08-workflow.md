@@ -54,9 +54,14 @@ Opus и Sonnet **не общаются напрямую**. Интерфейс м
 
 - Локально: `python3 -m http.server 8080` → `http://localhost:8080/index.html`.
   Не открывать `file://` и не `npm run dev` (скрипта нет).
-- Прод: GitHub Pages, домен `wedesignerz.com`, деплой по push в `main`
-  (`.github/workflows/deploy.yml`). Перед деплоем коммитить новые папки (`css/`, `js/`,
-  `docs/`, `supabase/`), иначе прод сломается.
+- Прод: GitHub Pages, домен `wedesignerz.com`, деплой **только по push в `main`**
+  (`.github/workflows/deploy.yml`).
+- **Работаем «в тени»:** весь редизайн живёт в ветке **`redesign`**. `main` = текущий
+  живой сайт, его НЕ трогаем. Push ветки `redesign` деплой не запускает.
+  - Sonnet и все правки — на ветке `redesign` (проверь `git branch --show-current`).
+  - Когда редизайн готов к запуску → влить в прод:
+    `git checkout main && git merge redesign && git push` (только тогда уедет в прод).
+  - Пуш ветки `redesign` в origin безопасен (не деплоит) — можно для бэкапа/превью.
 
 ## Принципы
 
