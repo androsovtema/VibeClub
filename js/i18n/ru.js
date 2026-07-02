@@ -95,6 +95,7 @@ export const ru = {
   'project.comment.placeholder': 'Твоё сообщение',
   'project.comment.submit': 'Отправить',
   'project.comment.submitting': 'Отправляем…',
+  'project.comment.error': 'Сообщение не отправилось. Попробуй ещё раз.',
 
   'project.upvote.error': 'Не получилось. Попробуй ещё раз.'
 };

@@ -40,6 +40,7 @@ const commentGateEl = document.querySelector('[data-comment-gate]');
 const commentFormEl = document.querySelector('[data-comment-form]');
 const commentInput = document.querySelector('[data-comment-input]');
 const commentSubmitBtn = document.querySelector('[data-comment-submit]');
+const commentErrorEl = document.querySelector('[data-comment-error]');
 
 let currentUser = null;
 let currentProject = null;
@@ -278,6 +279,7 @@ commentFormEl.addEventListener('submit', async (event) => {
   const body = commentInput.value.trim();
   if (!body) return;
 
+  commentErrorEl.hidden = true;
   commentBusy = true;
   commentSubmitBtn.disabled = true;
   commentSubmitBtn.textContent = t('project.comment.submitting');
@@ -292,7 +294,11 @@ commentFormEl.addEventListener('submit', async (event) => {
   commentSubmitBtn.disabled = false;
   commentSubmitBtn.textContent = t('project.comment.submit');
 
-  if (error) return;
+  if (error) {
+    commentErrorEl.textContent = t('project.comment.error');
+    commentErrorEl.hidden = false;
+    return;
+  }
 
   commentInput.value = '';
   await loadComments();
