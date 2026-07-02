@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Добавь свой проект в витрину We Designerz. Расскажи, что за продукт и как ты его навайбкодил — команда проверит и опубликует.">
+  <meta name="keywords" content="вайбкодинг, vibe coding, добавить проект, сообщество, ИИ, нейросети">
+  <meta name="author" content="We Designerz">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Покажи свой проект — We Designerz">
+  <meta property="og:description"
+    content="Добавь проект в витрину We Designerz. Проверим и опубликуем.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wedesignerz.com/submit.html">
+  <meta property="og:image" content="./assets/images/og-image.jpg">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Покажи свой проект — We Designerz">
+  <meta name="twitter:description" content="Добавь проект в витрину We Designerz.">
+  <meta name="twitter:image" content="./assets/images/og-image.jpg">
+
+  <title>Покажи свой проект — We Designerz</title>
+  <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
+  <link rel="canonical" href="https://wedesignerz.com/submit.html">
+
+  <!-- Google Fonts: Onest + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a class="logo" href="index.html" aria-label="We Designerz — на главную">
+      <span class="logo-text">We Designerz</span>
+    </a>
+
+    <nav class="nav" aria-label="Главная навигация">
+      <a href="index.html" class="nav-home">Главная</a>
+      <a href="projects.html">Проекты</a>
+      <a href="about.html">О нас</a>
+      <span class="header-auth" data-header-auth>
+        <button type="button" class="btn-start" data-join>Вступить</button>
+      </span>
+    </nav>
+
+    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <main>
+    <section class="submit-hero">
+      <h1>Покажи свой проект</h1>
+    </section>
+
+    <!-- Гейт без логина -->
+    <section class="submit-gate" id="submit-gate" data-submit-gate>
+      <p class="submit-gate-text" data-submit-gate-text></p>
+      <button type="button" class="btn-primary" data-join data-submit-gate-action></button>
+    </section>
+
+    <!-- Форма (появляется после логина) -->
+    <section class="submit-form-wrap" id="submit-form-wrap" data-submit-form-wrap hidden>
+      <form class="submit-form" id="submit-form" novalidate>
+        <div class="field">
+          <label for="submit-title" data-label-title></label>
+          <input id="submit-title" type="text" name="title" maxlength="80" required />
+          <p class="field-error" data-error="title" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="submit-description" data-label-description></label>
+          <textarea id="submit-description" name="description" rows="5" required></textarea>
+          <p class="field-error" data-error="description" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="submit-url" data-label-url></label>
+          <input id="submit-url" type="url" name="projectUrl" required />
+          <p class="field-error" data-error="url" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="submit-cover" data-label-cover></label>
+          <input id="submit-cover" type="file" name="cover" accept="image/jpeg,image/png,image/webp"
+            data-cover-input />
+          <p class="field-hint" data-hint-cover></p>
+          <div class="submit-cover-preview" data-cover-preview hidden>
+            <img data-cover-preview-img alt="" />
+            <button type="button" class="submit-cover-remove" data-cover-remove></button>
+          </div>
+          <p class="field-error" data-error="cover" hidden></p>
+        </div>
+
+        <div class="field">
+          <label data-label-tags></label>
+          <div class="submit-chip-group" data-tags-group></div>
+          <p class="field-hint" data-hint-tags></p>
+          <p class="field-error" data-error="tags" hidden></p>
+        </div>
+
+        <div class="field">
+          <label data-label-tools></label>
+          <div class="submit-chip-group" data-tools-group></div>
+          <div class="submit-custom-tool">
+            <input type="text" class="submit-custom-tool-input" data-tool-custom-input maxlength="30" />
+            <button type="button" class="btn-secondary submit-custom-tool-add" data-tool-custom-add></button>
+          </div>
+          <p class="field-hint" data-hint-tools></p>
+          <p class="field-error" data-error="tools" hidden></p>
+        </div>
+
+        <p class="submit-form-error" data-submit-error hidden></p>
+
+        <button type="submit" class="btn-primary submit-form-submit" data-submit-btn></button>
+      </form>
+    </section>
+
+    <!-- Экран успеха -->
+    <section class="submit-success" id="submit-success" data-submit-success hidden>
+      <span class="submit-success-glyph" aria-hidden="true">✦</span>
+      <h2 data-success-title></h2>
+      <p data-success-text></p>
+      <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer" class="btn-secondary"
+        data-success-chat></a>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-text">We Designerz</span>
+          </div>
+          <p class="footer-tagline"><strong>design = создавать.</strong> Сообщество тех, кто делает продукты с ИИ — независимо от бэкграунда.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="footer-col-title">Сообщество</div>
+            <div class="footer-col-links">
+              <a href="https://t.me/wedesignerz" target="_blank" rel="noopener noreferrer">Telegram-канал</a>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
+              <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
+              <a href="projects.html">Витрина проектов</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Команда</div>
+            <div class="footer-col-links">
+              <span>Тёма — канал и вайбкодинг</span>
+              <span>Алина — дизайн</span>
+              <span>Андрей — продюсер</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 We Designerz</span>
+        <span>сделано во вайбкоде ✦</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./main.js"></script>
+  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/submit.js"></script>
+</body>
+
+</html>

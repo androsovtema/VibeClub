@@ -39,7 +39,46 @@ export const ru = {
   'auth.error.required_password': 'Укажи пароль.',
   'auth.error.required_name': 'Укажи имя.',
 
-  'showcase.empty': 'Здесь пока пусто. Будь первым — добавь проект.'
+  'showcase.empty': 'Здесь пока пусто. Будь первым — добавь проект.',
+
+  'submit.gate.text': 'Чтобы добавить проект, войди — это быстро.',
+  'submit.gate.action': 'Войти',
+
+  'submit.field.title': 'Название',
+  'submit.field.title.placeholder': 'Как называется проект',
+  'submit.field.description': 'Что это и как сделано',
+  'submit.field.description.placeholder': 'Что за продукт и как ты его вайбкодил: каким ИИ пользовался, что было сложно',
+  'submit.field.url': 'Ссылка на проект',
+  'submit.field.url.placeholder': 'https://…',
+  'submit.field.cover': 'Обложка',
+  'submit.field.cover.hint': 'JPEG, PNG или WebP, до 3 МБ. Без обложки карточка получит фирменный градиент.',
+  'submit.field.cover.remove': 'Убрать обложку',
+  'submit.field.tags': 'Теги',
+  'submit.field.tags.hint': 'Выбери минимум один',
+  'submit.field.tools': 'Инструменты ИИ',
+  'submit.field.tools.hint': 'Выбери минимум один или добавь свой',
+  'submit.field.tools.custom.placeholder': 'свой вариант',
+  'submit.field.tools.custom.add': 'Добавить',
+  'submit.field.tools.custom.remove': 'Убрать',
+
+  'submit.action.submit': 'Отправить на модерацию',
+  'submit.action.submitting': 'Отправляем…',
+
+  'submit.success.title': 'Готово!',
+  'submit.success.text': 'Проверим и опубликуем. Загляни в чат, пока ждёшь.',
+  'submit.success.chat': 'Чат сообщества',
+
+  'submit.error.required_title': 'Укажи название.',
+  'submit.error.max_title': 'Название слишком длинное — максимум 80 символов.',
+  'submit.error.required_description': 'Расскажи, что это и как сделано.',
+  'submit.error.required_url': 'Укажи ссылку на проект.',
+  'submit.error.invalid_url': 'Ссылка должна начинаться с http:// или https://.',
+  'submit.error.required_tags': 'Выбери хотя бы один тег.',
+  'submit.error.required_tools': 'Выбери хотя бы один инструмент.',
+  'submit.error.cover_type': 'Обложка должна быть JPEG, PNG или WebP.',
+  'submit.error.cover_size': 'Обложка слишком тяжёлая — максимум 3 МБ.',
+  'submit.error.upload': 'Не получилось загрузить обложку. Попробуй ещё раз.',
+  'submit.error.insert': 'Не получилось отправить проект. Попробуй ещё раз.'
 };
 
 export function t(key) {
