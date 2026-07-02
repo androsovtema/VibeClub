@@ -107,7 +107,41 @@ export const ru = {
   'profile.projects.title': 'Проекты участника',
   'profile.projects.empty': 'Пока без проектов',
 
-  'activity.toast.added': 'добавил проект'
+  'activity.toast.added': 'добавил проект',
+
+  'admin.loading': 'Загрузка…',
+  'admin.doctitle': 'Модерация — We Designerz',
+  'admin.title': 'Модерация',
+  'admin.denied.doctitle': 'Доступа нет — We Designerz',
+  'admin.denied.title': 'Доступа нет',
+  'admin.denied.text': 'Эта страница только для команды модерации We Designerz.',
+  'admin.denied.link': 'На главную',
+
+  'admin.tab.pending': 'На модерации',
+  'admin.tab.published': 'Опубликованные',
+  'admin.tab.rejected': 'Отклонённые',
+  'admin.tab.comments': 'Комментарии',
+
+  'admin.pending.empty': 'Пока пусто — новых проектов на модерации нет.',
+  'admin.published.empty': 'Пока пусто — опубликованных проектов нет.',
+  'admin.rejected.empty': 'Пока пусто — отклонённых проектов нет.',
+  'admin.comments.empty': 'Пока пусто — комментариев нет.',
+
+  'admin.card.open': 'Открыть проект →',
+
+  'admin.action.publish': 'Опубликовать',
+  'admin.action.reject': 'Отклонить',
+  'admin.action.reject.confirm': 'Точно отклонить?',
+  'admin.action.unpublish': 'Снять с публикации',
+  'admin.action.restore': 'Вернуть на модерацию',
+  'admin.action.hide': 'Скрыть',
+  'admin.action.hide.confirm': 'Точно скрыть?',
+  'admin.action.yes': 'Да',
+  'admin.action.cancel': 'Отмена',
+
+  'admin.iscore.label': 'Флагман We Designerz',
+  'admin.comment.project.prefix': 'Проект:',
+  'admin.error.generic': 'Не получилось выполнить действие. Попробуй ещё раз.'
 };
 
 export function t(key) {

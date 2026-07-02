@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>Модерация — We Designerz</title>
+  <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
+
+  <!-- Google Fonts: Onest + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="We Designerz — на главную">
+        <span class="logo-text">We Designerz</span>
+      </a>
+
+      <nav class="nav" aria-label="Главная навигация">
+        <a href="index.html" class="nav-home">Главная</a>
+        <a href="projects.html">Проекты</a>
+        <a href="about.html">О нас</a>
+        <span class="header-auth" data-header-auth>
+          <button type="button" class="btn-start" data-join>Вступить</button>
+        </span>
+      </nav>
+
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Загрузка -->
+    <section class="adm-loading" data-admin-loading>
+      <p data-loading-text></p>
+    </section>
+
+    <!-- Доступа нет -->
+    <section class="adm-denied" data-admin-denied hidden>
+      <span class="adm-denied-glyph" aria-hidden="true">✦</span>
+      <h1 data-denied-title></h1>
+      <p data-denied-text></p>
+      <a href="index.html" class="btn-secondary" data-denied-link></a>
+    </section>
+
+    <!-- Панель модерации -->
+    <section class="adm-dashboard" data-admin-dashboard hidden>
+      <div class="adm-head">
+        <h1 data-admin-title></h1>
+      </div>
+
+      <div class="adm-tabs" role="tablist" data-admin-tabs>
+        <button type="button" class="adm-tab is-active" data-tab-btn="pending" role="tab" aria-selected="true">
+          <span data-tab-label></span>
+          <span class="adm-tab-count" data-tab-count>0</span>
+        </button>
+        <button type="button" class="adm-tab" data-tab-btn="published" role="tab" aria-selected="false">
+          <span data-tab-label></span>
+          <span class="adm-tab-count" data-tab-count>0</span>
+        </button>
+        <button type="button" class="adm-tab" data-tab-btn="rejected" role="tab" aria-selected="false">
+          <span data-tab-label></span>
+          <span class="adm-tab-count" data-tab-count>0</span>
+        </button>
+        <button type="button" class="adm-tab" data-tab-btn="comments" role="tab" aria-selected="false">
+          <span data-tab-label></span>
+          <span class="adm-tab-count" data-tab-count>0</span>
+        </button>
+      </div>
+
+      <p class="adm-error" data-admin-error hidden></p>
+
+      <div class="adm-panel" data-tab-panel="pending">
+        <div class="adm-list" data-pending-list aria-live="polite"></div>
+        <p class="adm-empty" data-pending-empty hidden></p>
+      </div>
+
+      <div class="adm-panel" data-tab-panel="published" hidden>
+        <div class="adm-list" data-published-list aria-live="polite"></div>
+        <p class="adm-empty" data-published-empty hidden></p>
+      </div>
+
+      <div class="adm-panel" data-tab-panel="rejected" hidden>
+        <div class="adm-list" data-rejected-list aria-live="polite"></div>
+        <p class="adm-empty" data-rejected-empty hidden></p>
+      </div>
+
+      <div class="adm-panel" data-tab-panel="comments" hidden>
+        <div class="adm-list" data-comments-mod-list aria-live="polite"></div>
+        <p class="adm-empty" data-comments-mod-empty hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-text">We Designerz</span>
+          </div>
+          <p class="footer-tagline"><strong>design = создавать.</strong> Сообщество тех, кто делает продукты с ИИ — независимо от бэкграунда.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="footer-col-title">Сообщество</div>
+            <div class="footer-col-links">
+              <a href="https://t.me/wedesignerz" target="_blank" rel="noopener noreferrer">Telegram-канал</a>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
+              <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
+              <a href="projects.html">Витрина проектов</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Команда</div>
+            <div class="footer-col-links">
+              <span>Тёма — канал и вайбкодинг</span>
+              <span>Алина — дизайн</span>
+              <span>Андрей — продюсер</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 We Designerz</span>
+        <span>сделано во вайбкоде ✦</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./main.js"></script>
+  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/admin.js"></script>
+</body>
+
+</html>
