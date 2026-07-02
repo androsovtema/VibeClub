@@ -18,6 +18,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8091"],
       "port": 8091
+    },
+    {
+      "name": "wdz-t6",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8123"],
+      "port": 8123
     }
   ]
 }
