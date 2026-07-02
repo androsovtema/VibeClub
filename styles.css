@@ -3283,6 +3283,11 @@ section {
     align-items: flex-start;
   }
 
+  .who-hire-cta {
+    white-space: normal;
+    text-align: center;
+  }
+
   .showcase-grid {
     grid-template-columns: 1fr;
   }
