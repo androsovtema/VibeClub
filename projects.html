@@ -5,25 +5,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
-    content="Портфолио We Designerz. Проекты в сферах веб-дизайна, брендинга, презентаций и UX/UI. Реальные кейсы для реальных бизнесов.">
-  <meta name="keywords" content="портфолио дизайн студии, кейсы веб-дизайна, брендинг проекты, UX/UI портфолио">
+    content="Проекты сообщества We Designerz — то, что навайбкодили участники. Смотри витрину, фильтруй по категориям, добавляй своё.">
+  <meta name="keywords" content="вайбкодинг, vibe coding, проекты сообщества, витрина проектов, ИИ, нейросети">
   <meta name="author" content="We Designerz">
   <meta name="robots" content="index, follow">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Проекты — We Designerz">
-  <meta property="og:description" content="Портфолио студии We Designerz. Реальные проекты для реальных бизнесов.">
+  <meta property="og:title" content="Проекты сообщества — We Designerz">
+  <meta property="og:description"
+    content="То, что навайбкодили участники We Designerz. Живая витрина проектов сообщества.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wedesignerz.com/projects.html">
   <meta property="og:image" content="./assets/images/og-image.jpg">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Проекты — We Designerz">
-  <meta name="twitter:description" content="Портфолио студии We Designerz.">
+  <meta name="twitter:title" content="Проекты сообщества — We Designerz">
+  <meta name="twitter:description" content="То, что навайбкодили участники We Designerz.">
   <meta name="twitter:image" content="./assets/images/og-image.jpg">
 
-  <title>Проекты — We Designerz</title>
+  <title>Проекты сообщества — We Designerz</title>
   <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
   <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
@@ -51,7 +52,9 @@
       <a href="index.html" class="nav-home">Главная</a>
       <a href="projects.html">Проекты</a>
       <a href="about.html">О нас</a>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-start" rel="noopener noreferrer">Начать проект</a>
+      <span class="header-auth" data-header-auth>
+        <button type="button" class="btn-start" data-join>Вступить</button>
+      </span>
     </nav>
 
     <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
@@ -136,6 +139,7 @@
   </footer>
 
   <script src="./main.js"></script>
+  <script type="module" src="./js/app.js"></script>
   <script type="module" src="./js/showcase.js"></script>
 </body>
 

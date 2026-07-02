@@ -13,6 +13,8 @@ export const CATEGORY_LABELS = {
   art: 'Творчество'
 };
 
+// Декоративная палитра-заглушка для обложек без скриншота. Осознанно не токенизируем —
+// это фиксированный набор акцентных градиентов, не связанный с UI-токенами.
 const COVER_GRADIENTS = [
   'linear-gradient(135deg, oklch(0.34 0.13 250), oklch(0.24 0.07 295))',
   'linear-gradient(135deg, oklch(0.36 0.14 320), oklch(0.26 0.08 350))',
@@ -60,7 +62,7 @@ export async function fetchPublishedProjects({ category, sort = 'new', limit } =
   }
 
   query = sort === 'top'
-    ? query.order('upvotes', { ascending: false })
+    ? query.order('upvotes', { ascending: false }).order('created_at', { ascending: false })
     : query.order('created_at', { ascending: false });
 
   if (limit) query = query.limit(limit);

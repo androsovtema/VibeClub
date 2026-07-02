@@ -30,7 +30,7 @@ body {
 }
 
 ::selection {
-  background: oklch(0.62 0.2 292 / 40%);
+  background: oklch(62% 0.2 292deg / 40%);
 }
 
 a {
@@ -488,7 +488,7 @@ section {
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   padding: 18px;
-  box-shadow: 0 40px 100px -40px oklch(0.5 0.18 290 / 55%);
+  box-shadow: 0 40px 100px -40px oklch(50% 0.18 290deg / 55%);
   opacity: 0;
   transform: translateY(30px);
   animation: fade-up 0.8s var(--ease-out) forwards;
@@ -509,11 +509,11 @@ section {
 }
 
 .hero-demo-dot-1 {
-  background: oklch(0.6 0.18 25);
+  background: oklch(60% 0.18 25deg);
 }
 
 .hero-demo-dot-2 {
-  background: oklch(0.78 0.15 85);
+  background: oklch(78% 0.15 85deg);
 }
 
 .hero-demo-dot-3 {
@@ -1421,13 +1421,13 @@ section {
 
 .audio-btn:hover {
   background: var(--gradient-electric);
-  color: #fff;
+  color: #ffffff;
   border-color: transparent;
 }
 
 .audio-btn.playing {
   background: var(--gradient-electric);
-  color: #fff;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -1508,12 +1508,12 @@ section {
 
 .showcase-sort-label {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-tertiary);
 }
 
 .showcase-sort-select {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
@@ -1570,7 +1570,7 @@ section {
 .filter-tag.active,
 .chip.active {
   background: var(--gradient-electric);
-  color: #fff;
+  color: #ffffff;
   border-color: transparent;
 }
 
@@ -1993,7 +1993,7 @@ section {
 .showcase-lead {
   margin: 12px 0 0;
   max-width: 520px;
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 1.55;
   color: var(--color-text-secondary);
 }
@@ -2027,7 +2027,7 @@ section {
   color: inherit;
   transform: translateY(-6px);
   border-color: var(--color-border-strong);
-  box-shadow: 0 28px 60px -28px oklch(0.5 0.18 295 / 65%);
+  box-shadow: 0 28px 60px -28px oklch(50% 0.18 295deg / 65%);
 }
 
 /* Обложка 16:9 — как превью видео на YouTube */
@@ -2054,8 +2054,8 @@ section {
 
 .community-cover-label {
   font-family: var(--font-mono);
-  font-size: 12px;
-  color: oklch(1 0 0 / 50%);
+  font-size: var(--text-xs);
+  color: color-mix(in oklch, var(--color-text-primary) 50%, transparent);
   letter-spacing: 0.04em;
 }
 
@@ -2065,9 +2065,9 @@ section {
   right: 10px;
   bottom: 10px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.02em;
-  color: #ffffff;
+  color: var(--color-text-primary);
   background: rgb(0 0 0 / 65%);
   border-radius: 6px;
   padding: 3px 8px;
@@ -2084,8 +2084,8 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  background: oklch(15% 0.02 282deg / 60%);
+  font-size: var(--text-base);
+  background: color-mix(in oklch, var(--color-bg) 60%, transparent);
   backdrop-filter: blur(2px);
 }
 
@@ -2107,7 +2107,7 @@ section {
   align-items: center;
   justify-content: center;
   background: var(--color-surface-hover);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-text-secondary);
 }
@@ -2122,7 +2122,7 @@ section {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   color: var(--color-text-tertiary);
 }
 
@@ -2135,7 +2135,7 @@ section {
 
 .community-title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: var(--leading-snug);
@@ -2162,7 +2162,7 @@ section {
   gap: 16px;
   padding-top: 10px;
   border-top: 1px solid var(--color-border);
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-tertiary);
   font-family: var(--font-mono);
 }
@@ -2175,9 +2175,9 @@ section {
 .showcase-empty {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 48px 20px;
+  padding: var(--space-sm) 20px;
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: var(--text-base);
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
 }
@@ -2287,7 +2287,7 @@ section {
   position: relative;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 54px 28px 80px;
+  padding: 54px 28px var(--space-md);
   z-index: 1;
 }
 
@@ -2329,7 +2329,7 @@ section {
 .community-cta-text {
   margin: 18px 0 0;
   max-width: 440px;
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 1.6;
   color: var(--color-text-secondary);
 }
@@ -3268,7 +3268,7 @@ body.menu-open {
   }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .auth-modal {
     padding: var(--space-2xs) var(--space-2xs) var(--space-xs);
   }

@@ -7,39 +7,38 @@
 
 :root {
   /* ===== ЦВЕТ: база (тёмная) ===== */
-  --color-bg: oklch(0.155 0.018 282);
-  --color-bg-elevated: oklch(0.195 0.022 284);
-  --color-surface: oklch(0.195 0.022 284);
-  --color-surface-hover: oklch(0.235 0.024 286);
-  --color-border: oklch(0.27 0.018 286);
-  --color-border-strong: oklch(0.32 0.022 286);
-  --color-bg-sunken: oklch(0.135 0.018 282);
+  --color-bg: oklch(15.5% 0.018 282deg);
+  --color-bg-elevated: oklch(19.5% 0.022 284deg);
+  --color-surface: oklch(19.5% 0.022 284deg);
+  --color-surface-hover: oklch(23.5% 0.024 286deg);
+  --color-border: oklch(27% 0.018 286deg);
+  --color-border-strong: oklch(32% 0.022 286deg);
+  --color-bg-sunken: oklch(13.5% 0.018 282deg);
 
   /* ===== ЦВЕТ: текст ===== */
-  --color-text-primary: oklch(0.97 0.006 286);
-  --color-text-secondary: oklch(0.77 0.014 286);
-  --color-text-tertiary: oklch(0.6 0.018 286);
+  --color-text-primary: oklch(97% 0.006 286deg);
+  --color-text-secondary: oklch(77% 0.014 286deg);
+  --color-text-tertiary: oklch(60% 0.018 286deg);
   --color-text-on-accent: #0c0c14;
 
   /* ===== ЦВЕТ: акцентный градиент (электрик-синий → фиолет → пурпур → тёплый) ===== */
-  --color-accent-blue: oklch(0.68 0.16 248);
-  --color-accent-violet: oklch(0.62 0.20 292);
-  --color-accent-purple: oklch(0.64 0.22 332);
-  --color-accent-warm: oklch(0.80 0.15 70);
-
+  --color-accent-blue: oklch(68% 0.16 248deg);
+  --color-accent-violet: oklch(62% 0.20 292deg);
+  --color-accent-purple: oklch(64% 0.22 332deg);
+  --color-accent-warm: oklch(80% 0.15 70deg);
   --gradient-electric: linear-gradient(100deg, var(--color-accent-blue) 0%, var(--color-accent-violet) 40%, var(--color-accent-purple) 72%, var(--color-accent-warm) 100%);
   --gradient-warm: linear-gradient(135deg, var(--color-accent-violet) 0%, var(--color-accent-warm) 100%);
 
   /* ===== ЦВЕТ: семантика ===== */
-  --color-success: oklch(0.74 0.15 152);
-  --color-error: oklch(0.64 0.21 25);
-  --color-warning: oklch(0.8 0.15 85);
+  --color-success: oklch(74% 0.15 152deg);
+  --color-error: oklch(64% 0.21 25deg);
+  --color-warning: oklch(80% 0.15 85deg);
   --color-focus: var(--color-accent-blue);
 
   /* ===== ТИПОГРАФИКА: семьи ===== */
   --font-display: 'Onest', system-ui, -apple-system, sans-serif;
   --font-body: 'Onest', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', consolas, monospace;
 
   /* ===== ТИПОГРАФИКА: шкала ===== */
   --text-xs: 12px;
@@ -52,7 +51,6 @@
   --text-4xl: clamp(32px, 5vw, 48px);
   --text-5xl: clamp(42px, 7vw, 72px);
   --text-hero: clamp(42px, 6vw, 78px);
-
   --leading-tight: 1.15;
   --leading-snug: 1.35;
   --leading-normal: 1.6;
@@ -81,15 +79,14 @@
   --shadow-sm: 0 2px 8px rgb(0 0 0 / 30%);
   --shadow-md: 0 8px 24px rgb(0 0 0 / 40%);
   --shadow-lg: 0 20px 60px rgb(0 0 0 / 50%);
-  --glow-blue: 0 0 40px oklch(0.68 0.16 248 / 35%);
-  --glow-violet: 0 0 40px oklch(0.62 0.2 292 / 35%);
-  --glow-warm: 0 0 40px oklch(0.8 0.15 70 / 30%);
+  --glow-blue: 0 0 40px oklch(68% 0.16 248deg / 35%);
+  --glow-violet: 0 0 40px oklch(62% 0.2 292deg / 35%);
+  --glow-warm: 0 0 40px oklch(80% 0.15 70deg / 30%);
 
   /* ===== ДВИЖЕНИЕ ===== */
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-
   --duration-fast: 150ms;
   --duration-base: 300ms;
   --duration-slow: 600ms;
