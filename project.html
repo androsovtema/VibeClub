@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Проект сообщества We Designerz: что придумали, как навайбкодили, что получилось. Смотри, обсуждай, лайкай.">
+  <meta name="keywords" content="вайбкодинг, vibe coding, проект, сообщество, ИИ, нейросети">
+  <meta name="author" content="We Designerz">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Проект сообщества — We Designerz">
+  <meta property="og:description" content="Смотри, что навайбкодили участники We Designerz.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wedesignerz.com/project.html">
+  <meta property="og:image" content="./assets/images/og-image.jpg">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Проект сообщества — We Designerz">
+  <meta name="twitter:description" content="Смотри, что навайбкодили участники We Designerz.">
+  <meta name="twitter:image" content="./assets/images/og-image.jpg">
+
+  <title>Проект — We Designerz</title>
+  <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
+  <link rel="canonical" href="https://wedesignerz.com/project.html">
+
+  <!-- Google Fonts: Onest + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a class="logo" href="index.html" aria-label="We Designerz — на главную">
+      <span class="logo-text">We Designerz</span>
+    </a>
+
+    <nav class="nav" aria-label="Главная навигация">
+      <a href="index.html" class="nav-home">Главная</a>
+      <a href="projects.html">Проекты</a>
+      <a href="about.html">О нас</a>
+      <span class="header-auth" data-header-auth>
+        <button type="button" class="btn-start" data-join>Вступить</button>
+      </span>
+    </nav>
+
+    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <main>
+    <!-- Загрузка -->
+    <section class="pd-loading" data-project-loading>
+      <p data-loading-text></p>
+    </section>
+
+    <!-- Проект не найден -->
+    <section class="pd-not-found" data-project-not-found hidden>
+      <span class="pd-not-found-glyph" aria-hidden="true">✦</span>
+      <h1 data-not-found-title></h1>
+      <p data-not-found-text></p>
+      <a href="projects.html" class="btn-secondary" data-not-found-link></a>
+    </section>
+
+    <!-- Карточка проекта -->
+    <section class="pd-hero" data-project-hero hidden>
+      <div class="pd-cover" data-project-cover>
+        <img class="pd-cover-img" data-project-cover-img alt="" hidden />
+        <span class="pd-cover-label" data-project-cover-label hidden></span>
+        <span class="pd-cover-core" data-project-cover-core hidden>
+          <span class="pd-core-mark">✦</span>
+        </span>
+      </div>
+
+      <div class="pd-hero-main">
+        <div class="pd-tool-badges" data-project-tools></div>
+
+        <h1 class="pd-title" data-project-title></h1>
+
+        <div class="pd-meta-row">
+          <span class="pd-avatar" data-project-avatar></span>
+          <span class="pd-author-name" data-project-author-name></span>
+          <span class="pd-date" data-project-date></span>
+        </div>
+
+        <div class="pd-tags" data-project-tags></div>
+
+        <p class="pd-description" data-project-description></p>
+
+        <div class="pd-actions">
+          <a class="btn-primary" data-project-open target="_blank" rel="noopener noreferrer" hidden></a>
+          <button type="button" class="pd-upvote" data-project-upvote aria-pressed="false">
+            <span aria-hidden="true">♥</span>
+            <span data-upvote-count>0</span>
+          </button>
+        </div>
+        <p class="pd-upvote-error" data-upvote-error hidden></p>
+      </div>
+    </section>
+
+    <!-- Обсуждение -->
+    <section class="pd-discussion" data-project-discussion hidden>
+      <h2 data-discussion-title></h2>
+
+      <div class="comments-list" data-comments-list></div>
+      <p class="comments-empty" data-comments-empty hidden></p>
+
+      <div class="comment-gate" data-comment-gate hidden>
+        <p data-comment-gate-text></p>
+        <button type="button" class="btn-primary" data-join data-comment-gate-action></button>
+      </div>
+
+      <form class="comment-form" data-comment-form hidden novalidate>
+        <textarea data-comment-input rows="3" required></textarea>
+        <button type="submit" class="btn-primary" data-comment-submit></button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-text">We Designerz</span>
+          </div>
+          <p class="footer-tagline"><strong>design = создавать.</strong> Сообщество тех, кто делает продукты с ИИ — независимо от бэкграунда.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="footer-col-title">Сообщество</div>
+            <div class="footer-col-links">
+              <a href="https://t.me/wedesignerz" target="_blank" rel="noopener noreferrer">Telegram-канал</a>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
+              <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
+              <a href="projects.html">Витрина проектов</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Команда</div>
+            <div class="footer-col-links">
+              <span>Тёма — канал и вайбкодинг</span>
+              <span>Алина — дизайн</span>
+              <span>Андрей — продюсер</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 We Designerz</span>
+        <span>сделано во вайбкоде ✦</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./main.js"></script>
+  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/project.js"></script>
+</body>
+
+</html>

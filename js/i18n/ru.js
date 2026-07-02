@@ -78,7 +78,25 @@ export const ru = {
   'submit.error.cover_type': 'Обложка должна быть JPEG, PNG или WebP.',
   'submit.error.cover_size': 'Обложка слишком тяжёлая — максимум 3 МБ.',
   'submit.error.upload': 'Не получилось загрузить обложку. Попробуй ещё раз.',
-  'submit.error.insert': 'Не получилось отправить проект. Попробуй ещё раз.'
+  'submit.error.insert': 'Не получилось отправить проект. Попробуй ещё раз.',
+
+  'project.loading': 'Загрузка…',
+  'project.notfound.title': 'Проект не найден',
+  'project.notfound.text': 'Такого проекта нет — возможно, его ещё не опубликовали или ссылка неверна.',
+  'project.notfound.link': 'Все проекты',
+  'project.notfound.doctitle': 'Проект не найден — We Designerz',
+  'project.action.open': 'Открыть проект →',
+  'project.cover.label': 'скриншот проекта',
+
+  'project.discussion.title': 'Обсуждение',
+  'project.comments.empty': 'Сообщений пока нет. Напиши первым.',
+  'project.comment.gate.text': 'Войди, чтобы оставить сообщение.',
+  'project.comment.gate.action': 'Войти',
+  'project.comment.placeholder': 'Твоё сообщение',
+  'project.comment.submit': 'Отправить',
+  'project.comment.submitting': 'Отправляем…',
+
+  'project.upvote.error': 'Не получилось. Попробуй ещё раз.'
 };
 
 export function t(key) {

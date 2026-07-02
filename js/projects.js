@@ -24,7 +24,7 @@ const COVER_GRADIENTS = [
   'linear-gradient(135deg, oklch(0.34 0.12 210), oklch(0.24 0.07 260))'
 ];
 
-function coverGradientFor(id) {
+export function coverGradientFor(id) {
   const str = String(id ?? '');
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
@@ -78,7 +78,7 @@ export async function fetchProjectById(id) {
   return { data: normalizeProject(data), error: null };
 }
 
-function initialOf(name) {
+export function initialOf(name) {
   return (name || '?').trim().charAt(0).toUpperCase() || '?';
 }
 
