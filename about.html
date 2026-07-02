@@ -44,22 +44,26 @@
 <body>
   <!-- Header -->
   <header class="header">
-    <a class="logo" href="index.html" aria-label="We Designerz — на главную">
-      <span class="logo-text">We Designerz</span>
-    </a>
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="We Designerz — на главную">
+        <span class="logo-text">We Designerz</span>
+      </a>
 
-    <nav class="nav" aria-label="Главная навигация">
-      <a href="index.html" class="nav-home">Главная</a>
-      <a href="projects.html">Проекты</a>
-      <a href="about.html">О нас</a>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-start" rel="noopener noreferrer">Начать проект</a>
-    </nav>
+      <nav class="nav" aria-label="Главная навигация">
+        <a href="index.html" class="nav-home">Главная</a>
+        <a href="projects.html">Проекты</a>
+        <a href="about.html" aria-current="page">О нас</a>
+        <span class="header-auth" data-header-auth>
+          <button type="button" class="btn-start" data-join>Вступить</button>
+        </span>
+      </nav>
 
-    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </header>
   <script>
     (function () {
@@ -183,7 +187,7 @@
           формируем бриф. Дизайнер получает полную картину с первого раза.</p>
         <p>Вы не объясняете одно и то же дважды.</p>
       </div>
-      <a href="https://t.me/androsovart" target="_blank" class="text-link" rel="noopener noreferrer">Написать нам</a>
+      <button type="button" class="text-link" data-join>Написать нам</button>
     </section>
 
     <!-- Testimonials -->
@@ -243,8 +247,7 @@
     <!-- CTA -->
     <section class="cta-section" id="cta">
       <h2>Познакомились? Теперь — к делу.</h2>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-primary" rel="noopener noreferrer">Начать
-        проект</a>
+      <button type="button" class="btn-primary" data-join>Начать проект</button>
     </section>
   </main>
 
@@ -262,7 +265,8 @@
           <div>
             <div class="footer-col-title">Сообщество</div>
             <div class="footer-col-links">
-              <a href="https://t.me/androsovart" target="_blank" rel="noopener noreferrer">Телеграм-чат</a>
+              <a href="https://t.me/wedesignerz" target="_blank" rel="noopener noreferrer">Telegram-канал</a>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
               <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
               <a href="projects.html">Витрина проектов</a>
             </div>
@@ -285,6 +289,7 @@
   </footer>
 
   <script src="./main.js"></script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 
 </html>

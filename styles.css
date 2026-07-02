@@ -124,11 +124,7 @@ h4 {
  *  HEADER  *
  *************************/
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   height: 80px;
-  padding: 0 var(--space-md);
   position: fixed;
   top: 0;
   left: 0;
@@ -137,6 +133,16 @@ h4 {
   background: rgb(10 10 20 / 72%);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 28px;
 }
 
 .logo {
@@ -205,6 +211,14 @@ h4 {
 }
 
 .nav a:hover::after {
+  width: 100%;
+}
+
+.nav a[aria-current="page"] {
+  color: var(--color-text-primary);
+}
+
+.nav a[aria-current="page"]::after {
   width: 100%;
 }
 
@@ -2931,8 +2945,11 @@ section {
 
 @media (width <= 768px) {
   .header {
-    padding: 0 var(--space-xs);
     height: 70px;
+  }
+
+  .header-inner {
+    padding: 0 20px;
   }
 
   .activity-toast {
@@ -3659,6 +3676,12 @@ body.menu-open {
   margin-bottom: var(--space-xs);
 }
 
+.pd-back {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--space-sm) var(--space-md) 0;
+}
+
 .pd-hero {
   display: flex;
   flex-direction: column;
@@ -3974,6 +3997,7 @@ body.menu-open {
 @media (width <= 768px) {
   .pd-loading,
   .pd-not-found,
+  .pd-back,
   .pd-hero,
   .pd-discussion {
     padding-left: 20px;
@@ -4031,6 +4055,12 @@ body.menu-open {
 .pf-not-found p {
   color: var(--color-text-secondary);
   margin-bottom: var(--space-xs);
+}
+
+.pf-back {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: var(--space-sm) var(--space-md) 0;
 }
 
 .pf-hero {
@@ -4118,6 +4148,7 @@ body.menu-open {
 @media (width <= 768px) {
   .pf-loading,
   .pf-not-found,
+  .pf-back,
   .pf-hero,
   .pf-projects {
     padding-left: 20px;

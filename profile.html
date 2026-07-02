@@ -43,27 +43,33 @@
 <body>
   <!-- Header -->
   <header class="header">
-    <a class="logo" href="index.html" aria-label="We Designerz — на главную">
-      <span class="logo-text">We Designerz</span>
-    </a>
+    <div class="header-inner">
+      <a class="logo" href="index.html" aria-label="We Designerz — на главную">
+        <span class="logo-text">We Designerz</span>
+      </a>
 
-    <nav class="nav" aria-label="Главная навигация">
-      <a href="index.html" class="nav-home">Главная</a>
-      <a href="projects.html">Проекты</a>
-      <a href="about.html">О нас</a>
-      <span class="header-auth" data-header-auth>
-        <button type="button" class="btn-start" data-join>Вступить</button>
-      </span>
-    </nav>
+      <nav class="nav" aria-label="Главная навигация">
+        <a href="index.html" class="nav-home">Главная</a>
+        <a href="projects.html" aria-current="page">Проекты</a>
+        <a href="about.html">О нас</a>
+        <span class="header-auth" data-header-auth>
+          <button type="button" class="btn-start" data-join>Вступить</button>
+        </span>
+      </nav>
 
-    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </header>
 
   <main>
+    <div class="pf-back">
+      <a href="projects.html" class="back-link">Все проекты</a>
+    </div>
+
     <!-- Загрузка -->
     <section class="pf-loading" data-profile-loading>
       <p data-loading-text></p>
