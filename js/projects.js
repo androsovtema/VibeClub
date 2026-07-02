@@ -52,13 +52,17 @@ function normalizeProject(row) {
 }
 
 /**
- * @param {{ category?: string, sort?: 'new'|'top', limit?: number }} opts
+ * @param {{ category?: string, sort?: 'new'|'top', limit?: number, authorId?: string }} opts
  */
-export async function fetchPublishedProjects({ category, sort = 'new', limit } = {}) {
+export async function fetchPublishedProjects({ category, sort = 'new', limit, authorId } = {}) {
   let query = supabase.from('projects').select(SELECT).eq('status', 'published');
 
   if (category && category !== 'all') {
     query = query.contains('tags', [category]);
+  }
+
+  if (authorId) {
+    query = query.eq('author_id', authorId);
   }
 
   query = sort === 'top'

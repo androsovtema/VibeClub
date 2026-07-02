@@ -97,7 +97,17 @@ export const ru = {
   'project.comment.submitting': 'Отправляем…',
   'project.comment.error': 'Сообщение не отправилось. Попробуй ещё раз.',
 
-  'project.upvote.error': 'Не получилось. Попробуй ещё раз.'
+  'project.upvote.error': 'Не получилось. Попробуй ещё раз.',
+
+  'profile.loading': 'Загрузка…',
+  'profile.notfound.title': 'Профиль не найден',
+  'profile.notfound.text': 'Такого участника нет — возможно, ссылка неверна.',
+  'profile.notfound.link': 'Все проекты',
+  'profile.notfound.doctitle': 'Профиль не найден — We Designerz',
+  'profile.projects.title': 'Проекты участника',
+  'profile.projects.empty': 'Пока без проектов',
+
+  'activity.toast.added': 'добавил проект'
 };
 
 export function t(key) {

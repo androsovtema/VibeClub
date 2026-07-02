@@ -313,14 +313,4 @@
     }
   }
 
-  /* ====================
-     СПИСОК УЧАСТНИКОВ (блок "Вступить")
-     ==================== */
-  const memberChips = document.getElementById('member-chips');
-  if (memberChips) {
-    const members = ['@tyoma', '@alina', '@andrey', '@marina_k', '@den_o', '@flora_girl', '@kirill_r', '@oleg_p', '@muse_day', '@nikita', '@vera_s', '@sol'];
-    memberChips.innerHTML = members.map((m) => `<span class="member-chip">${m}</span>`).join('')
-      + '<span class="member-chip member-chip-more">+1 236 ещё</span>';
-  }
-
 })();

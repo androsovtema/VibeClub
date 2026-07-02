@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Профиль участника сообщества We Designerz: чем занимается, какие проекты навайбкодил.">
+  <meta name="keywords" content="вайбкодинг, vibe coding, профиль, участник, сообщество, ИИ">
+  <meta name="author" content="We Designerz">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Профиль участника — We Designerz">
+  <meta property="og:description" content="Профиль участника сообщества We Designerz.">
+  <meta property="og:type" content="profile">
+  <meta property="og:url" content="https://wedesignerz.com/profile.html">
+  <meta property="og:image" content="./assets/images/og-image.jpg">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Профиль участника — We Designerz">
+  <meta name="twitter:description" content="Профиль участника сообщества We Designerz.">
+  <meta name="twitter:image" content="./assets/images/og-image.jpg">
+
+  <title>Профиль — We Designerz</title>
+  <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
+  <link rel="canonical" href="https://wedesignerz.com/profile.html">
+
+  <!-- Google Fonts: Onest + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a class="logo" href="index.html" aria-label="We Designerz — на главную">
+      <span class="logo-text">We Designerz</span>
+    </a>
+
+    <nav class="nav" aria-label="Главная навигация">
+      <a href="index.html" class="nav-home">Главная</a>
+      <a href="projects.html">Проекты</a>
+      <a href="about.html">О нас</a>
+      <span class="header-auth" data-header-auth>
+        <button type="button" class="btn-start" data-join>Вступить</button>
+      </span>
+    </nav>
+
+    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <main>
+    <!-- Загрузка -->
+    <section class="pf-loading" data-profile-loading>
+      <p data-loading-text></p>
+    </section>
+
+    <!-- Профиль не найден -->
+    <section class="pf-not-found" data-profile-not-found hidden>
+      <span class="pf-not-found-glyph" aria-hidden="true">✦</span>
+      <h1 data-not-found-title></h1>
+      <p data-not-found-text></p>
+      <a href="projects.html" class="btn-secondary" data-not-found-link></a>
+    </section>
+
+    <!-- Профиль -->
+    <section class="pf-hero" data-profile-hero hidden>
+      <span class="pf-avatar" data-profile-avatar></span>
+      <h1 class="pf-name" data-profile-name></h1>
+      <p class="pf-bio" data-profile-bio></p>
+      <div class="pf-links">
+        <a class="pf-link" data-profile-telegram target="_blank" rel="noopener noreferrer" hidden></a>
+        <a class="pf-link" data-profile-website target="_blank" rel="noopener noreferrer" hidden></a>
+      </div>
+    </section>
+
+    <!-- Проекты участника -->
+    <section class="pf-projects" data-profile-projects hidden>
+      <h2 data-projects-title></h2>
+      <div class="showcase-grid" data-profile-projects-grid aria-live="polite"></div>
+      <p class="showcase-empty" data-profile-projects-empty hidden></p>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-text">We Designerz</span>
+          </div>
+          <p class="footer-tagline"><strong>design = создавать.</strong> Сообщество тех, кто делает продукты с ИИ — независимо от бэкграунда.</p>
+        </div>
+        <div class="footer-cols">
+          <div>
+            <div class="footer-col-title">Сообщество</div>
+            <div class="footer-col-links">
+              <a href="https://t.me/wedesignerz" target="_blank" rel="noopener noreferrer">Telegram-канал</a>
+              <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
+              <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
+              <a href="projects.html">Витрина проектов</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Команда</div>
+            <div class="footer-col-links">
+              <span>Тёма — канал и вайбкодинг</span>
+              <span>Алина — дизайн</span>
+              <span>Андрей — продюсер</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 We Designerz</span>
+        <span>сделано во вайбкоде ✦</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./main.js"></script>
+  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/profile.js"></script>
+</body>
+
+</html>

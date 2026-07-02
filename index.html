@@ -241,8 +241,10 @@
             </div>
           </div>
           <div>
-            <div class="member-list-label">✦ уже с нами</div>
-            <div class="member-chips" id="member-chips"></div>
+            <div class="member-list-label" data-member-label>✦ уже с нами</div>
+            <div class="member-marquee" data-member-marquee>
+              <div class="member-marquee-track" id="member-chips"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -250,6 +252,7 @@
   </main>
 
   <div class="toast" id="join-toast" role="status" aria-live="polite"></div>
+  <div class="toast activity-toast" id="activity-toast" role="status" aria-live="polite"></div>
 
   <!-- Footer -->
   <footer class="footer">
@@ -292,6 +295,8 @@
   <script type="module" src="./js/app.js"></script>
   <script type="module" src="./js/showcase.js"></script>
   <script type="module" src="./js/stats.js"></script>
+  <script type="module" src="./js/members.js"></script>
+  <script type="module" src="./js/activityToast.js"></script>
 </body>
 
 </html>

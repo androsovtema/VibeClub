@@ -9,6 +9,7 @@ import { getCurrentUser, onAuthChange } from './auth.js';
 import { openAuthModal } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
 import { fetchProjectById, CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
+import { isHttpUrl } from './util.js';
 
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get('id');
@@ -63,15 +64,6 @@ function applyStaticText() {
   document.querySelector('[data-comment-gate-action]').textContent = t('project.comment.gate.action');
   commentInput.placeholder = t('project.comment.placeholder');
   commentSubmitBtn.textContent = t('project.comment.submit');
-}
-
-function isHttpUrl(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
 }
 
 function formatDate(iso) {

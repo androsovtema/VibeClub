@@ -9,3 +9,16 @@ export function escapeHtml(str) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;'
   }[ch]));
 }
+
+/**
+ * true только для абсолютных http/https-ссылок — защита от javascript: и прочих схем
+ * при вставке пользовательских URL в href.
+ */
+export function isHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}

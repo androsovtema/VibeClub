@@ -2,7 +2,7 @@
   "extends": "stylelint-config-standard",
   "rules": {
     "color-hex-length": "long",
-    "property-no-vendor-prefix": [true, { "ignoreProperties": ["background-clip"] }],
+    "property-no-vendor-prefix": [true, { "ignoreProperties": ["background-clip", "mask-image"] }],
     "declaration-block-no-duplicate-properties": true,
     "block-no-empty": true
   }
