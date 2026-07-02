@@ -2002,6 +2002,22 @@ section {
   color: var(--color-text-secondary);
 }
 
+.showcase-all-link {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  white-space: nowrap;
+  transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+
+.showcase-all-link:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent-violet);
+}
+
 /* Кикер витрины — фрагмент промпта вместо надзаголовка-метки */
 .showcase-kicker {
   display: flex;
