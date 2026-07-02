@@ -480,6 +480,10 @@ section {
   background: var(--color-border);
 }
 
+.hero-stats[hidden] {
+  display: none;
+}
+
 /* Демо-панель: живой промпт → собирающийся интерфейс */
 .hero-demo {
   position: relative;
@@ -1998,6 +2002,25 @@ section {
   color: var(--color-text-secondary);
 }
 
+/* Кикер витрины — фрагмент промпта вместо надзаголовка-метки */
+.showcase-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.showcase-kicker-marker {
+  background: var(--gradient-electric);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
 .showcase-chips {
   display: flex;
   flex-wrap: wrap;
@@ -2183,101 +2206,118 @@ section {
 }
 
 /*************************
- *  ГЛАВНАЯ: КАК ЭТО РАБОТАЕТ (полоса шагов)
+ *  ГЛАВНАЯ: КАК ЭТО РАБОТАЕТ (терминал-сессия)
  *************************/
-.how-strip {
+.how-terminal {
   position: relative;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 20px 28px 80px;
+  padding: 16px 28px 56px;
   z-index: 1;
 }
 
-.how-strip-inner {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  padding: 30px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 14px;
-  justify-content: space-between;
-}
-
-.how-strip-label {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 200px;
-  flex: 1;
-}
-
-.how-strip-label .section-label {
-  margin-bottom: 8px;
-}
-
-.how-strip-headline {
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-}
-
-.how-strip-steps {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  flex: 2;
-  min-width: 300px;
-}
-
-.how-strip-step {
-  flex: 1;
-  min-width: 110px;
-  background: var(--color-bg);
+.how-terminal-frame {
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-sunken);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
-.how-strip-step-number {
+.how-terminal-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.how-terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.how-terminal-dot-1 {
+  background: oklch(60% 0.18 25deg);
+}
+
+.how-terminal-dot-2 {
+  background: oklch(78% 0.15 85deg);
+}
+
+.how-terminal-dot-3 {
+  background: var(--color-success);
+}
+
+.how-terminal-title {
+  margin-left: 6px;
   font-family: var(--font-mono);
-  font-size: 12px;
-  margin-bottom: 7px;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
 }
 
-.how-strip-step-number.is-blue {
-  color: var(--color-accent-blue);
+.how-terminal-body {
+  padding: 8px 24px 22px;
 }
 
-.how-strip-step-number.is-violet {
+.how-terminal-line {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.how-terminal-line:last-child {
+  border-bottom: none;
+}
+
+/* Крупная моно-цифра слева, слегка выбита за край рамки — асимметричный акцент */
+.how-terminal-num {
+  flex: none;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: transparent;
+  background: var(--gradient-electric);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gradient-flow 8s linear infinite;
+  margin-left: -6px;
+}
+
+.how-terminal-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.how-terminal-role {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  min-width: 64px;
+}
+
+.how-terminal-role.is-ai {
   color: var(--color-accent-violet);
 }
 
-.how-strip-step-number.is-purple {
-  color: var(--color-accent-purple);
+.how-terminal-role.is-done {
+  color: var(--color-success);
 }
 
-.how-strip-step-number.is-warm {
-  color: var(--color-accent-warm);
-}
-
-.how-strip-step-title {
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.how-strip-step-text {
-  font-size: 12.5px;
-  color: var(--color-text-tertiary);
-  margin-top: 3px;
-}
-
-.how-strip-arrow {
-  font-family: var(--font-mono);
-  color: var(--color-text-tertiary);
+.how-terminal-text {
+  font-size: 15.5px;
+  color: var(--color-text-primary);
 }
 
 /*************************
@@ -2287,7 +2327,7 @@ section {
   position: relative;
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 54px 28px var(--space-md);
+  padding: var(--space-lg) 28px var(--space-lg);
   z-index: 1;
 }
 
@@ -2894,7 +2934,7 @@ section {
   }
 
   .showcase,
-  .how-strip,
+  .how-terminal,
   .community-cta {
     padding-left: 20px;
     padding-right: 20px;
@@ -2904,17 +2944,17 @@ section {
     grid-template-columns: 1fr;
   }
 
-  .how-strip-inner {
-    padding: 22px;
+  .how-terminal-body {
+    padding: 4px 16px 14px;
   }
 
-  .how-strip-steps {
-    flex-direction: column;
-    align-items: stretch;
+  .how-terminal-line {
+    gap: 12px;
   }
 
-  .how-strip-arrow {
-    display: none;
+  .how-terminal-num {
+    font-size: 26px;
+    margin-left: 0;
   }
 
   .community-cta-grid {

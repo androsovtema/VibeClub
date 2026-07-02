@@ -97,14 +97,14 @@
             Телеграм-чат <span aria-hidden="true">→</span>
           </a>
         </div>
-        <div class="hero-stats">
+        <div class="hero-stats" data-stats>
           <div>
-            <div class="hero-stat-value">1 248</div>
+            <div class="hero-stat-value" data-stat="members">—</div>
             <div class="hero-stat-label">участников</div>
           </div>
           <div class="hero-stat-divider" aria-hidden="true"></div>
           <div>
-            <div class="hero-stat-value">320</div>
+            <div class="hero-stat-value" data-stat="projects">—</div>
             <div class="hero-stat-label">проектов</div>
           </div>
           <div class="hero-stat-divider" aria-hidden="true"></div>
@@ -155,7 +155,10 @@
     <section id="showcase" class="showcase">
       <div class="showcase-head">
         <div>
-          <div class="section-label">витрина сообщества</div>
+          <div class="showcase-kicker">
+            <span class="showcase-kicker-marker" aria-hidden="true">&gt;</span>покажи
+            свежие проекты сообщества<span class="typing-caret" aria-hidden="true"></span>
+          </div>
           <h2>Что навайбкодили</h2>
           <p class="showcase-lead">
             Живые проекты участников — главное здесь. Звёздочкой <span class="community-core-mark">✦</span>
@@ -177,35 +180,42 @@
     </section>
 
     <!-- How it works -->
-    <section id="how" class="how-strip">
-      <div class="how-strip-inner">
-        <div class="how-strip-label">
-          <div class="section-label">как работает вайбкодинг</div>
-          <div class="how-strip-headline">Просто объясняешь словами —<br>ИИ создаёт вместе с тобой</div>
+    <section id="how" class="how-terminal">
+      <div class="how-terminal-frame">
+        <div class="how-terminal-chrome">
+          <span class="how-terminal-dot how-terminal-dot-1" aria-hidden="true"></span>
+          <span class="how-terminal-dot how-terminal-dot-2" aria-hidden="true"></span>
+          <span class="how-terminal-dot how-terminal-dot-3" aria-hidden="true"></span>
+          <span class="how-terminal-title">✦ как работает вайбкодинг</span>
         </div>
-        <div class="how-strip-steps">
-          <div class="how-strip-step">
-            <div class="how-strip-step-number is-blue">01</div>
-            <div class="how-strip-step-title">Идея</div>
-            <div class="how-strip-step-text">расскажи своими словами</div>
+        <div class="how-terminal-body">
+          <div class="how-terminal-line">
+            <span class="how-terminal-num" aria-hidden="true">01</span>
+            <div class="how-terminal-content">
+              <div class="how-terminal-role"><span aria-hidden="true">&gt;</span> ты</div>
+              <div class="how-terminal-text">расскажи идею своими словами</div>
+            </div>
           </div>
-          <span class="how-strip-arrow" aria-hidden="true">→</span>
-          <div class="how-strip-step">
-            <div class="how-strip-step-number is-violet">02</div>
-            <div class="how-strip-step-title">Диалог</div>
-            <div class="how-strip-step-text">ИИ уточняет и предлагает</div>
+          <div class="how-terminal-line">
+            <span class="how-terminal-num" aria-hidden="true">02</span>
+            <div class="how-terminal-content">
+              <div class="how-terminal-role is-ai">✦ ИИ</div>
+              <div class="how-terminal-text">уточняет и предлагает решения</div>
+            </div>
           </div>
-          <span class="how-strip-arrow" aria-hidden="true">→</span>
-          <div class="how-strip-step">
-            <div class="how-strip-step-number is-purple">03</div>
-            <div class="how-strip-step-title">Правки</div>
-            <div class="how-strip-step-text">смотришь и меняешь на ходу</div>
+          <div class="how-terminal-line">
+            <span class="how-terminal-num" aria-hidden="true">03</span>
+            <div class="how-terminal-content">
+              <div class="how-terminal-role"><span aria-hidden="true">&gt;</span> ты</div>
+              <div class="how-terminal-text">смотришь и меняешь на ходу</div>
+            </div>
           </div>
-          <span class="how-strip-arrow" aria-hidden="true">→</span>
-          <div class="how-strip-step">
-            <div class="how-strip-step-number is-warm">04</div>
-            <div class="how-strip-step-title">Готово</div>
-            <div class="how-strip-step-text">делишься с сообществом</div>
+          <div class="how-terminal-line">
+            <span class="how-terminal-num" aria-hidden="true">04</span>
+            <div class="how-terminal-content">
+              <div class="how-terminal-role is-done">✓ готово</div>
+              <div class="how-terminal-text">делишься с сообществом</div>
+            </div>
           </div>
         </div>
       </div>
@@ -230,7 +240,7 @@
             </div>
           </div>
           <div>
-            <div class="member-list-label">уже с нами</div>
+            <div class="member-list-label">✦ уже с нами</div>
             <div class="member-chips" id="member-chips"></div>
           </div>
         </div>
@@ -280,6 +290,7 @@
   <script src="./main.js"></script>
   <script type="module" src="./js/app.js"></script>
   <script type="module" src="./js/showcase.js"></script>
+  <script type="module" src="./js/stats.js"></script>
 </body>
 
 </html>
