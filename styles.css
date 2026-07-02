@@ -1481,10 +1481,55 @@ section {
   font-weight: 300;
 }
 
+.projects-hero .btn-primary {
+  margin-top: var(--space-xs);
+  align-self: flex-start;
+}
+
 /* Projects Filter */
 .projects-filter {
   padding-top: var(--space-md);
   padding-bottom: var(--space-sm);
+}
+
+.projects-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.showcase-sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.showcase-sort-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.showcase-sort-select {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.showcase-sort-select:hover {
+  border-color: var(--color-accent-blue);
+}
+
+.showcase-full {
+  padding-top: 10px;
+  padding-bottom: var(--space-xl);
 }
 
 .filter-label {
@@ -1973,22 +2018,38 @@ section {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  color: inherit;
+  text-decoration: none;
   transition: transform var(--duration-slow) ease, border-color var(--duration-slow) ease, box-shadow var(--duration-slow) ease;
 }
 
 .community-card:hover {
+  color: inherit;
   transform: translateY(-6px);
   border-color: var(--color-border-strong);
   box-shadow: 0 28px 60px -28px oklch(0.5 0.18 295 / 65%);
 }
 
+/* Обложка 16:9 — как превью видео на YouTube */
 .community-cover {
   position: relative;
-  height: 172px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--color-bg-sunken);
+}
+
+.community-cover-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 14px;
+}
+
+.community-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .community-cover-label {
@@ -1998,28 +2059,90 @@ section {
   letter-spacing: 0.04em;
 }
 
+/* Бейдж инструмента — как "длительность" видео */
+.community-cover-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: rgb(0 0 0 / 65%);
+  border-radius: 6px;
+  padding: 3px 8px;
+  backdrop-filter: blur(2px);
+}
+
+.community-cover-core {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  background: oklch(15% 0.02 282deg / 60%);
+  backdrop-filter: blur(2px);
+}
+
 .community-body {
-  padding: 18px;
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
+}
+
+.community-avatar {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-hover);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.community-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--color-text-tertiary);
+}
+
+.community-author-name {
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .community-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-.community-author {
-  margin-top: 5px;
-  font-size: 13.5px;
-  color: var(--color-text-tertiary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  line-height: var(--leading-snug);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .community-core-mark {
@@ -2032,28 +2155,12 @@ section {
   animation: gradient-flow 6s linear infinite;
 }
 
-.community-tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.community-tool {
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--color-text-secondary);
-  background: var(--color-surface-hover);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 4px 9px;
-}
-
 .community-footer {
   margin-top: auto;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--color-border);
   font-size: 13px;
   color: var(--color-text-tertiary);
@@ -2063,6 +2170,16 @@ section {
 .community-footer-tag {
   margin-left: auto;
   color: var(--color-text-secondary);
+}
+
+.showcase-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
 }
 
 /*************************

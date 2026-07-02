@@ -37,7 +37,9 @@ export const ru = {
   'auth.error.rate_limit': 'Слишком много попыток. Подожди немного и попробуй снова.',
   'auth.error.required_email': 'Укажи почту.',
   'auth.error.required_password': 'Укажи пароль.',
-  'auth.error.required_name': 'Укажи имя.'
+  'auth.error.required_name': 'Укажи имя.',
+
+  'showcase.empty': 'Здесь пока пусто. Будь первым — добавь проект.'
 };
 
 export function t(key) {

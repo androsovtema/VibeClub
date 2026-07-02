@@ -5,6 +5,7 @@
 import { getCurrentUser, onAuthChange, signOut } from './auth.js';
 import { openAuthModal, setAuthSuccessHandler } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
+import { escapeHtml } from './util.js';
 
 function showToast(message, isError = false) {
   const toast = document.getElementById('join-toast');
@@ -15,12 +16,6 @@ function showToast(message, isError = false) {
   toast.classList.add('is-visible');
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(() => toast.classList.remove('is-visible'), 3200);
-}
-
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, (ch) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[ch]));
 }
 
 function renderHeaderAuth(user) {

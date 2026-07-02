@@ -244,55 +244,6 @@
      ==================== */
 
   /* ====================
-     PROJECTS FILTER (Projects page)
-     ==================== */
-  const filterTags = document.querySelectorAll('.filter-tag');
-  const projectCards = document.querySelectorAll('.project-card');
-
-  if (filterTags.length > 0 && projectCards.length > 0) {
-    // Add transition styles to project cards
-    projectCards.forEach(card => {
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    });
-
-    filterTags.forEach(tag => {
-      tag.addEventListener('click', () => {
-        // Update active state
-        filterTags.forEach(t => t.classList.remove('active'));
-        tag.classList.add('active');
-
-        const filter = tag.getAttribute('data-filter');
-        if (!filter) return;
-
-        // Filter projects
-        projectCards.forEach(card => {
-          const cardTags = card.getAttribute('data-tags');
-
-          if (filter === 'all') {
-            card.style.display = 'block';
-            setTimeout(() => {
-              card.style.opacity = '1';
-              card.style.transform = 'translateY(0)';
-            }, 50);
-          } else if (cardTags && cardTags.includes(filter)) {
-            card.style.display = 'block';
-            setTimeout(() => {
-              card.style.opacity = '1';
-              card.style.transform = 'translateY(0)';
-            }, 50);
-          } else {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-              card.style.display = 'none';
-            }, 300);
-          }
-        });
-      });
-    });
-  }
-
-  /* ====================
      HERO DEMO (главная) — живой промпт → собирающийся интерфейс
      ==================== */
   const heroPrompt = document.querySelector('[data-prompt]');
@@ -360,75 +311,6 @@
         }
       })();
     }
-  }
-
-  /* ====================
-     ВИТРИНА СООБЩЕСТВА (главная) — карточки проектов + фильтр
-     ==================== */
-  const communityGrid = document.getElementById('community-grid');
-
-  if (communityGrid) {
-    const covers = {
-      a: 'linear-gradient(135deg, oklch(0.34 0.13 250), oklch(0.24 0.07 295))',
-      b: 'linear-gradient(135deg, oklch(0.36 0.14 320), oklch(0.26 0.08 350))',
-      d: 'linear-gradient(135deg, oklch(0.40 0.13 145), oklch(0.26 0.07 200))',
-      e: 'linear-gradient(135deg, oklch(0.42 0.13 60), oklch(0.28 0.09 30))',
-      f: 'linear-gradient(135deg, oklch(0.36 0.13 280), oklch(0.25 0.08 320))',
-      g: 'linear-gradient(135deg, oklch(0.34 0.12 210), oklch(0.24 0.07 260))'
-    };
-
-    // Заглушка на время T2 (реальная витрина будет тянуться из Supabase — см. js/projects.js)
-    const communityProjects = [
-      { title: 'Капля — трекер привычек', author: 'Марина К.', tools: ['Claude', 'React'], tag: 'Продуктивность', filterKey: 'prod', core: false, cover: covers.a, likes: 128, comments: 14 },
-      { title: 'Зерно — сайт кофейни', author: 'We Designerz', tools: ['Claude', 'Astro'], tag: 'Бизнес', filterKey: 'biz', core: true, cover: covers.b, likes: 342, comments: 31 },
-      { title: 'Прыг — мини-платформер', author: 'Денис О.', tools: ['Cursor', 'Phaser'], tag: 'Игры', filterKey: 'game', core: false, cover: covers.f, likes: 97, comments: 8 },
-      { title: 'Муза — AI-дневник настроения', author: 'We Designerz', tools: ['Claude'], tag: 'Личное', filterKey: 'home', core: true, cover: covers.d, likes: 256, comments: 22 },
-      { title: 'Флора — каталог растений', author: 'Алина Г.', tools: ['Claude', 'Next.js'], tag: 'Личное', filterKey: 'home', core: false, cover: covers.g, likes: 74, comments: 6 },
-      { title: 'Сила — дашборд для зала', author: 'Олег П.', tools: ['Claude', 'Supabase'], tag: 'Бизнес', filterKey: 'biz', core: false, cover: covers.e, likes: 61, comments: 5 },
-      { title: 'Свадьба Маши и Кирилла', author: 'Кирилл Р.', tools: ['v0', 'React'], tag: 'Творчество', filterKey: 'art', core: false, cover: covers.b, likes: 189, comments: 27 },
-      { title: 'Репетитор-бот', author: 'We Designerz', tools: ['Claude', 'Telegram'], tag: 'Продуктивность', filterKey: 'prod', core: true, cover: covers.a, likes: 143, comments: 11 }
-    ];
-
-    communityGrid.innerHTML = communityProjects.map((p) => `
-      <article class="community-card" data-tags="${p.filterKey}">
-        <div class="community-cover" style="background:${p.cover}">
-          <span class="community-cover-label">скриншот проекта</span>
-        </div>
-        <div class="community-body">
-          <div>
-            <h3 class="community-title">${p.title}</h3>
-            <div class="community-author">
-              ${p.core ? '<span class="community-core-mark" title="команда We Designerz">✦</span>' : ''}
-              <span>${p.author}</span>
-            </div>
-          </div>
-          <div class="community-tools">
-            ${p.tools.map((tool) => `<span class="community-tool">${tool}</span>`).join('')}
-          </div>
-          <div class="community-footer">
-            <span>♥ ${p.likes}</span>
-            <span>💬 ${p.comments}</span>
-            <span class="community-footer-tag">${p.tag}</span>
-          </div>
-        </div>
-      </article>
-    `).join('');
-
-    const showcaseChips = document.querySelectorAll('.showcase-chips .filter-tag');
-    const communityCards = communityGrid.querySelectorAll('.community-card');
-
-    showcaseChips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        showcaseChips.forEach((c) => c.classList.remove('active'));
-        chip.classList.add('active');
-
-        const filter = chip.getAttribute('data-filter');
-        communityCards.forEach((card) => {
-          const show = filter === 'all' || card.getAttribute('data-tags') === filter;
-          card.style.display = show ? '' : 'none';
-        });
-      });
-    });
   }
 
   /* ====================

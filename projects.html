@@ -64,214 +64,38 @@
   <main>
     <!-- Hero -->
     <section class="projects-hero" id="hero">
-      <div class="section-label">Портфолио</div>
-      <h1>Проекты, которые работают на бизнес.</h1>
+      <div class="section-label">витрина сообщества</div>
+      <h1>Проекты сообщества</h1>
       <p class="hero-subtitle">
-        Каждый проект — это не просто красивая картинка, а решение конкретной бизнес-задачи.
+        То, что навайбкодили участники We&nbsp;Designerz. Добавь и свой.
       </p>
+      <a href="submit.html" class="btn-primary">Добавить свой проект</a>
     </section>
 
     <!-- Projects Filter -->
     <section class="projects-filter" id="filter">
-      <p class="filter-label">Фильтр по направлениям:</p>
-      <div class="filter-tags">
-        <button class="filter-tag active" data-filter="all">Все проекты</button>
-        <button class="filter-tag" data-filter="web">Веб-дизайн</button>
-        <button class="filter-tag" data-filter="branding">Брендинг</button>
-        <button class="filter-tag" data-filter="ux">UX/UI</button>
-        <button class="filter-tag" data-filter="packaging">Упаковка</button>
-        <button class="filter-tag" data-filter="marketing">Маркетинг</button>
+      <div class="projects-filter-row">
+        <div class="showcase-chips">
+          <button type="button" class="filter-tag active" data-filter="all">Все</button>
+          <button type="button" class="filter-tag" data-filter="prod">Продуктивность</button>
+          <button type="button" class="filter-tag" data-filter="biz">Бизнес</button>
+          <button type="button" class="filter-tag" data-filter="game">Игры</button>
+          <button type="button" class="filter-tag" data-filter="home">Личное</button>
+          <button type="button" class="filter-tag" data-filter="art">Творчество</button>
+        </div>
+        <div class="showcase-sort-wrap">
+          <label for="showcase-sort-select" class="showcase-sort-label">Сортировка</label>
+          <select id="showcase-sort-select" class="showcase-sort-select" data-sort>
+            <option value="new">Свежие</option>
+            <option value="top">Популярные</option>
+          </select>
+        </div>
       </div>
     </section>
 
     <!-- Projects Grid -->
-    <section class="projects-grid" id="projects">
-
-      <!-- Project 1: WEF 2025 -->
-      <article class="project-card" data-tags="branding marketing">
-        <a href="./projects/wef2025.html" class="project-link">
-          <img src="./assets/images/projects/emtechinvest/imtechinvest_cover.jpeg"
-            alt="EmTech Invest Davos — event-дизайн" class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">EmTech Invest × Davos</h3>
-            <p class="project-category">Event-дизайн</p>
-            <p class="project-description">
-              Визуальное оформление закрытого инвестиционного ивента
-              в Давосе во время WEF 2026. 66 участников, один дизайнер,
-              полтора месяца.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">Event</span>
-              <span class="project-tag">Брендинг</span>
-              <span class="project-tag">Соцсети</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 2: LOYO & BONDAR -->
-      <article class="project-card" data-tags="branding marketing">
-        <a href="./projects/loyobondar.html" class="project-link">
-          <img src="./assets/images/projects/loyobondar/loyobondar_cover.jpeg"
-            alt="LOYO & BONDAR — дизайн-поддержка девелопера" class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">LOYO & BONDAR</h3>
-            <p class="project-category">Дизайн-поддержка</p>
-            <p class="project-description">
-              Визуальное сопровождение ведущего девелопера Бали.
-              Презентации для инвесторов и партнёров, реклама, соцсети —
-              100+ слайдов за первую неделю.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">Презентации</span>
-              <span class="project-tag">Реклама</span>
-              <span class="project-tag">Соцсети</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 3: Scoville -->
-      <article class="project-card" data-tags="packaging branding">
-        <a href="./projects/scoville.html" class="project-link">
-          <img src="./assets/images/projects/scoville/scoville_cover.jpeg"
-            alt="Острое мороженое Scoville — дизайн упаковки" class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">Острое мороженое Scoville</h3>
-            <p class="project-category">Дизайн упаковки</p>
-            <p class="project-description">
-              Упаковка для ванильного пломбира с острым гранатовым топпингом.
-              Продукт для полок Самоката — от брифа до финального макета
-              за одну неделю.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">Упаковка</span>
-              <span class="project-tag">Ритейл</span>
-              <span class="project-tag">FMCG</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 4: Eazy Energy -->
-      <article class="project-card" data-tags="branding web packaging marketing">
-        <a href="./projects/eazyenergy.html" class="project-link">
-          <img src="./assets/images/projects/eazyenergy/eazyenergy_cover.jpeg"
-            alt="Eazy Energy — запуск энергетического бренда" class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">Eazy Energy</h3>
-            <p class="project-category">Брендинг и запуск продукта</p>
-            <p class="project-description">
-              Три года работы над брендом энергетика двух блогеров-миллионников.
-              Логотип, 6 дизайнов банок, сайт, мерч, тур по России
-              и оформление гоночных заездов.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">Брендинг</span>
-              <span class="project-tag">Упаковка</span>
-              <span class="project-tag">Event</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 5: Cesky Lev -->
-      <article class="project-card" data-tags="branding marketing">
-        <a href="./projects/ceskylev.html" class="project-link">
-          <img src="./assets/images/projects/ceskylev/ceskylev_cover.jpeg" alt="Cesky Lev — дизайн-поддержка пивоварни"
-            class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">Cesky Lev</h3>
-            <p class="project-category">Дизайн-поддержка</p>
-            <p class="project-description">
-              Два года визуального сопровождения одного из крупнейших пивоваренных
-              заводов Курска. Упаковки, соцсети, презентации, POS-материалы —
-              весь графический фронт под ключ.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">Упаковка</span>
-              <span class="project-tag">Соцсети</span>
-              <span class="project-tag">POS-материалы</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 6: Viril -->
-      <article class="project-card" data-tags="ux branding web">
-        <a href="./projects/viril.html" class="project-link">
-          <img src="./assets/images/projects/viril/viril_cover.jpeg" alt="Viril — брендинг и UX/UI дизайн"
-            class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">Viril</h3>
-            <p class="project-category">Брендинг и UX/UI</p>
-            <p class="project-description">
-              Бренд с нуля для европейского рынка. Название, визуальная
-              система и полный UX/UI сайта в двух языках —
-              64 экрана за 5 недель.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">UX/UI</span>
-              <span class="project-tag">Брендинг</span>
-              <span class="project-tag">Naming</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 7: Hookah Picnic Bali -->
-      <article class="project-card" data-tags="branding marketing">
-        <a href="./projects/hookahpicnic.html" class="project-link">
-          <img src="./assets/images/projects/hookahpicnic/hookahpicnic_cover.jpeg"
-            alt="Hookah Picnic Bali — event-дизайн" class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">Hookah Picnic Bali</h3>
-            <p class="project-category">Event-дизайн</p>
-            <p class="project-description">
-              Полное визуальное оформление международного кальянного
-              мероприятия на Бали. 13 брендов-участников, логотип, айдентика,
-              мерч и реклама на скутерах по всему острову.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">Event</span>
-              <span class="project-tag">Айдентика</span>
-              <span class="project-tag">Наружная реклама</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Project 8: Gabarshop -->
-      <article class="project-card" data-tags="web ux">
-        <a href="./projects/gabarshop.html" class="project-link">
-          <img src="./assets/images/projects/gabarshop/gabarshop_cover.jpeg" alt="ГАБАРШОП — интернет-магазин мерча"
-            class="project-image" loading="lazy" decoding="async">
-          <div class="project-info">
-            <h3 class="project-name">ГАБАРШОП</h3>
-            <p class="project-category">Веб-дизайн и мерч</p>
-            <p class="project-description">
-              Интернет-магазин мерча для блогера-миллионника.
-              40+ позиций каталога, 100 000+ проданных единиц,
-              сайт запущен за 3 дня.
-            </p>
-            <div class="project-tags">
-              <span class="project-tag">E-commerce</span>
-              <span class="project-tag">Мерч</span>
-              <span class="project-tag">Веб-дизайн</span>
-            </div>
-          </div>
-        </a>
-      </article>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section" id="cta">
-      <h2>Нравится то, что видите?</h2>
-      <p class="contact-subtitle contact-subtitle-margin">
-        Давайте обсудим ваш проект. Напишите нам в Telegram — и мы начнём сразу.
-      </p>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-primary" rel="noopener noreferrer">Начать
-        проект</a>
+    <section class="showcase-full" id="projects">
+      <div class="showcase-grid" id="community-grid" aria-live="polite"></div>
     </section>
   </main>
 
@@ -312,6 +136,7 @@
   </footer>
 
   <script src="./main.js"></script>
+  <script type="module" src="./js/showcase.js"></script>
 </body>
 
 </html>
