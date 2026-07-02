@@ -2351,6 +2351,193 @@ section {
 }
 
 /*************************
+ *  ГЛАВНАЯ: МАНИФЕСТ
+ *************************/
+.manifesto {
+  position: relative;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 16px 28px var(--space-sm);
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 32px;
+  align-items: start;
+}
+
+/* Крупный моно-маркер слева — продолжает язык hero-demo / how-terminal */
+.manifesto-marker {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1;
+  color: transparent;
+  background: var(--gradient-electric);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gradient-flow 8s linear infinite;
+  margin-top: 2px;
+}
+
+.manifesto-body {
+  max-width: 720px;
+}
+
+.manifesto h2 {
+  margin: 0 0 20px;
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.manifesto-text {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-secondary);
+  font-weight: 300;
+}
+
+/*************************
+ *  ГЛАВНАЯ: КТО МЫ
+ *************************/
+.who-teaser {
+  position: relative;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 16px 28px var(--space-sm);
+  z-index: 1;
+}
+
+.who-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 40px;
+}
+
+.who-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+  flex-basis: 100%;
+}
+
+.who-kicker-marker {
+  background: var(--gradient-electric);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.who-head h2 {
+  margin: 0;
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: var(--space-xs);
+}
+
+.who-member {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.who-photo {
+  width: 100%;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  filter: grayscale(35%);
+  transition: filter 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+}
+
+.who-member:hover .who-photo {
+  filter: grayscale(0%);
+  transform: scale(1.02);
+}
+
+.who-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.who-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-violet);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.who-role {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.who-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-border);
+}
+
+.who-proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  max-width: 520px;
+}
+
+.who-proof-text {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.who-proof-link {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-strong);
+  white-space: nowrap;
+  transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+
+.who-proof-link:hover {
+  color: var(--color-accent-blue);
+  border-color: var(--color-accent-blue);
+}
+
+.who-hire-cta {
+  white-space: nowrap;
+}
+
+/*************************
  *  ГЛАВНАЯ: ВСТУПИТЬ В СООБЩЕСТВО
  *************************/
 .community-cta {
@@ -3059,9 +3246,41 @@ section {
 
   .showcase,
   .how-terminal,
+  .manifesto,
+  .who-teaser,
   .community-cta {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .manifesto {
+    grid-template-columns: auto 1fr;
+    gap: 6px 16px;
+    padding-top: var(--space-xs);
+    padding-bottom: var(--space-xs);
+  }
+
+  .manifesto-marker {
+    font-size: 28px;
+  }
+
+  .manifesto h2 {
+    font-size: 26px;
+    margin-bottom: 14px;
+  }
+
+  .manifesto-text {
+    font-size: 15px;
+  }
+
+  .who-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .who-foot {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .showcase-grid {
