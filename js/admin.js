@@ -306,10 +306,15 @@ function buildConfirmButton({ label, confirmLabel, triggerClass, onConfirm }) {
     trigger.hidden = false;
   });
 
-  yesBtn.addEventListener('click', () => {
+  yesBtn.addEventListener('click', async () => {
     yesBtn.disabled = true;
     cancelBtn.disabled = true;
-    onConfirm();
+    await onConfirm();
+    // При успехе карточка перерендеривается; при ошибке возвращаем кнопки в рабочее состояние
+    yesBtn.disabled = false;
+    cancelBtn.disabled = false;
+    confirmRow.hidden = true;
+    trigger.hidden = false;
   });
 
   wrap.append(trigger, confirmRow);
