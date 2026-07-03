@@ -30,19 +30,24 @@
 
 <body>
   <header class="header">
-    <a class="logo" href="../index.html" aria-label="We Designerz — на главную">
-      <img src="../assets/logos/WDLogo.svg" alt="" class="logo-desktop" aria-hidden="true">
-      <img src="../assets/logos/WDLogoMobile.svg" alt="" class="logo-mobile" aria-hidden="true">
-    </a>
-    <nav class="nav">
-      <a href="../index.html" class="nav-home">Главная</a>
-      <a href="../projects.html">Проекты</a>
-      <a href="../about.html">О нас</a>
-      <a href="https://t.me/androsovart" target="_blank" class="btn-start" rel="noopener noreferrer">Начать проект</a>
-    </nav>
-    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="header-inner">
+      <a class="logo" href="../index.html" aria-label="We Designerz — на главную">
+        <span class="logo-text">We Designerz</span>
+      </a>
+
+      <nav class="nav" aria-label="Главная навигация">
+        <a href="../index.html" class="nav-home">Главная</a>
+        <a href="../projects.html">Проекты</a>
+        <a href="../about.html">О нас</a>
+        <a href="https://t.me/androsovart" target="_blank" class="btn-start" rel="noopener noreferrer">Начать проект</a>
+      </nav>
+
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </header>
   <script>
     (function () {
