@@ -32,6 +32,7 @@ export const ru = {
   'auth.success.signout': 'Ты вышел. До скорого!',
   'auth.header.join': 'Вступить',
   'auth.header.signout': 'Выйти',
+  'nav.join.member': 'Добавить проект',
 
   'auth.error.generic': 'Что-то пошло не так. Попробуй ещё раз.',
   'auth.error.invalid_credentials': 'Неверная почта или пароль.',
@@ -78,6 +79,7 @@ export const ru = {
   'submit.success.title': 'Готово!',
   'submit.success.text': 'Проверим и опубликуем. Загляни в чат, пока ждёшь.',
   'submit.success.chat': 'Чат сообщества',
+  'submit.success.again': 'Добавить ещё один',
 
   'submit.error.required_title': 'Укажи название.',
   'submit.error.max_title': 'Название слишком длинное — максимум 80 символов.',
@@ -107,6 +109,15 @@ export const ru = {
   'project.comment.submit': 'Отправить',
   'project.comment.submitting': 'Отправляем…',
   'project.comment.error': 'Сообщение не отправилось. Попробуй ещё раз.',
+  'project.comment.edit': 'Изменить',
+  'project.comment.delete': 'Удалить',
+  'project.comment.save': 'Сохранить',
+  'project.comment.cancel': 'Отмена',
+  'project.comment.delete.confirm': 'Удалить?',
+  'project.comment.delete.yes': 'Да',
+  'project.comment.delete.cancel': 'Отмена',
+  'project.comment.edit.error': 'Не получилось сохранить. Попробуй ещё раз.',
+  'project.comment.delete.error': 'Не получилось удалить. Попробуй ещё раз.',
 
   'project.upvote.error': 'Не получилось. Попробуй ещё раз.',
 

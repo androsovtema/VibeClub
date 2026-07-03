@@ -199,10 +199,10 @@ upvoteBtn.addEventListener('click', async () => {
 async function loadComments() {
   const { data, error } = await supabase
     .from('comments')
-    .select('id, body, created_at, author:profiles!comments_author_id_fkey(display_name, avatar_url)')
+    .select('id, body, created_at, author_id, author:profiles!comments_author_id_fkey(display_name, avatar_url)')
     .eq('project_id', projectId)
     .eq('status', 'published')
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: false });
 
   renderComments(error ? [] : (data || []));
 }
@@ -256,7 +256,155 @@ function renderCommentItem(comment) {
 
   item.appendChild(avatar);
   item.appendChild(content);
+
+  const isOwn = !!currentUser && comment.author_id === currentUser.id;
+  if (isOwn) {
+    setupOwnCommentActions(item, content, body, comment);
+  }
+
   return item;
+}
+
+function setupOwnCommentActions(item, content, body, comment) {
+  const actions = document.createElement('div');
+  actions.className = 'comment-own-actions';
+
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.className = 'comment-action-btn';
+  editBtn.textContent = t('project.comment.edit');
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.type = 'button';
+  deleteBtn.className = 'comment-action-btn';
+  deleteBtn.textContent = t('project.comment.delete');
+
+  actions.appendChild(editBtn);
+  actions.appendChild(deleteBtn);
+  content.appendChild(actions);
+
+  editBtn.addEventListener('click', () => {
+    startEditComment(content, body, actions, comment);
+  });
+  deleteBtn.addEventListener('click', () => {
+    startDeleteComment(item, content, actions, comment);
+  });
+}
+
+function startEditComment(content, body, actions, comment) {
+  body.hidden = true;
+  actions.hidden = true;
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'comment-edit-textarea';
+  textarea.value = comment.body;
+
+  const errorEl = document.createElement('p');
+  errorEl.className = 'field-error';
+  errorEl.hidden = true;
+
+  const editActions = document.createElement('div');
+  editActions.className = 'comment-edit-actions';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.className = 'btn-primary comment-edit-save';
+  saveBtn.textContent = t('project.comment.save');
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'btn-secondary comment-edit-cancel';
+  cancelBtn.textContent = t('project.comment.cancel');
+
+  editActions.appendChild(saveBtn);
+  editActions.appendChild(cancelBtn);
+
+  content.insertBefore(textarea, actions);
+  content.insertBefore(errorEl, actions);
+  content.insertBefore(editActions, actions);
+
+  function exitEdit() {
+    textarea.remove();
+    errorEl.remove();
+    editActions.remove();
+    body.hidden = false;
+    actions.hidden = false;
+  }
+
+  cancelBtn.addEventListener('click', exitEdit);
+
+  saveBtn.addEventListener('click', async () => {
+    const newBody = textarea.value.trim();
+    if (!newBody) return;
+
+    saveBtn.disabled = true;
+    cancelBtn.disabled = true;
+    const { error } = await supabase.from('comments').update({ body: newBody }).eq('id', comment.id);
+    saveBtn.disabled = false;
+    cancelBtn.disabled = false;
+
+    if (error) {
+      errorEl.textContent = t('project.comment.edit.error');
+      errorEl.hidden = false;
+      return;
+    }
+
+    comment.body = newBody;
+    body.textContent = newBody;
+    exitEdit();
+  });
+}
+
+function startDeleteComment(item, content, actions, comment) {
+  actions.hidden = true;
+
+  const confirmRow = document.createElement('div');
+  confirmRow.className = 'comment-delete-confirm';
+
+  const label = document.createElement('span');
+  label.textContent = t('project.comment.delete.confirm');
+
+  const errorEl = document.createElement('span');
+  errorEl.className = 'field-error';
+  errorEl.hidden = true;
+
+  const yesBtn = document.createElement('button');
+  yesBtn.type = 'button';
+  yesBtn.className = 'comment-action-btn comment-action-danger';
+  yesBtn.textContent = t('project.comment.delete.yes');
+
+  const noBtn = document.createElement('button');
+  noBtn.type = 'button';
+  noBtn.className = 'comment-action-btn';
+  noBtn.textContent = t('project.comment.delete.cancel');
+
+  confirmRow.appendChild(label);
+  confirmRow.appendChild(yesBtn);
+  confirmRow.appendChild(noBtn);
+  confirmRow.appendChild(errorEl);
+  content.insertBefore(confirmRow, actions);
+
+  noBtn.addEventListener('click', () => {
+    confirmRow.remove();
+    actions.hidden = false;
+  });
+
+  yesBtn.addEventListener('click', async () => {
+    yesBtn.disabled = true;
+    noBtn.disabled = true;
+    const { error } = await supabase.from('comments').delete().eq('id', comment.id);
+
+    if (error) {
+      yesBtn.disabled = false;
+      noBtn.disabled = false;
+      errorEl.textContent = t('project.comment.delete.error');
+      errorEl.hidden = false;
+      return;
+    }
+
+    item.remove();
+    commentsEmptyEl.hidden = commentsListEl.children.length > 0;
+  });
 }
 
 function updateCommentGate() {
@@ -299,7 +447,10 @@ commentFormEl.addEventListener('submit', async (event) => {
 function handleAuthChange(user) {
   currentUser = user;
   updateCommentGate();
-  if (currentProject) loadUpvoteState();
+  if (currentProject) {
+    loadUpvoteState();
+    loadComments();
+  }
 }
 
 async function init() {

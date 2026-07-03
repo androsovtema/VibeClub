@@ -2645,6 +2645,13 @@ section {
   margin: 0 auto var(--space-xs);
 }
 
+.submit-success-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 @media (width <= 768px) {
   .submit-gate,
   .submit-form-wrap,
@@ -3114,6 +3121,11 @@ body.menu-open {
   white-space: nowrap;
 }
 
+.header-user-name:hover {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+}
+
 .header-signout {
   padding: 8px 18px;
   font-size: 13px;
@@ -3362,6 +3374,7 @@ body.menu-open {
   flex-direction: column;
   gap: var(--space-sm);
   padding-top: var(--space-sm);
+  padding-bottom: var(--space-xs);
   max-width: 860px;
 }
 
@@ -3545,8 +3558,8 @@ body.menu-open {
 }
 
 .pd-discussion {
-  padding-top: var(--space-lg);
-  max-width: 720px;
+  padding-top: var(--space-sm);
+  max-width: 860px;
 }
 
 .pd-discussion h2 {
@@ -3621,6 +3634,79 @@ body.menu-open {
   line-height: var(--leading-normal);
   white-space: pre-wrap;
   word-break: break-word;
+  margin: 0;
+}
+
+.comment-own-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+/* display:flex перебивает UA-стиль [hidden] — форсируем (тот же паттерн, что у .pd-* и .adm-*) */
+.comment-own-actions[hidden],
+.comment-edit-actions[hidden],
+.comment-delete-confirm[hidden] {
+  display: none;
+}
+
+.comment-action-btn {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--duration-base) var(--ease-out);
+}
+
+.comment-action-btn:hover {
+  color: var(--color-accent-blue);
+}
+
+.comment-action-danger:hover {
+  color: var(--color-error);
+}
+
+.comment-edit-textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 70px;
+  margin-top: 6px;
+}
+
+.comment-edit-textarea:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgb(79 124 255 / 25%);
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.comment-edit-actions .btn-primary,
+.comment-edit-actions .btn-secondary {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.comment-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.comment-delete-confirm .field-error {
   margin: 0;
 }
 

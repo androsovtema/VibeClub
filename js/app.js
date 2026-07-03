@@ -33,7 +33,7 @@ function renderHeaderAuth(user) {
       const name = escapeHtml(user.user_metadata?.display_name || user.email);
       slot.innerHTML = `
         <span class="header-user">
-          <span class="header-user-name">${name}</span>
+          <a class="header-user-name" href="profile.html?id=${encodeURIComponent(user.id)}">${name}</a>
           <button type="button" class="btn-secondary header-signout" data-signout>${t('auth.header.signout')}</button>
         </span>
       `;
@@ -43,11 +43,27 @@ function renderHeaderAuth(user) {
   });
 }
 
+function updateJoinButtons(user) {
+  document.querySelectorAll('[data-join]').forEach((btn) => {
+    if (btn.closest('[data-header-auth]')) return;
+    if (btn.hasAttribute('data-comment-gate-action') || btn.hasAttribute('data-submit-gate-action')) return;
+    if (!btn.dataset.joinLabel) btn.dataset.joinLabel = btn.textContent;
+    btn.textContent = user ? t('nav.join.member') : btn.dataset.joinLabel;
+  });
+}
+
+let currentUser = null;
+
 document.addEventListener('click', (event) => {
   const joinBtn = event.target.closest('[data-join]');
   if (joinBtn) {
     event.preventDefault();
-    openAuthModal('signin');
+    const isGate = joinBtn.hasAttribute('data-comment-gate-action') || joinBtn.hasAttribute('data-submit-gate-action');
+    if (currentUser && !isGate) {
+      window.location.href = 'submit.html';
+    } else {
+      openAuthModal('signin');
+    }
     return;
   }
   const signoutBtn = event.target.closest('[data-signout]');
@@ -62,8 +78,14 @@ renderStaticNotes();
 setAuthSuccessHandler((message) => showToast(message));
 
 onAuthChange((user, authEvent) => {
+  currentUser = user;
   renderHeaderAuth(user);
+  updateJoinButtons(user);
   if (authEvent === 'SIGNED_OUT') showToast(t('auth.success.signout'));
 });
 
-getCurrentUser().then(renderHeaderAuth);
+getCurrentUser().then((user) => {
+  currentUser = user;
+  renderHeaderAuth(user);
+  updateJoinButtons(user);
+});

@@ -7,6 +7,7 @@ import { supabase } from './supabase.js';
 import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS } from './projects.js';
+import { isHttpUrl, normalizeHttpUrl } from './util.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
 const MAX_COVER_BYTES = 3 * 1024 * 1024;
@@ -73,6 +74,7 @@ if (gate && formWrap && form) {
     document.querySelector('[data-success-title]').textContent = t('submit.success.title');
     document.querySelector('[data-success-text]').textContent = t('submit.success.text');
     document.querySelector('[data-success-chat]').textContent = t('submit.success.chat');
+    document.querySelector('[data-success-again]').textContent = t('submit.success.again');
   }
 
   function buildTagChips() {
@@ -148,6 +150,11 @@ if (gate && formWrap && form) {
     addCustomTool();
   });
 
+  form.projectUrl.addEventListener('blur', () => {
+    const value = form.projectUrl.value.trim();
+    if (value) form.projectUrl.value = normalizeHttpUrl(value);
+  });
+
   coverInput.addEventListener('change', () => {
     const file = coverInput.files?.[0];
     showFieldError('cover', '');
@@ -210,20 +217,13 @@ if (gate && formWrap && form) {
     submitError.hidden = true;
   }
 
-  function isValidHttpUrl(value) {
-    try {
-      const url = new URL(value);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  }
-
   function validate() {
     let valid = true;
     const title = form.title.value.trim();
     const description = form.description.value.trim();
-    const url = form.projectUrl.value.trim();
+    const rawUrl = form.projectUrl.value.trim();
+    const url = rawUrl ? normalizeHttpUrl(rawUrl) : rawUrl;
+    if (url !== rawUrl) form.projectUrl.value = url;
 
     if (!title) {
       showFieldError('title', t('submit.error.required_title'));
@@ -241,7 +241,7 @@ if (gate && formWrap && form) {
     if (!url) {
       showFieldError('url', t('submit.error.required_url'));
       valid = false;
-    } else if (!isValidHttpUrl(url)) {
+    } else if (!isHttpUrl(url)) {
       showFieldError('url', t('submit.error.invalid_url'));
       valid = false;
     }
@@ -319,6 +319,20 @@ if (gate && formWrap && form) {
     formWrap.hidden = true;
     successEl.hidden = false;
   });
+
+  function resetForm() {
+    form.reset();
+    selectedTags.clear();
+    selectedTools.clear();
+    buildTagChips();
+    buildToolChips();
+    clearCover();
+    clearErrors();
+    successEl.hidden = true;
+    formWrap.hidden = false;
+  }
+
+  document.querySelector('[data-success-again]').addEventListener('click', resetForm);
 
   function applyAuthState(user) {
     currentUser = user;

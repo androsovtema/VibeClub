@@ -22,3 +22,13 @@ export function isHttpUrl(value) {
     return false;
   }
 }
+
+/**
+ * Дописывает https:// к ссылкам без протокола (ourwall.ru → https://ourwall.ru),
+ * не трогая значения, где протокол уже есть.
+ */
+export function normalizeHttpUrl(value) {
+  const trimmed = String(value).trim();
+  if (!trimmed || /^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
