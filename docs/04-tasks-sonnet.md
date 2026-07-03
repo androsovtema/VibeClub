@@ -302,6 +302,24 @@ pending → появление в витрине, RLS-ответ на попыт
 - Линтеры зелёные.
 - Нет битых ссылок и осиротевших ассетов.
 - OG-превью корректное при шеринге.
+**Статус:** СДЕЛАНО (принято на ревью 2026-07-03, промпт `docs/prompts/T8-sonnet.md`).
+Проверено на ревью: удалённые CSS-классы автоматически сверены с html/js (конфликтов
+нет), битых ссылок в рабочих страницах 0 (все «битые» — внутри локального `dist/`,
+он в .gitignore и не деплоится). Дочинено на ревью: шапка `projects/*.html` была
+сломана ещё с редизайна (img-лого без CSS) — приведена к единой разметке T-D5 с
+текстовым лого, hire-CTA сохранён.
+**Осиротевшие ассеты (решение за Тёмой, не удалены):** `assets/images/carousel/*` (17),
+`assets/logos/clients/*.svg` (9), `assets/images/textures/*.jpg` (4),
+`assets/icons/Mark-White-on-Black_1024.png` + `_256.png`, `assets/images/clients/Maxim.jpeg`,
+`assets/images/projects/eazyenergy/eazyenergy3.jpeg`,
+`assets/images/projects/emtechinvest/imtechinvest2.jpeg`,
+`assets/logos/nenasheva-uma-delo.svg`, `assets/logos/WDLogo.svg` + `WDLogoMobile.svg`
+(стали сиротами после унификации шапки кейсов), `oblikflow.html` + `assets/oblikflow/`
+(возможно, живёт у клиента по прямой ссылке).
+**Руками за Тёмой:** новая OG-картинка `assets/images/og-image.jpg` (1200×630) под
+сообщество; решение по списку сирот выше. К запуску учесть: workflow деплоит весь корень —
+`docs/`, `CLAUDE.md`, `supabase/schema.sql` публично доступны на проде (не секреты,
+но внутренняя кухня; при желании — вынести из деплоя или смириться).
 
 ## T9 (после запуска) — Профиль участника
 **Выход:** `me.html` — редактирование профиля, список своих проектов и их статусов.
