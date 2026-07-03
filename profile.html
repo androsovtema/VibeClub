@@ -72,7 +72,16 @@
 
     <!-- Загрузка -->
     <section class="pf-loading" data-profile-loading>
-      <p data-loading-text></p>
+      <p class="visually-hidden" data-loading-text></p>
+      <div class="pf-skeleton" aria-hidden="true">
+        <div class="skeleton pf-skel-avatar"></div>
+        <div class="skeleton pf-skel-name"></div>
+        <div class="skeleton pf-skel-bio"></div>
+        <div class="pf-skel-cards">
+          <div class="skeleton pf-skel-card"></div>
+          <div class="skeleton pf-skel-card"></div>
+        </div>
+      </div>
     </section>
 
     <!-- Профиль не найден -->

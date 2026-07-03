@@ -60,8 +60,25 @@ function initShowcase(grid) {
     chip.textContent = `✦ ${state.tool} ✕`;
   }
 
+  function renderSkeletonCards() {
+    grid.innerHTML = '';
+    const count = Math.min(limit || 6, 6);
+    for (let i = 0; i < count; i++) {
+      const card = document.createElement('div');
+      card.className = 'community-card is-skeleton';
+      card.setAttribute('aria-hidden', 'true');
+      card.innerHTML = '<div class="skeleton community-cover"></div>'
+        + '<div class="community-body">'
+        + '<div class="skeleton community-skel-line"></div>'
+        + '<div class="skeleton community-skel-line"></div>'
+        + '</div>';
+      grid.appendChild(card);
+    }
+  }
+
   async function load() {
     grid.setAttribute('aria-busy', 'true');
+    renderSkeletonCards();
     const { data, error } = await fetchPublishedProjects({
       category: state.category,
       sort: state.sort,
