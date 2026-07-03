@@ -30,6 +30,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8134"],
       "port": 8134
+    },
+    {
+      "name": "wdz-t8",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8145"],
+      "port": 8145
     }
   ]
 }
