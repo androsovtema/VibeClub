@@ -1261,12 +1261,10 @@ section {
  *  PROJECTS PAGE  *
  *************************/
 .projects-hero {
-  min-height: calc(60vh - 80px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-lg);
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-xs);
 }
 
 .projects-hero h1 {
@@ -1292,8 +1290,8 @@ section {
 
 /* Projects Filter */
 .projects-filter {
-  padding-top: var(--space-md);
-  padding-bottom: var(--space-sm);
+  padding-top: var(--space-xs);
+  padding-bottom: var(--space-2xs);
 }
 
 .projects-filter-row {
