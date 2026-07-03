@@ -24,6 +24,7 @@ function buildMarkup() {
         <span class="auth-modal-glyph" aria-hidden="true">✦</span>
         <h2 id="auth-modal-title" class="auth-modal-title">${t('auth.modal.title')}</h2>
       </div>
+      <p class="auth-modal-subtitle">${t('auth.modal.subtitle')}</p>
 
       <div class="auth-modal-tabs" role="tablist">
         <button type="button" class="auth-modal-tab is-active" data-tab="signin" role="tab" aria-selected="true">${t('auth.tab.signin')}</button>

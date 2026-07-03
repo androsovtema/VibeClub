@@ -45,6 +45,12 @@ if (gate && formWrap && form) {
 
   function applyStaticText() {
     document.querySelector('[data-submit-gate-text]').textContent = t('submit.gate.text');
+    document.querySelector('[data-submit-gate-item1-title]').textContent = t('submit.gate.item1.title');
+    document.querySelector('[data-submit-gate-item1-text]').textContent = t('submit.gate.item1.text');
+    document.querySelector('[data-submit-gate-item2-title]').textContent = t('submit.gate.item2.title');
+    document.querySelector('[data-submit-gate-item2-text]').textContent = t('submit.gate.item2.text');
+    document.querySelector('[data-submit-gate-item3-title]').textContent = t('submit.gate.item3.title');
+    document.querySelector('[data-submit-gate-item3-text]').textContent = t('submit.gate.item3.text');
     document.querySelector('[data-submit-gate-action]').textContent = t('submit.gate.action');
 
     form.querySelector('[data-label-title]').textContent = t('submit.field.title');

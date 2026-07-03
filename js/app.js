@@ -18,6 +18,15 @@ function showToast(message, isError = false) {
   showToast._timer = setTimeout(() => toast.classList.remove('is-visible'), 3200);
 }
 
+function renderStaticNotes() {
+  document.querySelectorAll('[data-hero-note]').forEach((el) => {
+    el.textContent = t('hero.note');
+  });
+  document.querySelectorAll('[data-community-cta-note]').forEach((el) => {
+    el.textContent = t('community.cta.note');
+  });
+}
+
 function renderHeaderAuth(user) {
   document.querySelectorAll('[data-header-auth]').forEach((slot) => {
     if (user) {
@@ -47,6 +56,8 @@ document.addEventListener('click', (event) => {
     signOut();
   }
 });
+
+renderStaticNotes();
 
 setAuthSuccessHandler((message) => showToast(message));
 

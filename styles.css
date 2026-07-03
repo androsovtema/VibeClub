@@ -460,6 +460,17 @@ section {
   margin-top: 34px;
 }
 
+.hero-note {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fade-up 0.8s var(--ease-out) forwards;
+  animation-delay: 0.35s;
+  margin: 14px 0 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
 .hero-stats {
   opacity: 0;
   transform: translateY(30px);
@@ -2216,6 +2227,13 @@ section {
   margin-top: 30px;
 }
 
+.community-cta-note {
+  margin: 12px 0 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
 .member-list-label {
   font-family: var(--font-mono);
   font-size: 12.5px;
@@ -2450,6 +2468,44 @@ section {
   font-size: var(--text-lg);
   color: var(--color-text-secondary);
   margin-bottom: var(--space-xs);
+}
+
+.submit-gate-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0 0 var(--space-sm);
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.submit-gate-item {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.submit-gate-num {
+  flex: none;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-accent-violet);
+}
+
+.submit-gate-item-body strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.submit-gate-item-body p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
 }
 
 .submit-form {
@@ -3159,6 +3215,13 @@ body.menu-open {
   font-size: var(--text-xl);
   font-weight: 700;
   color: var(--color-text-primary);
+}
+
+.auth-modal-subtitle {
+  margin: 0 0 var(--space-2xs);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
 }
 
 .auth-modal-tabs {
