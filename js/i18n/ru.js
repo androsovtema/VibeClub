@@ -46,6 +46,8 @@ export const ru = {
   'auth.error.required_name': 'Укажи имя.',
 
   'showcase.empty': 'Здесь пока пусто. Будь первым — добавь проект.',
+  'showcase.kicker.text': 'покажи свежие проекты сообщества',
+  'who.kicker.text': 'кто мы',
 
   'submit.gate.text': 'Чтобы добавить проект — войди. Вот что тебя ждёт:',
   'submit.gate.item1.title': 'Что заполнишь',
@@ -63,7 +65,9 @@ export const ru = {
   'submit.field.url': 'Ссылка на проект',
   'submit.field.url.placeholder': 'https://…',
   'submit.field.cover': 'Обложка',
-  'submit.field.cover.hint': 'JPEG, PNG или WebP, до 3 МБ. Без обложки карточка получит фирменный градиент.',
+  'submit.field.cover.choose': 'Выбрать файл',
+  'submit.field.cover.filename_empty': 'Файл не выбран',
+  'submit.field.cover.hint': 'JPEG, PNG или WebP, до 3 МБ. Лучше всего 16:9 — например, 1280×720.',
   'submit.field.cover.remove': 'Убрать обложку',
   'submit.field.tags': 'Теги',
   'submit.field.tags.hint': 'Выбери минимум один',
@@ -90,6 +94,7 @@ export const ru = {
   'submit.error.required_tools': 'Выбери хотя бы один инструмент.',
   'submit.error.cover_type': 'Обложка должна быть JPEG, PNG или WebP.',
   'submit.error.cover_size': 'Обложка слишком тяжёлая — максимум 3 МБ.',
+  'submit.error.required_cover': 'Добавь обложку — без неё проект не попадёт в витрину.',
   'submit.error.upload': 'Не получилось загрузить обложку. Попробуй ещё раз.',
   'submit.error.insert': 'Не получилось отправить проект. Попробуй ещё раз.',
 

@@ -123,8 +123,12 @@
 
         <div class="field">
           <label for="submit-cover" data-label-cover></label>
-          <input id="submit-cover" type="file" name="cover" accept="image/jpeg,image/png,image/webp"
-            data-cover-input />
+          <div class="submit-cover-control">
+            <input id="submit-cover" class="submit-cover-input" type="file" name="cover"
+              accept="image/jpeg,image/png,image/webp" data-cover-input />
+            <label for="submit-cover" class="btn-secondary submit-cover-choose" data-cover-choose></label>
+            <span class="submit-cover-filename" data-cover-filename></span>
+          </div>
           <p class="field-hint" data-hint-cover></p>
           <div class="submit-cover-preview" data-cover-preview hidden>
             <img data-cover-preview-img alt="" />

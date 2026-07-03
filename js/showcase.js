@@ -2,7 +2,7 @@
  * We Designerz — витрина проектов сообщества (главная + projects.html).
  * Рендерит #community-grid из Supabase, чипы категорий и (опц.) сортировку перезапрашивают данные.
  */
-import { fetchPublishedProjects, renderProjectCard } from './projects.js';
+import { fetchPublishedProjects, renderProjectCard, CATEGORY_LABELS } from './projects.js';
 import { t } from './i18n/ru.js';
 
 function initShowcase(grid) {
@@ -11,11 +11,29 @@ function initShowcase(grid) {
   const limit = grid.dataset.limit ? Number(grid.dataset.limit) : undefined;
   const urlParams = new URLSearchParams(window.location.search);
 
+  const catParam = urlParams.get('cat');
+  const catValid = catParam && Object.prototype.hasOwnProperty.call(CATEGORY_LABELS, catParam);
+
   const state = {
-    category: chipsWrap?.querySelector('.filter-tag.active')?.dataset.filter || 'all',
+    category: (catValid ? catParam : chipsWrap?.querySelector('.filter-tag.active')?.dataset.filter) || 'all',
     sort: sortGroup?.querySelector('.sort-segment-btn.active')?.dataset.sortValue || 'new',
     tool: urlParams.get('tool') || null
   };
+
+  if (catValid && chipsWrap) {
+    const targetChip = chipsWrap.querySelector(`.filter-tag[data-filter="${state.category}"]`);
+    if (targetChip) {
+      chipsWrap.querySelectorAll('.filter-tag').forEach((c) => c.classList.remove('active'));
+      targetChip.classList.add('active');
+    }
+  }
+
+  function clearCatParam() {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('cat')) return;
+    url.searchParams.delete('cat');
+    window.history.replaceState({}, '', url);
+  }
 
   function renderToolChip() {
     if (!chipsWrap) return;
@@ -78,6 +96,7 @@ function initShowcase(grid) {
     chipsWrap.querySelectorAll('.filter-tag').forEach((c) => c.classList.remove('active'));
     chip.classList.add('active');
     state.category = chip.dataset.filter || 'all';
+    clearCatParam();
     load();
   });
 

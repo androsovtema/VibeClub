@@ -23,12 +23,12 @@ const successEl = document.querySelector('[data-submit-success]');
 const form = document.getElementById('submit-form');
 
 if (gate && formWrap && form) {
-  applyStaticText();
   const tagsGroup = form.querySelector('[data-tags-group]');
   const toolsGroup = form.querySelector('[data-tools-group]');
   const customInput = form.querySelector('[data-tool-custom-input]');
   const customAddBtn = form.querySelector('[data-tool-custom-add]');
   const coverInput = form.querySelector('[data-cover-input]');
+  const coverFilenameEl = form.querySelector('[data-cover-filename]');
   const coverPreview = form.querySelector('[data-cover-preview]');
   const coverPreviewImg = form.querySelector('[data-cover-preview-img]');
   const coverRemoveBtn = form.querySelector('[data-cover-remove]');
@@ -41,6 +41,7 @@ if (gate && formWrap && form) {
   let currentUser = null;
   let submitting = false;
 
+  applyStaticText();
   buildTagChips();
   buildToolChips();
 
@@ -61,8 +62,10 @@ if (gate && formWrap && form) {
     form.querySelector('[data-label-url]').textContent = t('submit.field.url');
     form.querySelector('#submit-url').placeholder = t('submit.field.url.placeholder');
     form.querySelector('[data-label-cover]').textContent = t('submit.field.cover');
+    form.querySelector('[data-cover-choose]').textContent = t('submit.field.cover.choose');
     form.querySelector('[data-hint-cover]').textContent = t('submit.field.cover.hint');
     form.querySelector('[data-cover-remove]').textContent = t('submit.field.cover.remove');
+    coverFilenameEl.textContent = t('submit.field.cover.filename_empty');
     form.querySelector('[data-label-tags]').textContent = t('submit.field.tags');
     form.querySelector('[data-hint-tags]').textContent = t('submit.field.tags.hint');
     form.querySelector('[data-label-tools]').textContent = t('submit.field.tools');
@@ -173,6 +176,7 @@ if (gate && formWrap && form) {
       return;
     }
     coverFile = file;
+    coverFilenameEl.textContent = file.name;
     coverPreviewImg.src = URL.createObjectURL(file);
     coverPreview.hidden = false;
   });
@@ -185,6 +189,7 @@ if (gate && formWrap && form) {
   function clearCover() {
     coverFile = null;
     coverInput.value = '';
+    coverFilenameEl.textContent = t('submit.field.cover.filename_empty');
     coverPreview.hidden = true;
     if (coverPreviewImg.src) {
       URL.revokeObjectURL(coverPreviewImg.src);
@@ -243,6 +248,11 @@ if (gate && formWrap && form) {
       valid = false;
     } else if (!isHttpUrl(url)) {
       showFieldError('url', t('submit.error.invalid_url'));
+      valid = false;
+    }
+
+    if (!coverFile) {
+      showFieldError('cover', t('submit.error.required_cover'));
       valid = false;
     }
 

@@ -113,6 +113,10 @@ function renderProject(project) {
 
   titleEl.textContent = project.title;
 
+  const authorHref = `profile.html?id=${encodeURIComponent(project.authorId)}`;
+  avatarEl.href = authorHref;
+  authorNameEl.href = authorHref;
+
   if (project.authorAvatarUrl) {
     const img = document.createElement('img');
     img.src = project.authorAvatarUrl;
@@ -126,8 +130,9 @@ function renderProject(project) {
 
   tagsEl.innerHTML = '';
   project.tags.forEach((tag) => {
-    const chip = document.createElement('span');
-    chip.className = 'chip';
+    const chip = document.createElement('a');
+    chip.className = 'pd-tag';
+    chip.href = `projects.html?cat=${encodeURIComponent(tag)}`;
     chip.textContent = CATEGORY_LABELS[tag] || tag;
     tagsEl.appendChild(chip);
   });
@@ -219,9 +224,11 @@ function renderCommentItem(comment) {
   item.className = 'comment-item';
 
   const name = comment.author?.display_name || 'Участник сообщества';
+  const authorHref = `profile.html?id=${encodeURIComponent(comment.author_id)}`;
 
-  const avatar = document.createElement('span');
+  const avatar = document.createElement('a');
   avatar.className = 'comment-avatar';
+  avatar.href = authorHref;
   if (comment.author?.avatar_url) {
     const img = document.createElement('img');
     img.src = comment.author.avatar_url;
@@ -237,8 +244,9 @@ function renderCommentItem(comment) {
   const head = document.createElement('div');
   head.className = 'comment-head';
 
-  const nameEl = document.createElement('span');
+  const nameEl = document.createElement('a');
   nameEl.className = 'comment-author';
+  nameEl.href = authorHref;
   nameEl.textContent = name;
 
   const dateEl2 = document.createElement('span');

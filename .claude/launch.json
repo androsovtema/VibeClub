@@ -48,6 +48,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8167"],
       "port": 8167
+    },
+    {
+      "name": "wdz-tux3",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8178"],
+      "port": 8178
     }
   ]
 }

@@ -45,6 +45,7 @@ function normalizeProject(row) {
     isCore: !!row.is_core,
     upvotes: row.upvotes || 0,
     commentsCount: row.comments?.[0]?.count ?? 0,
+    authorId: row.author_id,
     authorName: row.author?.display_name || 'Участник сообщества',
     authorAvatarUrl: row.author?.avatar_url || null,
     createdAt: row.created_at
