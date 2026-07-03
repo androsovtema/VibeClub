@@ -104,8 +104,9 @@ function renderProject(project) {
 
   toolsEl.innerHTML = '';
   project.tools.forEach((tool) => {
-    const badge = document.createElement('span');
+    const badge = document.createElement('a');
     badge.className = 'pd-tool-badge';
+    badge.href = `projects.html?tool=${encodeURIComponent(tool)}`;
     badge.textContent = tool;
     toolsEl.appendChild(badge);
   });
@@ -308,12 +309,12 @@ function startEditComment(content, body, actions, comment) {
 
   const saveBtn = document.createElement('button');
   saveBtn.type = 'button';
-  saveBtn.className = 'btn-primary comment-edit-save';
+  saveBtn.className = 'comment-compact-btn comment-compact-btn-save comment-edit-save';
   saveBtn.textContent = t('project.comment.save');
 
   const cancelBtn = document.createElement('button');
   cancelBtn.type = 'button';
-  cancelBtn.className = 'btn-secondary comment-edit-cancel';
+  cancelBtn.className = 'comment-compact-btn comment-edit-cancel';
   cancelBtn.textContent = t('project.comment.cancel');
 
   editActions.appendChild(saveBtn);

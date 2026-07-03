@@ -89,11 +89,11 @@
           <button type="button" class="filter-tag" data-filter="art">Творчество</button>
         </div>
         <div class="showcase-sort-wrap">
-          <label for="showcase-sort-select" class="showcase-sort-label">Сортировка</label>
-          <select id="showcase-sort-select" class="showcase-sort-select" data-sort>
-            <option value="new">Свежие</option>
-            <option value="top">Популярные</option>
-          </select>
+          <span class="showcase-sort-label" id="sort-label">Сортировка</span>
+          <div class="sort-segment" role="group" aria-labelledby="sort-label" data-sort>
+            <button type="button" class="sort-segment-btn active" data-sort-value="new" aria-pressed="true">Свежие</button>
+            <button type="button" class="sort-segment-btn" data-sort-value="top" aria-pressed="false">Популярные</button>
+          </div>
         </div>
       </div>
     </section>

@@ -7,19 +7,47 @@ import { t } from './i18n/ru.js';
 
 function initShowcase(grid) {
   const chipsWrap = document.querySelector('.showcase-chips');
-  const sortSelect = document.querySelector('[data-sort]');
+  const sortGroup = document.querySelector('[data-sort]');
   const limit = grid.dataset.limit ? Number(grid.dataset.limit) : undefined;
+  const urlParams = new URLSearchParams(window.location.search);
 
   const state = {
     category: chipsWrap?.querySelector('.filter-tag.active')?.dataset.filter || 'all',
-    sort: sortSelect?.value || 'new'
+    sort: sortGroup?.querySelector('.sort-segment-btn.active')?.dataset.sortValue || 'new',
+    tool: urlParams.get('tool') || null
   };
+
+  function renderToolChip() {
+    if (!chipsWrap) return;
+    let chip = chipsWrap.querySelector('[data-tool-chip]');
+    if (!state.tool) {
+      chip?.remove();
+      return;
+    }
+    if (!chip) {
+      chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'filter-tag active';
+      chip.setAttribute('data-tool-chip', '');
+      chip.addEventListener('click', () => {
+        state.tool = null;
+        const url = new URL(window.location.href);
+        url.searchParams.delete('tool');
+        window.history.replaceState({}, '', url);
+        renderToolChip();
+        load();
+      });
+      chipsWrap.appendChild(chip);
+    }
+    chip.textContent = `✦ ${state.tool} ✕`;
+  }
 
   async function load() {
     grid.setAttribute('aria-busy', 'true');
     const { data, error } = await fetchPublishedProjects({
       category: state.category,
       sort: state.sort,
+      tool: state.tool,
       limit
     });
     grid.removeAttribute('aria-busy');
@@ -46,18 +74,27 @@ function initShowcase(grid) {
 
   chipsWrap?.addEventListener('click', (event) => {
     const chip = event.target.closest('.filter-tag');
-    if (!chip) return;
+    if (!chip || chip.hasAttribute('data-tool-chip')) return;
     chipsWrap.querySelectorAll('.filter-tag').forEach((c) => c.classList.remove('active'));
     chip.classList.add('active');
     state.category = chip.dataset.filter || 'all';
     load();
   });
 
-  sortSelect?.addEventListener('change', () => {
-    state.sort = sortSelect.value;
+  sortGroup?.addEventListener('click', (event) => {
+    const btn = event.target.closest('.sort-segment-btn');
+    if (!btn || btn.classList.contains('active')) return;
+    sortGroup.querySelectorAll('.sort-segment-btn').forEach((b) => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    state.sort = btn.dataset.sortValue || 'new';
     load();
   });
 
+  renderToolChip();
   load();
 }
 

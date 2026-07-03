@@ -1314,19 +1314,39 @@ section {
   color: var(--color-text-tertiary);
 }
 
-.showcase-sort-select {
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-  background: var(--color-surface);
+.sort-segment {
+  display: inline-flex;
   border: 1px solid var(--color-border-strong);
-  padding: 8px 14px;
   border-radius: var(--radius-full);
-  cursor: pointer;
-  font-family: var(--font-body);
+  overflow: hidden;
 }
 
-.showcase-sort-select:hover {
-  border-color: var(--color-accent-blue);
+.sort-segment-btn {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+}
+
+.sort-segment-btn + .sort-segment-btn {
+  border-left: 1px solid var(--color-border-strong);
+}
+
+.sort-segment-btn:hover {
+  color: var(--color-accent-blue);
+}
+
+.sort-segment-btn.active {
+  background: var(--gradient-electric);
+  color: #ffffff;
+}
+
+.sort-segment-btn.active:hover {
+  color: #ffffff;
 }
 
 .showcase-full {
@@ -3449,6 +3469,14 @@ body.menu-open {
   border: 1px solid var(--color-border-strong);
   border-radius: 6px;
   padding: 4px 10px;
+  text-decoration: none;
+  transition: border-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+}
+
+.pd-tool-badge:hover {
+  border-color: var(--color-accent-blue);
+  color: var(--color-accent-blue);
+  text-decoration: underline;
 }
 
 .pd-title {
@@ -3571,6 +3599,7 @@ body.menu-open {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
+  margin-top: var(--space-sm);
   margin-bottom: var(--space-xs);
 }
 
@@ -3651,8 +3680,13 @@ body.menu-open {
 }
 
 .comment-action-btn {
+  font-family: var(--font-mono);
   font-size: 12px;
+  font-weight: 500;
   color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
   transition: color var(--duration-base) var(--ease-out);
 }
@@ -3663,6 +3697,33 @@ body.menu-open {
 
 .comment-action-danger:hover {
   color: var(--color-error);
+}
+
+.comment-compact-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: border-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+}
+
+.comment-compact-btn:hover {
+  border-color: var(--color-accent-blue);
+  color: var(--color-accent-blue);
+}
+
+.comment-compact-btn-save {
+  border-color: var(--color-accent-blue);
+  color: var(--color-accent-blue);
+}
+
+.comment-compact-btn-save:hover {
+  background: color-mix(in oklch, var(--color-accent-blue) 12%, transparent);
 }
 
 .comment-edit-textarea {
@@ -3691,11 +3752,6 @@ body.menu-open {
   margin-top: 8px;
 }
 
-.comment-edit-actions .btn-primary,
-.comment-edit-actions .btn-secondary {
-  padding: 8px 16px;
-  font-size: 13px;
-}
 
 .comment-delete-confirm {
   display: flex;
@@ -3753,6 +3809,12 @@ body.menu-open {
 
 .comment-form button {
   align-self: flex-start;
+}
+
+.comment-gate .btn-secondary,
+.comment-form .btn-secondary {
+  padding: 10px 22px;
+  font-size: 14px;
 }
 
 @media (width <= 768px) {
