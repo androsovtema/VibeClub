@@ -3,6 +3,9 @@
 -- Применять в Supabase: SQL Editor → New query → вставить всё → Run.
 -- Безопасность: anon-ключ публичен, поэтому ВСЯ защита строится на RLS ниже.
 -- Идемпотентно в разумных пределах (drop policy if exists перед create).
+-- ВАЖНО: `create table if not exists` не добавит колонки в уже созданную БД —
+-- на живой базе новые поля накатываются миграциями из supabase/migrations/
+-- (сейчас: 2026-07-03-stage-ask-profile.sql — stage/looking_for/kind/skills/open_to).
 -- =============================================================================
 
 -- ---------- Расширения ----------
@@ -22,6 +25,9 @@ create table if not exists public.profiles (
   website       text,
   role          text not null default 'member'
                   check (role in ('member','core','admin')),
+  skills        text[] not null default '{}',
+  open_to       text[] not null default '{}'
+                  check (open_to <@ array['collab','orders','team']::text[]),
   created_at    timestamptz not null default now()
 );
 
@@ -35,6 +41,13 @@ create table if not exists public.projects (
   project_url  text,
   tags         text[] not null default '{}',
   tools        text[] not null default '{}',
+  stage        text
+                 check (stage is null or stage in
+                   ('idea','prototype','mvp','users','commercial')),
+  looking_for  text[] not null default '{}'
+                 check (looking_for <@ array[
+                   'feedback','testers','designer','developer',
+                   'cofounder','client','investor']::text[]),
   status       text not null default 'pending'
                  check (status in ('pending','published','rejected')),
   is_core      boolean not null default false,
@@ -51,6 +64,9 @@ create table if not exists public.comments (
   project_id  uuid not null references public.projects(id) on delete cascade,
   author_id   uuid not null references public.profiles(id) on delete cascade,
   body        text not null,
+  kind        text
+                check (kind is null or kind in
+                  ('ux','idea','bug','market','contact','collab')),
   status      text not null default 'published'
                 check (status in ('published','hidden')),
   created_at  timestamptz not null default now()
