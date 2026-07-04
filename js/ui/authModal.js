@@ -79,6 +79,7 @@ function buildMarkup() {
       </div>
 
       <div class="auth-welcome" data-welcome-view hidden>
+        <p class="auth-modal-subtitle">${t('auth.welcome.text')}</p>
         <ul class="auth-welcome-steps">
           <li>
             <a class="auth-welcome-step" href="submit.html">

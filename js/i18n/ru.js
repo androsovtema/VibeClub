@@ -4,12 +4,12 @@
  * См. docs/01-architecture.md (i18n-готовность).
  */
 export const ru = {
-  'hero.note': 'Профиль на сайте — чтобы публиковать проекты и получать фидбек. Общаемся — в Телеграм-чате.',
+  'hero.note': 'Вступил — значит свой: профиль, твои проекты в витрине, твоё имя среди участников. Болтаем — в чате.',
 
-  'community.cta.note': 'Кнопка — профиль на сайте. Ссылка — общение в Телеграм-чате.',
+  'community.cta.note': 'Вступление — минута. Что показать первым — решаешь сам.',
 
   'auth.modal.title': 'We Designerz',
-  'auth.modal.subtitle': 'Вступай в клуб вайбкодеров: профиль — твой членский билет. Публикуй проекты, получай фидбек, расти. Общаемся — в Телеграм-чате.',
+  'auth.modal.subtitle': 'Имя, почта — и ты свой. Выкладывай проекты, обсуждай чужие, обживайся. Как старый добрый форум, только код теперь пишет ИИ.',
   'auth.tab.signin': 'Войти',
   'auth.tab.signup': 'Вступить',
   'auth.field.name': 'Имя',
@@ -25,8 +25,8 @@ export const ru = {
   'auth.action.back': 'Назад',
   'auth.action.close': 'Закрыть',
   'auth.action.loading': 'Секунду…',
-  'auth.success.signin': 'Готово — добро пожаловать в We Designerz ✦',
-  'auth.success.signup': 'Готово — добро пожаловать в We Designerz ✦',
+  'auth.success.signin': 'С возвращением ✦',
+  'auth.success.signup': 'Добро пожаловать в клуб ✦',
   'auth.success.signup_confirm': 'Почти готово — мы отправили письмо для подтверждения почты. Перейди по ссылке в письме, чтобы войти.',
   'auth.success.magiclink': 'Ссылка отправлена — проверь почту.',
   'auth.success.signout': 'Ты вышел. До скорого!',
@@ -35,8 +35,9 @@ export const ru = {
   'nav.join.member': 'Добавить проект',
 
   'auth.welcome.title': 'Ты в клубе ✦',
-  'auth.welcome.step1': 'Добавь проект',
-  'auth.welcome.step2': 'Зайди в чат',
+  'auth.welcome.text': 'С первого проекта всё и начинается. Не жди, пока будет идеально, — тут никто не ждал.',
+  'auth.welcome.step1': 'Покажи первый проект',
+  'auth.welcome.step2': 'Загляни в чат — поздоровайся',
 
   'auth.error.generic': 'Что-то пошло не так. Попробуй ещё раз.',
   'auth.error.invalid_credentials': 'Неверная почта или пароль.',
@@ -49,23 +50,23 @@ export const ru = {
   'auth.error.required_password': 'Укажи пароль.',
   'auth.error.required_name': 'Укажи имя.',
 
-  'showcase.empty': 'Здесь пока пусто. Будь первым — добавь проект.',
-  'showcase.kicker.text': 'покажи свежие проекты сообщества',
+  'showcase.empty': 'Тут пока тихо. Зайди первым — твой проект откроет ленту.',
+  'showcase.kicker.text': 'покажи, что народ навайбкодил',
   'who.kicker.text': 'кто мы',
 
-  'submit.gate.text': 'Чтобы добавить проект — вступи в клуб или войди. Вот что тебя ждёт:',
+  'submit.gate.text': 'Проекты сюда добавляют свои. Вступи или войди — и вот что дальше:',
   'submit.gate.item1.title': 'Что заполнишь',
-  'submit.gate.item1.text': 'Название, описание, ссылка, обложка, теги, инструменты — около 2 минут.',
+  'submit.gate.item1.text': 'Название, пара слов о том, как собирал, ссылка и обложка. Минуты две, честно.',
   'submit.gate.item2.title': 'Как публикуется',
-  'submit.gate.item2.text': 'Проекты проходят ручную модерацию — появится на витрине после проверки.',
+  'submit.gate.item2.text': 'Мы читаем всё сами, без роботов. Проверим — и проект в витрине.',
   'submit.gate.item3.title': 'Зачем',
-  'submit.gate.item3.text': 'Фидбек от сообщества, место в витрине и свой профиль автора.',
+  'submit.gate.item3.text': 'Твоё увидят свои: спросят, подскажут, похвалят. Ради этого всё и затевалось.',
   'submit.gate.action': 'Вступить или войти',
 
   'submit.field.title': 'Название',
   'submit.field.title.placeholder': 'Как называется проект',
   'submit.field.description': 'Что это и как сделано',
-  'submit.field.description.placeholder': 'Что за продукт и как ты его вайбкодил: каким ИИ пользовался, что было сложно',
+  'submit.field.description.placeholder': 'Расскажи как есть: что придумал, чем вайбкодил, где застрял и как выкрутился',
   'submit.field.url': 'Ссылка на проект',
   'submit.field.url.placeholder': 'https://…',
   'submit.field.cover': 'Обложка',
@@ -84,8 +85,8 @@ export const ru = {
   'submit.action.submit': 'Отправить на модерацию',
   'submit.action.submitting': 'Отправляем…',
 
-  'submit.success.title': 'Готово!',
-  'submit.success.text': 'Проверим и опубликуем. Загляни в чат, пока ждёшь.',
+  'submit.success.title': 'Улетело ✦',
+  'submit.success.text': 'Прочитаем и выпустим в витрину. А пока загляни в чат — там всегда есть о чём.',
   'submit.success.chat': 'Чат сообщества',
   'submit.success.again': 'Добавить ещё один',
 
@@ -104,17 +105,17 @@ export const ru = {
 
   'project.loading': 'Загрузка…',
   'project.notfound.title': 'Проект не найден',
-  'project.notfound.text': 'Такого проекта нет — возможно, его ещё не опубликовали или ссылка неверна.',
+  'project.notfound.text': 'Такого проекта не нашлось. Может, он ещё на модерации — или ссылка что-то напутала.',
   'project.notfound.link': 'Все проекты',
   'project.notfound.doctitle': 'Проект не найден — We Designerz',
   'project.action.open': 'Открыть проект →',
   'project.cover.label': 'скриншот проекта',
 
   'project.discussion.title': 'Обсуждение',
-  'project.comments.empty': 'Сообщений пока нет. Напиши первым.',
-  'project.comment.gate.text': 'Вступи или войди, чтобы оставить сообщение.',
+  'project.comments.empty': 'Пока тихо. Спроси автора, как он это собрал, — авторы такое любят.',
+  'project.comment.gate.text': 'Спросить, подсказать, похвалить — после входа. Вступи или войди.',
   'project.comment.gate.action': 'Вступить или войти',
-  'project.comment.placeholder': 'Твоё сообщение',
+  'project.comment.placeholder': 'Спроси, подскажи, похвали — по-человечески',
   'project.comment.submit': 'Отправить',
   'project.comment.submitting': 'Отправляем…',
   'project.comment.error': 'Сообщение не отправилось. Попробуй ещё раз.',
@@ -132,11 +133,11 @@ export const ru = {
 
   'profile.loading': 'Загрузка…',
   'profile.notfound.title': 'Профиль не найден',
-  'profile.notfound.text': 'Такого участника нет — возможно, ссылка неверна.',
+  'profile.notfound.text': 'Такого участника не нашлось — может, ссылка что-то напутала.',
   'profile.notfound.link': 'Все проекты',
   'profile.notfound.doctitle': 'Профиль не найден — We Designerz',
   'profile.projects.title': 'Проекты участника',
-  'profile.projects.empty': 'Пока без проектов',
+  'profile.projects.empty': 'Пока без проектов — всё впереди.',
 
   'activity.toast.added': 'добавил проект',
 
