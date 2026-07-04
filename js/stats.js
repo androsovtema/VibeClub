@@ -3,6 +3,7 @@
  * Реальные данные из Supabase. При ошибке блок цифр скрывается — фейковых значений не показываем.
  */
 import { supabase } from './supabase.js';
+import { STATS_MIN_MEMBERS, STATS_MIN_PROJECTS } from './config.js';
 
 async function countRows(table, filters = {}) {
   let query = supabase.from(table).select('*', { count: 'exact', head: true });
@@ -23,6 +24,11 @@ async function renderStats() {
       countRows('profiles'),
       countRows('projects', { status: 'published' })
     ]);
+
+    if (members < STATS_MIN_MEMBERS || projects < STATS_MIN_PROJECTS) {
+      wrap.hidden = true;
+      return;
+    }
 
     const membersEl = wrap.querySelector('[data-stat="members"]');
     const projectsEl = wrap.querySelector('[data-stat="projects"]');

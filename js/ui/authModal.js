@@ -7,6 +7,7 @@ import { signUpEmailPassword, signInEmailPassword, signInMagicLink } from '../au
 import { t, mapAuthError } from '../i18n/ru.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+const WELCOME_KEY = 'wdz-welcome-shown';
 
 let overlay = null;
 let modal = null;
@@ -22,57 +23,77 @@ function buildMarkup() {
       <button type="button" class="auth-modal-close" data-auth-close aria-label="${t('auth.action.close')}">&times;</button>
       <div class="auth-modal-header">
         <span class="auth-modal-glyph" aria-hidden="true">✦</span>
-        <h2 id="auth-modal-title" class="auth-modal-title">${t('auth.modal.title')}</h2>
-      </div>
-      <p class="auth-modal-subtitle">${t('auth.modal.subtitle')}</p>
-
-      <div class="auth-modal-tabs" role="tablist">
-        <button type="button" class="auth-modal-tab is-active" data-tab="signin" role="tab" aria-selected="true">${t('auth.tab.signin')}</button>
-        <button type="button" class="auth-modal-tab" data-tab="signup" role="tab" aria-selected="false">${t('auth.tab.signup')}</button>
+        <h2 id="auth-modal-title" class="auth-modal-title" data-modal-title>${t('auth.modal.title')}</h2>
       </div>
 
-      <form class="auth-modal-form" data-form="signin" novalidate>
-        <div class="field">
-          <label for="auth-signin-email">${t('auth.field.email')}</label>
-          <input id="auth-signin-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
-        </div>
-        <div class="field">
-          <label for="auth-signin-password">${t('auth.field.password')}</label>
-          <input id="auth-signin-password" type="password" name="password" autocomplete="current-password" placeholder="${t('auth.field.password.placeholder')}" required />
-        </div>
-        <p class="auth-modal-error" data-error hidden></p>
-        <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signin')}</button>
-        <button type="button" class="auth-modal-link" data-magic-toggle>${t('auth.action.magiclink')}</button>
-      </form>
+      <div data-auth-view>
+        <p class="auth-modal-subtitle">${t('auth.modal.subtitle')}</p>
 
-      <form class="auth-modal-form" data-form="signup" hidden novalidate>
-        <div class="field">
-          <label for="auth-signup-name">${t('auth.field.name')}</label>
-          <input id="auth-signup-name" type="text" name="name" autocomplete="name" placeholder="${t('auth.field.name.placeholder')}" required />
+        <div class="auth-modal-tabs" role="tablist">
+          <button type="button" class="auth-modal-tab is-active" data-tab="signin" role="tab" aria-selected="true">${t('auth.tab.signin')}</button>
+          <button type="button" class="auth-modal-tab" data-tab="signup" role="tab" aria-selected="false">${t('auth.tab.signup')}</button>
         </div>
-        <div class="field">
-          <label for="auth-signup-email">${t('auth.field.email')}</label>
-          <input id="auth-signup-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
-        </div>
-        <div class="field">
-          <label for="auth-signup-password">${t('auth.field.password')}</label>
-          <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
-        </div>
-        <p class="auth-modal-error" data-error hidden></p>
-        <p class="auth-modal-success" data-success hidden></p>
-        <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signup')}</button>
-      </form>
 
-      <form class="auth-modal-form" data-form="magiclink" hidden novalidate>
-        <div class="field">
-          <label for="auth-magiclink-email">${t('auth.field.email')}</label>
-          <input id="auth-magiclink-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
-        </div>
-        <p class="auth-modal-error" data-error hidden></p>
-        <p class="auth-modal-success" data-success hidden></p>
-        <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.magiclink.submit')}</button>
-        <button type="button" class="auth-modal-link" data-magic-back>${t('auth.action.back')}</button>
-      </form>
+        <form class="auth-modal-form" data-form="signin" novalidate>
+          <div class="field">
+            <label for="auth-signin-email">${t('auth.field.email')}</label>
+            <input id="auth-signin-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
+          </div>
+          <div class="field">
+            <label for="auth-signin-password">${t('auth.field.password')}</label>
+            <input id="auth-signin-password" type="password" name="password" autocomplete="current-password" placeholder="${t('auth.field.password.placeholder')}" required />
+          </div>
+          <p class="auth-modal-error" data-error hidden></p>
+          <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signin')}</button>
+          <button type="button" class="auth-modal-link" data-magic-toggle>${t('auth.action.magiclink')}</button>
+        </form>
+
+        <form class="auth-modal-form" data-form="signup" hidden novalidate>
+          <div class="field">
+            <label for="auth-signup-name">${t('auth.field.name')}</label>
+            <input id="auth-signup-name" type="text" name="name" autocomplete="name" placeholder="${t('auth.field.name.placeholder')}" required />
+          </div>
+          <div class="field">
+            <label for="auth-signup-email">${t('auth.field.email')}</label>
+            <input id="auth-signup-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
+          </div>
+          <div class="field">
+            <label for="auth-signup-password">${t('auth.field.password')}</label>
+            <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
+          </div>
+          <p class="auth-modal-error" data-error hidden></p>
+          <p class="auth-modal-success" data-success hidden></p>
+          <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signup')}</button>
+        </form>
+
+        <form class="auth-modal-form" data-form="magiclink" hidden novalidate>
+          <div class="field">
+            <label for="auth-magiclink-email">${t('auth.field.email')}</label>
+            <input id="auth-magiclink-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
+          </div>
+          <p class="auth-modal-error" data-error hidden></p>
+          <p class="auth-modal-success" data-success hidden></p>
+          <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.magiclink.submit')}</button>
+          <button type="button" class="auth-modal-link" data-magic-back>${t('auth.action.back')}</button>
+        </form>
+      </div>
+
+      <div class="auth-welcome" data-welcome-view hidden>
+        <ul class="auth-welcome-steps">
+          <li>
+            <a class="auth-welcome-step" href="submit.html">
+              <span class="auth-welcome-step-num" aria-hidden="true">1</span>
+              <span class="auth-welcome-step-text">${t('auth.welcome.step1')}</span>
+            </a>
+          </li>
+          <li>
+            <a class="auth-welcome-step" href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">
+              <span class="auth-welcome-step-num" aria-hidden="true">2</span>
+              <span class="auth-welcome-step-text">${t('auth.welcome.step2')}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   `;
   return el;
@@ -106,6 +127,20 @@ function showSuccess(form, message) {
       errorEl.hidden = true;
     }
   }
+}
+
+function showWelcome() {
+  modal.querySelector('[data-modal-title]').textContent = t('auth.welcome.title');
+  modal.querySelector('[data-auth-view]').hidden = true;
+  const welcomeView = modal.querySelector('[data-welcome-view]');
+  welcomeView.hidden = false;
+  welcomeView.querySelector('.auth-welcome-step')?.focus();
+}
+
+function resetToAuthView() {
+  modal.querySelector('[data-modal-title]').textContent = t('auth.modal.title');
+  modal.querySelector('[data-auth-view]').hidden = false;
+  modal.querySelector('[data-welcome-view]').hidden = true;
 }
 
 function switchTab(tabName) {
@@ -224,6 +259,11 @@ function attachEvents() {
 let onSuccessCallback = null;
 
 function onAuthSuccess(message) {
+  if (!localStorage.getItem(WELCOME_KEY)) {
+    localStorage.setItem(WELCOME_KEY, '1');
+    showWelcome();
+    return;
+  }
   closeAuthModal();
   onSuccessCallback?.(message);
 }
@@ -242,6 +282,7 @@ function ensureModal() {
 
 export function openAuthModal(initialTab = 'signin') {
   ensureModal();
+  resetToAuthView();
   lastFocused = document.activeElement;
   overlay.hidden = false;
   document.body.classList.add('auth-modal-open');

@@ -6,3 +6,6 @@ Sitemap: https://wedesignerz.com/sitemap.xml
 
 # Disallow admin areas
 Disallow: /admin.html
+
+# Disallow archived pages
+Disallow: /archive/
