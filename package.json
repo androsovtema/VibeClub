@@ -8,7 +8,10 @@
     "lint:js": "eslint '**/*.js'",
     "lint:js:fix": "eslint '**/*.js' --fix",
     "lint:css": "stylelint '**/*.css'",
-    "lint:css:fix": "stylelint '**/*.css' --fix"
+    "lint:css:fix": "stylelint '**/*.css' --fix",
+    "lint": "npm run lint:js && npm run lint:css",
+    "security-check": "node scripts/security-check.mjs",
+    "check": "npm run lint && echo '\\n✓ Линтеры чисты. Отдельно: npm run security-check <email> <пароль> (после миграций RLS).'"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
