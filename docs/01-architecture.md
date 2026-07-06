@@ -3,8 +3,11 @@
 ## Стек
 
 - **Фронт:** оставляем как есть — статический HTML/CSS/JS, без фреймворка и сборки.
-  Хостинг — GitHub Pages, домен `wedesignerz.com`, деплой через существующий
-  `.github/workflows/deploy.yml` (push в `main` → публикация).
+  Хостинг — GitHub Pages, домен `wedesignerz.com`, деплой через
+  `.github/workflows/deploy.yml` (push в `main` → публикация). Workflow собирает
+  `_site/` только из файлов сайта: `docs/`, `audits/`, `supabase/`, `CLAUDE.md` и
+  конфиги на публичный сайт **не попадают** (правило от 2026-07-06 — до этого весь
+  репозиторий, включая внутренние доки, был публично доступен по прямым URL).
 - **Бэкенд:** [Supabase](https://supabase.com) (бесплатный тариф). Postgres + Auth +
   Storage. Сайт общается с ним через `@supabase/supabase-js` (CDN, ESM).
 - **Чат сообщества:** внешний Telegram-чат. Кнопка «Вступить» ведёт в группу.
