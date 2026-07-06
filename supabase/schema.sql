@@ -146,6 +146,49 @@ create trigger trg_upvotes_sync
   after insert or delete on public.project_upvotes
   for each row execute function public.sync_project_upvotes();
 
+-- ---------- Защита привилегированных колонок (T-SEC1, OWASP-ревью 2026-07-06) ----------
+-- RLS ограничивает строки, но не колонки: без этого триггера любой залогиненный
+-- мог выставить себе profiles.role='admin' (эскалация до модератора) или
+-- projects.is_core=true (бейдж «команда»). Прямой SQL из SQL Editor /
+-- service_role (auth.uid() is null) пропускается — бутстрап админа возможен
+-- только оттуда, не из браузерной консоли.
+create or replace function public.protect_privileged_columns()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    return new;
+  end if;
+
+  if tg_table_name = 'profiles'
+     and new.role is distinct from old.role
+     and not public.is_admin() then
+    raise exception 'role can only be changed by an admin';
+  end if;
+
+  if tg_table_name = 'projects'
+     and new.is_core is distinct from old.is_core
+     and not public.is_admin() then
+    raise exception 'is_core can only be changed by an admin';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_protect_profiles_role on public.profiles;
+create trigger trg_protect_profiles_role
+  before update on public.profiles
+  for each row execute function public.protect_privileged_columns();
+
+drop trigger if exists trg_protect_projects_is_core on public.projects;
+create trigger trg_protect_projects_is_core
+  before update on public.projects
+  for each row execute function public.protect_privileged_columns();
+
 -- =============================================================================
 -- RLS — ВКЛЮЧЕНИЕ
 -- =============================================================================
@@ -279,7 +322,8 @@ create policy covers_delete_own on storage.objects
 --  - аноним не может вставить projects со status='published';
 --  - аноним не может писать в чужой profiles;
 --  - авторизованный вставляет проект только с author_id=свой uid и status='pending'.
--- Как назначить себя админом (после первой регистрации), выполнить разово:
---   update public.profiles set role='admin' where id = auth.uid();
---   (или по email через связку с auth.users)
+-- Как назначить себя админом (после первой регистрации), выполнить разово
+-- ИЗ SQL EDITOR (из браузера отобьёт триггер trg_protect_profiles_role):
+--   update public.profiles set role='admin' where id = '<uuid из auth.users>';
+--   (uuid смотреть: select id, email from auth.users;)
 -- =============================================================================
