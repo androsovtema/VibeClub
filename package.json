@@ -1,8 +1,8 @@
 {
   "name": "wedesignerz",
   "version": "1.0.0",
-  "description": "We Designerz - Design Studio",
-  "main": "main.js",
+  "description": "We Designerz — сообщество вайбкодеров",
+  "main": "js/main.js",
   "type": "module",
   "scripts": {
     "lint:js": "eslint '**/*.js'",

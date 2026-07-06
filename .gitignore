@@ -28,10 +28,11 @@ node_modules/
 dist/
 build/
 .cache/
+_site/
 
 # Environment
 .env
 .env.local
-# Stray build/audit artifacts
-.astro/
-product-design-audit-homepage/
+
+# Local Claude settings
+.claude/settings.local.json

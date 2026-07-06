@@ -27,10 +27,34 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # На Pages уходят только файлы сайта. Внутреннее (docs/, audits/,
+      # supabase/, CLAUDE.md, конфиги) не публикуется.
+      - name: Build site artifact
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude='_site' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.claude' \
+            --exclude='node_modules' \
+            --exclude='docs' \
+            --exclude='audits' \
+            --exclude='supabase' \
+            --exclude='CLAUDE.md' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='eslint.config.js' \
+            --exclude='.stylelintrc.json' \
+            --exclude='.stylelintignore' \
+            --exclude='.gitignore' \
+            --exclude='.DS_Store' \
+            ./ _site/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
