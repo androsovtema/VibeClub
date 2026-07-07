@@ -9,7 +9,7 @@ import { getCurrentUser, onAuthChange } from './auth.js';
 import { openAuthModal } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
 import { fetchProjectById, CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
-import { stageLabel, lookingLabel } from './vocab.js';
+import { stageLabel, lookingLabel, validLooking, KIND_KEYS, isKind, kindLabel } from './vocab.js';
 import { isHttpUrl } from './util.js';
 
 const params = new URLSearchParams(window.location.search);
@@ -45,6 +45,8 @@ const commentsListEl = document.querySelector('[data-comments-list]');
 const commentsEmptyEl = document.querySelector('[data-comments-empty]');
 const commentGateEl = document.querySelector('[data-comment-gate]');
 const commentFormEl = document.querySelector('[data-comment-form]');
+const commentHintEl = document.querySelector('[data-comment-hint]');
+const commentKindChipsEl = document.querySelector('[data-comment-kind-chips]');
 const commentInput = document.querySelector('[data-comment-input]');
 const commentSubmitBtn = document.querySelector('[data-comment-submit]');
 const commentErrorEl = document.querySelector('[data-comment-error]');
@@ -54,6 +56,9 @@ let currentProject = null;
 let hasUpvoted = false;
 let upvoteBusy = false;
 let commentBusy = false;
+let selectedKind = null;
+
+buildKindChips();
 
 applyStaticText();
 
@@ -72,6 +77,46 @@ function applyStaticText() {
   document.querySelector('[data-comment-gate-action]').textContent = t('project.comment.gate.action');
   commentInput.placeholder = t('project.comment.placeholder');
   commentSubmitBtn.textContent = t('project.comment.submit');
+}
+
+// Категория коммента — одиночный выбор, повторный клик по активной снимает.
+// Необязательная: без выбора коммент уходит как раньше (kind = null).
+function buildKindChips() {
+  commentKindChipsEl.innerHTML = '';
+  KIND_KEYS.forEach((value) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip chip-sm';
+    chip.dataset.value = value;
+    chip.textContent = kindLabel(value);
+    chip.setAttribute('aria-pressed', 'false');
+    chip.addEventListener('click', () => {
+      const activate = selectedKind !== value;
+      selectedKind = activate ? value : null;
+      commentKindChipsEl.querySelectorAll('.chip').forEach((c) => {
+        const on = activate && c.dataset.value === value;
+        c.classList.toggle('active', on);
+        c.setAttribute('aria-pressed', String(on));
+      });
+    });
+    commentKindChipsEl.appendChild(chip);
+  });
+}
+
+function resetKindChip() {
+  selectedKind = null;
+  commentKindChipsEl.querySelectorAll('.chip').forEach((c) => {
+    c.classList.remove('active');
+    c.setAttribute('aria-pressed', 'false');
+  });
+}
+
+// Подсказка над формой: персональная по первому валидному looking_for автора,
+// иначе общая (см. project.comment.hint.* в i18n).
+function updateCommentHint() {
+  const keys = currentProject ? validLooking(currentProject.lookingFor) : [];
+  const key = keys[0];
+  commentHintEl.textContent = key ? t(`project.comment.hint.${key}`) : t('project.comment.hint.default');
 }
 
 function formatDate(iso) {
@@ -174,6 +219,7 @@ function renderProject(project) {
 
   upvoteCountEl.textContent = String(project.upvotes);
   updateEditButton();
+  updateCommentHint();
 }
 
 // Кнопка «Редактировать» видна только автору проекта (RLS всё равно отобьёт
@@ -242,7 +288,7 @@ upvoteBtn.addEventListener('click', async () => {
 async function loadComments() {
   const { data, error } = await supabase
     .from('comments')
-    .select('id, body, created_at, author_id, author:profiles!comments_author_id_fkey(display_name, avatar_url)')
+    .select('id, body, kind, created_at, author_id, author:profiles!comments_author_id_fkey(display_name, avatar_url)')
     .eq('project_id', projectId)
     .eq('status', 'published')
     .order('created_at', { ascending: false });
@@ -292,6 +338,14 @@ function renderCommentItem(comment) {
 
   head.appendChild(nameEl);
   head.appendChild(dateEl2);
+
+  const kindText = kindLabel(comment.kind);
+  if (kindText) {
+    const kindBadge = document.createElement('span');
+    kindBadge.className = 'comment-kind-badge';
+    kindBadge.textContent = kindText;
+    head.appendChild(kindBadge);
+  }
 
   const body = document.createElement('p');
   body.className = 'comment-body';
@@ -473,7 +527,8 @@ commentFormEl.addEventListener('submit', async (event) => {
   const { error } = await supabase.from('comments').insert({
     project_id: projectId,
     author_id: currentUser.id,
-    body
+    body,
+    kind: isKind(selectedKind) ? selectedKind : null
   });
 
   commentBusy = false;
@@ -487,6 +542,7 @@ commentFormEl.addEventListener('submit', async (event) => {
   }
 
   commentInput.value = '';
+  resetKindChip();
   await loadComments();
 });
 

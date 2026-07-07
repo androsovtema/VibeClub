@@ -29,6 +29,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  /* stylelint-disable-next-line declaration-block-no-duplicate-properties -- 100vh фолбэк для браузеров без поддержки svh, порядок важен */
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
 ::selection {
   background: oklch(62% 0.2 292deg / 40%);
 }
@@ -309,6 +317,7 @@ h4 {
  *  MAIN CONTAINER  *
  *************************/
 main {
+  flex: 1 0 auto;
   padding-top: 80px;
 }
 
@@ -3529,6 +3538,7 @@ body.menu-open {
 .comment-gate[hidden],
 .comment-form[hidden],
 [data-project-open][hidden],
+[data-project-edit][hidden],
 .pd-loading[hidden] {
   display: none;
 }
@@ -3965,8 +3975,9 @@ a.pd-author-name:hover {
 
 .comment-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 10px;
+  gap: 6px 10px;
   margin-bottom: 6px;
 }
 
@@ -3991,6 +4002,19 @@ a.comment-author:hover {
   font-size: 12px;
   color: var(--color-text-tertiary);
   font-family: var(--font-mono);
+}
+
+/* T13 — бейдж категории направленного фидбека: метка, не действие */
+.comment-kind-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 2px 8px;
 }
 
 .comment-body {
@@ -4123,6 +4147,20 @@ a.comment-author:hover {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* T13 — подсказка направленного фидбека + необязательные чипы категории */
+.comment-hint {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.comment-kind-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .comment-form textarea {

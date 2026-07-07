@@ -9,6 +9,7 @@ import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
 import { isHttpUrl } from './util.js';
+import { kindLabel } from './vocab.js';
 
 const PROJECT_SELECT = '*, author:profiles!projects_author_id_fkey(display_name)';
 const COMMENTS_LIMIT = 50;
@@ -188,7 +189,7 @@ async function fetchProjectsByStatus(status) {
 async function fetchRecentComments() {
   const { data, error } = await supabase
     .from('comments')
-    .select('id, body, created_at, author:profiles!comments_author_id_fkey(display_name, avatar_url), project:projects(id, title)')
+    .select('id, body, kind, created_at, author:profiles!comments_author_id_fkey(display_name, avatar_url), project:projects(id, title)')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(COMMENTS_LIMIT);
@@ -505,6 +506,14 @@ function renderCommentItem(comment) {
   dateEl.className = 'comment-date';
   dateEl.textContent = formatDate(comment.created_at);
   head.append(nameEl, dateEl);
+
+  const kindText = kindLabel(comment.kind);
+  if (kindText) {
+    const kindBadge = document.createElement('span');
+    kindBadge.className = 'comment-kind-badge';
+    kindBadge.textContent = kindText;
+    head.appendChild(kindBadge);
+  }
 
   const body = document.createElement('p');
   body.className = 'comment-body';

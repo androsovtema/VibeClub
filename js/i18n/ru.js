@@ -108,6 +108,14 @@ export const ru = {
   'card.looking.prefix': 'ищет',
   'project.looking.title': 'Автор ищет',
 
+  // T13 — словарь категорий направленного фидбека в комменте
+  'kind.ux': 'UX',
+  'kind.idea': 'идея',
+  'kind.bug': 'баг',
+  'kind.market': 'рынок',
+  'kind.contact': 'контакт',
+  'kind.collab': 'коллаб',
+
   'submit.action.submit': 'Отправить на модерацию',
   'submit.action.submitting': 'Отправляем…',
 
@@ -152,6 +160,16 @@ export const ru = {
   'project.comments.empty': 'Пока тихо. Спроси автора, как он это собрал, — авторы такое любят.',
   'project.comment.gate.text': 'Спросить, подсказать, похвалить — после входа. Вступи или войди.',
   'project.comment.gate.action': 'Вступить или войти',
+  // Подсказка над формой: общая или персональная (по первому looking_for автора)
+  'project.comment.hint.default': 'Помоги автору: скажи про UX, идею, баг или рынок — конкретика дороже «круто».',
+  'project.comment.hint.feedback': 'Автор просит фидбек — скажи как есть, это и нужно.',
+  'project.comment.hint.testers': 'Автор ищет тестеров — попробуй и расскажи, что вышло.',
+  'project.comment.hint.designer': 'Автор ищет дизайнера — если шаришь в UX, глянь и подскажи.',
+  'project.comment.hint.developer': 'Автор ищет разработчика — если шаришь в коде, глянь и подскажи.',
+  'project.comment.hint.cofounder': 'Автор ищет кофаундера — если откликается, напиши прямо тут.',
+  'project.comment.hint.client': 'Автор ищет клиентов — знаешь кому предложить, шепни в комментах.',
+  'project.comment.hint.investor': 'Автор ищет инвестиции — есть контакты или мысли, поделись.',
+
   'project.comment.placeholder': 'Спроси, подскажи, похвали — по-человечески',
   'project.comment.submit': 'Отправить',
   'project.comment.submitting': 'Отправляем…',
