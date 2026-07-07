@@ -10,7 +10,7 @@ import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS, fetchProjectById } from './projects.js';
 import { STAGE_KEYS, LOOKING_KEYS, isStage, stageLabel, lookingLabel } from './vocab.js';
-import { isHttpUrl, normalizeHttpUrl } from './util.js';
+import { isHttpUrl, normalizeHttpUrl, autoGrowTextarea } from './util.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
 const MAX_COVER_BYTES = 3 * 1024 * 1024;
@@ -59,6 +59,7 @@ if (gate && formWrap && form) {
   buildStageChips();
   buildLookingChips();
   if (isEdit) applyEditModeText();
+  form.description.addEventListener('input', () => autoGrowTextarea(form.description));
 
   function applyStaticText() {
     document.querySelector('[data-submit-gate-text]').textContent = t('submit.gate.text');
@@ -122,6 +123,7 @@ if (gate && formWrap && form) {
 
     form.title.value = data.title || '';
     form.description.value = data.description || '';
+    autoGrowTextarea(form.description);
     form.projectUrl.value = data.projectUrl || '';
 
     existingCoverUrl = data.coverUrl || null;

@@ -33,6 +33,7 @@ export const ru = {
   'auth.header.join': 'Вступить',
   'auth.header.signout': 'Выйти',
   'nav.join.member': 'Добавить проект',
+  'nav.back': 'Назад',
 
   'auth.welcome.title': 'Ты в клубе ✦',
   'auth.welcome.text': 'С первого проекта всё и начинается. Не жди, пока будет идеально, — тут никто не ждал.',
@@ -193,6 +194,51 @@ export const ru = {
   'profile.notfound.doctitle': 'Профиль не найден — We Designerz',
   'profile.projects.title': 'Проекты участника',
   'profile.projects.empty': 'Пока без проектов — всё впереди.',
+  'profile.edit.link': 'Редактировать профиль',
+
+  // Словарь «открыт к…» (T14) — общий для me.html и profile.html
+  'open_to.collab': 'открыт к коллабам',
+  'open_to.orders': 'беру заказы',
+  'open_to.team': 'ищу команду',
+
+  'me.doctitle': 'Кабинет — We Designerz',
+  'me.heading': 'Кабинет',
+  'me.loading': 'Загрузка…',
+
+  'me.gate.text': 'Здесь редактируешь профиль и следишь за судьбой своих проектов. Вступи или войди.',
+  'me.gate.action': 'Вступить или войти',
+
+  'me.field.name': 'Имя',
+  'me.field.bio': 'О себе',
+  'me.field.bio.placeholder': 'Пара слов о том, что делаешь',
+  'me.field.telegram': 'Telegram',
+  'me.field.telegram.placeholder': '@ник',
+  'me.field.website': 'Сайт',
+  'me.field.website.placeholder': 'https://…',
+  'me.field.skills': 'Что умеешь',
+  'me.field.skills.hint': 'До 10 тегов, свободный ввод. Enter или «Добавить».',
+  'me.field.skills.placeholder': 'например, Figma',
+  'me.field.skills.add': 'Добавить',
+  'me.field.skills.remove': 'Убрать',
+  'me.field.open_to': 'К чему открыт',
+  'me.field.open_to.hint': 'Необязательно, можно выбрать несколько.',
+
+  'me.action.save': 'Сохранить',
+  'me.action.saving': 'Сохраняем…',
+  'me.save.success': 'Сохранено ✦',
+  'me.save.error': 'Не получилось сохранить. Попробуй ещё раз.',
+  'me.error.skills_max': 'Не больше 10 тегов.',
+  'me.error.skills_len': 'Тег слишком длинный — максимум 24 символа.',
+  'me.error.website': 'Ссылка должна начинаться с http:// или https://.',
+
+  'me.projects.title': 'Твои проекты',
+  'me.projects.empty': 'Пока нет ни одного — самое время.',
+  'me.projects.empty.link': 'Показать первый проект',
+  'me.status.pending': 'на модерации',
+  'me.status.published': 'в витрине',
+  'me.status.rejected': 'отклонён',
+
+  'me.public.link': 'Мой публичный профиль',
 
   'activity.toast.added': 'добавил проект',
 

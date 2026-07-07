@@ -1267,7 +1267,7 @@ section {
 
 .projects-hero h1 {
   font-size: var(--text-5xl);
-  max-width: 900px;
+  max-width: var(--content-col);
   margin-bottom: var(--space-xs);
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -2537,7 +2537,7 @@ section {
 .submit-gate,
 .submit-form-wrap,
 .submit-success {
-  max-width: 560px;
+  max-width: var(--content-col);
   padding-top: var(--space-xs);
   padding-bottom: var(--space-xl);
 }
@@ -2603,6 +2603,8 @@ section {
 .submit-form textarea {
   resize: vertical;
   min-height: 120px;
+  max-height: 60vh;
+  overflow-y: auto;
   font-family: var(--font-body);
 }
 
@@ -3544,7 +3546,7 @@ body.menu-open {
 }
 
 .pd-loading {
-  max-width: 860px;
+  max-width: var(--content-col);
   margin: 0 auto;
   padding-top: var(--space-sm);
   padding-bottom: var(--space-xs);
@@ -3603,7 +3605,7 @@ body.menu-open {
 }
 
 .pd-not-found {
-  max-width: 560px;
+  max-width: var(--content-col);
   text-align: center;
   padding-top: var(--space-lg);
   padding-bottom: var(--space-xl);
@@ -3628,7 +3630,7 @@ body.menu-open {
 }
 
 .pd-back {
-  max-width: 860px;
+  max-width: var(--content-col);
   margin: 0 auto;
   padding: var(--space-sm) var(--space-md) 0;
 }
@@ -3639,7 +3641,7 @@ body.menu-open {
   gap: var(--space-sm);
   padding-top: var(--space-sm);
   padding-bottom: var(--space-xs);
-  max-width: 860px;
+  max-width: var(--content-col);
 }
 
 .pd-cover {
@@ -3922,7 +3924,7 @@ a.pd-author-name:hover {
 
 .pd-discussion {
   padding-top: var(--space-sm);
-  max-width: 860px;
+  max-width: var(--content-col);
 }
 
 .pd-discussion h2 {
@@ -4173,6 +4175,8 @@ a.comment-author:hover {
   padding: 12px 16px;
   resize: vertical;
   min-height: 90px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .comment-form textarea:focus {
@@ -4218,12 +4222,15 @@ a.comment-author:hover {
 
 .pf-hero[hidden],
 .pf-link[hidden],
-.pf-loading[hidden] {
+.pf-loading[hidden],
+.pf-edit-link[hidden],
+.pf-skills[hidden],
+.pf-open-to[hidden] {
   display: none;
 }
 
 .pf-loading {
-  max-width: 560px;
+  max-width: var(--content-col);
   margin: 0 auto;
   padding-top: var(--space-sm);
   padding-bottom: var(--space-xs);
@@ -4274,7 +4281,7 @@ a.comment-author:hover {
 }
 
 .pf-not-found {
-  max-width: 560px;
+  max-width: var(--content-col);
   margin: 0 auto;
   text-align: center;
   padding-top: var(--space-lg);
@@ -4300,7 +4307,7 @@ a.comment-author:hover {
 }
 
 .pf-back {
-  max-width: 560px;
+  max-width: var(--content-col);
   margin: 0 auto;
   padding: var(--space-sm) var(--space-md) 0;
 }
@@ -4312,7 +4319,7 @@ a.comment-author:hover {
   text-align: center;
   gap: var(--space-2xs);
   padding-top: var(--space-sm);
-  max-width: 560px;
+  max-width: var(--content-col);
   margin: 0 auto;
 }
 
@@ -4344,12 +4351,55 @@ a.comment-author:hover {
   line-height: var(--leading-tight);
 }
 
+.pf-edit-link {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-decoration: underline;
+}
+
+.pf-edit-link:hover {
+  color: var(--color-accent-blue);
+}
+
 .pf-bio {
   color: var(--color-text-secondary);
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   white-space: pre-wrap;
   max-width: 480px;
+}
+
+.pf-skills,
+.pf-open-to {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Скиллы — нейтральный моно-тег, как .pd-tag */
+.pf-skill-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+/* «Открыт к…» — акцентный бейдж-приглашение, как .pd-looking-chip */
+.pf-open-badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+  color: var(--color-accent-violet);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  padding: 4px 10px;
 }
 
 .pf-links {
@@ -4403,6 +4453,97 @@ a.comment-author:hover {
 }
 
 /*************************
+ *  ME PAGE (T14)  *
+ *************************/
+
+.me-form-section[hidden],
+.me-projects-section[hidden] {
+  display: none;
+}
+
+.me-projects-empty-link[hidden] {
+  display: none;
+}
+
+.me-form-section,
+.me-projects-section {
+  max-width: var(--content-col);
+  margin: 0 auto;
+}
+
+.me-form-section {
+  padding-top: var(--space-xs);
+}
+
+.me-projects-section {
+  padding-top: var(--space-lg);
+}
+
+.me-hero {
+  padding-bottom: var(--space-2xs);
+  text-align: center;
+}
+
+.me-hero h1 {
+  font-size: var(--text-4xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.me-projects-section h2 {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-2xs);
+}
+
+.me-public-link {
+  margin-top: var(--space-xs);
+}
+
+/* Статус своего проекта — тихий моно-бейдж на обложке карточки (T14) */
+.me-project-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  background: color-mix(in oklch, var(--color-bg) 70%, transparent);
+  border: 1px solid var(--color-border-strong);
+  backdrop-filter: blur(2px);
+}
+
+.me-project-status.is-pending {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.me-project-status.is-published {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.me-project-status.is-rejected {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+@media (width <= 768px) {
+  .me-form-section,
+  .me-projects-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .me-hero h1 {
+    font-size: var(--text-3xl);
+  }
+}
+
+/*************************
  *  ADMIN PAGE (T7)  *
  *************************/
 
@@ -4421,7 +4562,7 @@ a.comment-author:hover {
 }
 
 .adm-denied {
-  max-width: 560px;
+  max-width: var(--content-col);
   text-align: center;
   padding-top: var(--space-lg);
   padding-bottom: var(--space-xl);

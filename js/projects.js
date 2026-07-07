@@ -52,7 +52,8 @@ function normalizeProject(row) {
     authorAvatarUrl: row.author?.avatar_url || null,
     createdAt: row.created_at,
     stage: row.stage || null,
-    lookingFor: validLooking(row.looking_for)
+    lookingFor: validLooking(row.looking_for),
+    status: row.status
   };
 }
 
@@ -85,6 +86,17 @@ export async function fetchPublishedProjects({ category, sort = 'new', limit, au
   if (limit) query = query.limit(limit);
 
   const { data, error } = await query;
+  if (error) return { data: null, error };
+  return { data: data.map(normalizeProject), error: null };
+}
+
+// Свои проекты любого статуса (T14, me.html) — RLS уже отдаёт владельцу свои pending/rejected.
+export async function fetchOwnProjects(authorId) {
+  const { data, error } = await supabase
+    .from('projects')
+    .select(SELECT)
+    .eq('author_id', authorId)
+    .order('created_at', { ascending: false });
   if (error) return { data: null, error };
   return { data: data.map(normalizeProject), error: null };
 }

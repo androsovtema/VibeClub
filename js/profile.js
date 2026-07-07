@@ -6,7 +6,9 @@
 import { supabase } from './supabase.js';
 import { t } from './i18n/ru.js';
 import { fetchPublishedProjects, renderProjectCard, initialOf } from './projects.js';
-import { isHttpUrl } from './util.js';
+import { isHttpUrl, wireBackLink } from './util.js';
+import { getCurrentUser } from './auth.js';
+import { validOpenTo, openToLabel } from './vocab.js';
 
 const params = new URLSearchParams(window.location.search);
 const profileId = params.get('id');
@@ -19,15 +21,22 @@ const projectsEl = document.querySelector('[data-profile-projects]');
 const avatarEl = document.querySelector('[data-profile-avatar]');
 const nameEl = document.querySelector('[data-profile-name]');
 const bioEl = document.querySelector('[data-profile-bio]');
+const editLink = document.querySelector('[data-profile-edit]');
+const skillsEl = document.querySelector('[data-profile-skills]');
+const openToEl = document.querySelector('[data-profile-open-to]');
 const telegramLink = document.querySelector('[data-profile-telegram]');
 const websiteLink = document.querySelector('[data-profile-website]');
 
 const projectsGrid = document.querySelector('[data-profile-projects-grid]');
 const projectsEmpty = document.querySelector('[data-profile-projects-empty]');
+const backLinkEl = document.querySelector('[data-back-link]');
 
 applyStaticText();
+wireBackLink(backLinkEl);
 
 function applyStaticText() {
+  backLinkEl.textContent = t('nav.back');
+  editLink.textContent = t('profile.edit.link');
   document.querySelector('[data-loading-text]').textContent = t('profile.loading');
   document.querySelector('[data-not-found-title]').textContent = t('profile.notfound.title');
   document.querySelector('[data-not-found-text]').textContent = t('profile.notfound.text');
@@ -69,6 +78,30 @@ function renderProfile(profile) {
     bioEl.hidden = true;
   }
 
+  const skills = Array.isArray(profile.skills) ? profile.skills.filter(Boolean) : [];
+  if (skills.length) {
+    skillsEl.innerHTML = '';
+    skills.forEach((skill) => {
+      const chip = document.createElement('span');
+      chip.className = 'pf-skill-chip';
+      chip.textContent = skill;
+      skillsEl.appendChild(chip);
+    });
+    skillsEl.hidden = false;
+  }
+
+  const openTo = validOpenTo(profile.open_to);
+  if (openTo.length) {
+    openToEl.innerHTML = '';
+    openTo.forEach((key) => {
+      const badge = document.createElement('span');
+      badge.className = 'pf-open-badge';
+      badge.textContent = openToLabel(key);
+      openToEl.appendChild(badge);
+    });
+    openToEl.hidden = false;
+  }
+
   if (profile.telegram) {
     const handle = profile.telegram.trim().replace(/^@/, '');
     if (handle) {
@@ -102,7 +135,7 @@ async function init() {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name, avatar_url, bio, telegram, website')
+    .select('id, display_name, avatar_url, bio, telegram, website, skills, open_to')
     .eq('id', profileId)
     .single();
 
@@ -112,6 +145,8 @@ async function init() {
   }
 
   renderProfile(data);
+  const currentUser = await getCurrentUser();
+  editLink.hidden = currentUser?.id !== profileId;
   await loadProjects();
   showProfile();
 }

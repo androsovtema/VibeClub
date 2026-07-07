@@ -32,3 +32,34 @@ export function normalizeHttpUrl(value) {
   if (!trimmed || /^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed}`;
 }
+
+/**
+ * Textarea растёт под текст до max-height из CSS (60vh), дальше — внутренний
+ * скролл (overflow-y: auto в CSS). Вызывать на input и сразу после программной
+ * установки value (префилл edit-режима), т.к. input там не срабатывает.
+ */
+export function autoGrowTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = `${el.scrollHeight}px`;
+}
+
+/**
+ * Ссылка «Назад»: если пришли изнутри сайта — history.back(), иначе (прямой
+ * заход, внешний переход, новая вкладка) — обычный переход по href (fallback).
+ */
+export function wireBackLink(el) {
+  el.addEventListener('click', (event) => {
+    let cameFromSite = false;
+    try {
+      cameFromSite = document.referrer
+        && new URL(document.referrer).origin === window.location.origin
+        && window.history.length > 1;
+    } catch {
+      cameFromSite = false;
+    }
+    if (cameFromSite) {
+      event.preventDefault();
+      window.history.back();
+    }
+  });
+}

@@ -1,0 +1,311 @@
+/**
+ * We Designerz — личный кабинет (T14, поглощает T9).
+ * Редактирование своего profiles-ряда (RLS уже разрешает update own) + список своих
+ * проектов любого статуса (RLS отдаёт владельцу pending/rejected, чужим — только published).
+ * Пользовательский текст (bio, skills) — только через textContent/createElement.
+ */
+import { supabase } from './supabase.js';
+import { getCurrentUser, onAuthChange } from './auth.js';
+import { t } from './i18n/ru.js';
+import { fetchOwnProjects, renderProjectCard } from './projects.js';
+import { OPEN_TO_KEYS, openToLabel, validOpenTo } from './vocab.js';
+import { isHttpUrl, normalizeHttpUrl, autoGrowTextarea } from './util.js';
+
+const MAX_SKILLS = 10;
+const MAX_SKILL_LEN = 24;
+
+const loadingEl = document.querySelector('[data-me-loading]');
+const gateEl = document.querySelector('[data-me-gate]');
+const cabinetEls = document.querySelectorAll('[data-me-cabinet]');
+const form = document.getElementById('me-form');
+
+const skillsGroup = form.querySelector('[data-skills-group]');
+const skillsInput = form.querySelector('[data-skills-input]');
+const skillsAddBtn = form.querySelector('[data-skills-add]');
+const openToGroup = form.querySelector('[data-open-to-group]');
+const meError = form.querySelector('[data-me-error]');
+const saveBtn = form.querySelector('[data-me-save]');
+
+const projectsGrid = document.querySelector('[data-me-projects-grid]');
+const projectsEmpty = document.querySelector('[data-me-projects-empty]');
+const projectsEmptyLink = document.querySelector('[data-me-projects-empty-link]');
+const publicLink = document.querySelector('[data-me-public-link]');
+const toastEl = document.getElementById('me-toast');
+
+let currentUser = null;
+let loadedUserId = null;
+let skills = [];
+const selectedOpenTo = new Set();
+let saving = false;
+
+applyStaticText();
+buildOpenToChips();
+
+function applyStaticText() {
+  document.querySelector('[data-loading-text]').textContent = t('me.loading');
+  document.querySelector('[data-me-gate-text]').textContent = t('me.gate.text');
+  document.querySelector('[data-me-gate-action]').textContent = t('me.gate.action');
+
+  document.querySelector('[data-me-heading]').textContent = t('me.heading');
+  form.querySelector('[data-label-name]').textContent = t('me.field.name');
+  form.querySelector('[data-label-bio]').textContent = t('me.field.bio');
+  form.querySelector('#me-bio').placeholder = t('me.field.bio.placeholder');
+  form.querySelector('[data-label-telegram]').textContent = t('me.field.telegram');
+  form.querySelector('#me-telegram').placeholder = t('me.field.telegram.placeholder');
+  form.querySelector('[data-label-website]').textContent = t('me.field.website');
+  form.querySelector('#me-website').placeholder = t('me.field.website.placeholder');
+  form.querySelector('[data-label-skills]').textContent = t('me.field.skills');
+  skillsInput.placeholder = t('me.field.skills.placeholder');
+  skillsAddBtn.textContent = t('me.field.skills.add');
+  form.querySelector('[data-hint-skills]').textContent = t('me.field.skills.hint');
+  form.querySelector('[data-label-open-to]').textContent = t('me.field.open_to');
+  form.querySelector('[data-hint-open-to]').textContent = t('me.field.open_to.hint');
+  saveBtn.textContent = t('me.action.save');
+
+  document.querySelector('[data-me-projects-title]').textContent = t('me.projects.title');
+  projectsEmpty.textContent = t('me.projects.empty');
+  projectsEmptyLink.textContent = t('me.projects.empty.link');
+  publicLink.textContent = t('me.public.link');
+}
+
+function statusLabel(status) {
+  if (status === 'pending' || status === 'published' || status === 'rejected') {
+    return t(`me.status.${status}`);
+  }
+  return null;
+}
+
+function showFieldError(field, message) {
+  const el = form.querySelector(`[data-error="${field}"]`);
+  if (!el) return;
+  el.textContent = message;
+  el.hidden = !message;
+}
+
+function clearErrors() {
+  form.querySelectorAll('[data-error]').forEach((el) => {
+    el.textContent = '';
+    el.hidden = true;
+  });
+  meError.textContent = '';
+  meError.hidden = true;
+}
+
+function renderSkillChips() {
+  skillsGroup.innerHTML = '';
+  skills.forEach((skill) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip active submit-chip-custom';
+
+    const label = document.createElement('span');
+    label.textContent = skill;
+    chip.appendChild(label);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'submit-chip-remove';
+    removeBtn.textContent = '×';
+    removeBtn.setAttribute('aria-label', t('me.field.skills.remove'));
+    removeBtn.addEventListener('click', () => {
+      skills = skills.filter((s) => s !== skill);
+      renderSkillChips();
+    });
+    chip.appendChild(removeBtn);
+
+    skillsGroup.appendChild(chip);
+  });
+}
+
+function addSkill() {
+  const raw = skillsInput.value.trim();
+  skillsInput.value = '';
+  if (!raw) return;
+
+  if (raw.length > MAX_SKILL_LEN) {
+    showFieldError('skills', t('me.error.skills_len'));
+    return;
+  }
+
+  if (skills.includes(raw)) return;
+
+  if (skills.length >= MAX_SKILLS) {
+    showFieldError('skills', t('me.error.skills_max'));
+    return;
+  }
+
+  showFieldError('skills', '');
+  skills.push(raw);
+  renderSkillChips();
+}
+
+skillsAddBtn.addEventListener('click', addSkill);
+skillsInput.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter') return;
+  event.preventDefault();
+  addSkill();
+});
+
+function buildOpenToChips() {
+  openToGroup.innerHTML = '';
+  OPEN_TO_KEYS.forEach((value) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.dataset.value = value;
+    chip.textContent = openToLabel(value);
+    chip.setAttribute('aria-pressed', 'false');
+    chip.addEventListener('click', () => {
+      const active = toggleSet(selectedOpenTo, value);
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', String(active));
+    });
+    openToGroup.appendChild(chip);
+  });
+}
+
+function selectOpenToChip(value) {
+  selectedOpenTo.add(value);
+  const chip = openToGroup.querySelector(`[data-value="${CSS.escape(value)}"]`);
+  if (chip) {
+    chip.classList.add('active');
+    chip.setAttribute('aria-pressed', 'true');
+  }
+}
+
+function toggleSet(set, value) {
+  if (set.has(value)) {
+    set.delete(value);
+    return false;
+  }
+  set.add(value);
+  return true;
+}
+
+form.website.addEventListener('blur', () => {
+  const value = form.website.value.trim();
+  if (value) form.website.value = normalizeHttpUrl(value);
+});
+
+form.bio.addEventListener('input', () => autoGrowTextarea(form.bio));
+
+function showToast(message, isError = false) {
+  if (!toastEl) return;
+  toastEl.textContent = message;
+  toastEl.classList.remove('toast-success', 'toast-error');
+  toastEl.classList.add(isError ? 'toast-error' : 'toast-success');
+  toastEl.classList.add('is-visible');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => toastEl.classList.remove('is-visible'), 3200);
+}
+
+async function loadProfile(user) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('display_name, bio, telegram, website, skills, open_to')
+    .eq('id', user.id)
+    .single();
+
+  form.displayName.value = (error || !data) ? (user.user_metadata?.display_name || '') : (data.display_name || '');
+  if (error || !data) return;
+
+  form.bio.value = data.bio || '';
+  autoGrowTextarea(form.bio);
+  form.telegram.value = data.telegram || '';
+  form.website.value = data.website || '';
+
+  skills = Array.isArray(data.skills) ? data.skills.filter(Boolean) : [];
+  renderSkillChips();
+
+  validOpenTo(data.open_to).forEach(selectOpenToChip);
+}
+
+async function loadProjects(user) {
+  const { data, error } = await fetchOwnProjects(user.id);
+  projectsGrid.innerHTML = '';
+
+  const list = error ? [] : (data || []);
+  const hasProjects = list.length > 0;
+  projectsEmpty.hidden = hasProjects;
+  projectsEmptyLink.hidden = hasProjects;
+
+  list.forEach((project) => {
+    const card = renderProjectCard(project);
+    const cover = card.querySelector('.community-cover');
+    const label = statusLabel(project.status);
+    if (cover && label) {
+      const badge = document.createElement('span');
+      badge.className = `me-project-status is-${project.status}`;
+      badge.textContent = label;
+      cover.appendChild(badge);
+    }
+    projectsGrid.appendChild(card);
+  });
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (saving || !currentUser) return;
+
+  clearErrors();
+
+  const rawWebsite = form.website.value.trim();
+  const website = rawWebsite ? normalizeHttpUrl(rawWebsite) : '';
+  if (website !== rawWebsite) form.website.value = website;
+  if (website && !isHttpUrl(website)) {
+    meError.textContent = t('me.error.website');
+    meError.hidden = false;
+    return;
+  }
+
+  saving = true;
+  saveBtn.disabled = true;
+  saveBtn.textContent = t('me.action.saving');
+
+  const payload = {
+    display_name: form.displayName.value.trim() || null,
+    bio: form.bio.value.trim() || null,
+    telegram: form.telegram.value.trim() || null,
+    website: website || null,
+    skills,
+    open_to: Array.from(selectedOpenTo)
+  };
+
+  const { error } = await supabase.from('profiles').update(payload).eq('id', currentUser.id);
+
+  saving = false;
+  saveBtn.disabled = false;
+  saveBtn.textContent = t('me.action.save');
+
+  if (error) {
+    meError.textContent = t('me.save.error');
+    meError.hidden = false;
+    return;
+  }
+
+  showToast(t('me.save.success'));
+});
+
+function applyAuthState(user) {
+  currentUser = user;
+  loadingEl.hidden = true;
+
+  if (!user) {
+    loadedUserId = null;
+    gateEl.hidden = false;
+    cabinetEls.forEach((el) => { el.hidden = true; });
+    return;
+  }
+
+  gateEl.hidden = true;
+  cabinetEls.forEach((el) => { el.hidden = false; });
+  publicLink.href = `profile.html?id=${encodeURIComponent(user.id)}`;
+
+  if (loadedUserId !== user.id) {
+    loadedUserId = user.id;
+    loadProfile(user);
+    loadProjects(user);
+  }
+}
+
+getCurrentUser().then(applyAuthState);
+onAuthChange(applyAuthState);

@@ -10,7 +10,7 @@ import { openAuthModal } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
 import { fetchProjectById, CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
 import { stageLabel, lookingLabel, validLooking, KIND_KEYS, isKind, kindLabel } from './vocab.js';
-import { isHttpUrl } from './util.js';
+import { isHttpUrl, autoGrowTextarea, wireBackLink } from './util.js';
 
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get('id');
@@ -50,6 +50,7 @@ const commentKindChipsEl = document.querySelector('[data-comment-kind-chips]');
 const commentInput = document.querySelector('[data-comment-input]');
 const commentSubmitBtn = document.querySelector('[data-comment-submit]');
 const commentErrorEl = document.querySelector('[data-comment-error]');
+const backLinkEl = document.querySelector('[data-back-link]');
 
 let currentUser = null;
 let currentProject = null;
@@ -61,8 +62,11 @@ let selectedKind = null;
 buildKindChips();
 
 applyStaticText();
+wireBackLink(backLinkEl);
+commentInput.addEventListener('input', () => autoGrowTextarea(commentInput));
 
 function applyStaticText() {
+  backLinkEl.textContent = t('nav.back');
   document.querySelector('[data-loading-text]').textContent = t('project.loading');
   document.querySelector('[data-not-found-title]').textContent = t('project.notfound.title');
   document.querySelector('[data-not-found-text]').textContent = t('project.notfound.text');
@@ -542,6 +546,7 @@ commentFormEl.addEventListener('submit', async (event) => {
   }
 
   commentInput.value = '';
+  autoGrowTextarea(commentInput);
   resetKindChip();
   await loadComments();
 });

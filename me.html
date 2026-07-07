@@ -4,30 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-    content="Профиль участника сообщества We Designerz: чем занимается, какие проекты навайбкодил.">
-  <meta name="keywords" content="вайбкодинг, vibe coding, профиль, участник, сообщество, ИИ">
+  <meta name="description" content="Личный кабинет We Designerz: редактируй профиль, следи за судьбой своих проектов.">
   <meta name="author" content="We Designerz">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="noindex">
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="Профиль участника — We Designerz">
-  <meta property="og:description" content="Профиль участника сообщества We Designerz.">
-  <meta property="og:type" content="profile">
-  <meta property="og:url" content="https://wedesignerz.com/profile.html">
-  <meta property="og:image" content="https://wedesignerz.com/assets/images/og-image.jpg">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Профиль участника — We Designerz">
-  <meta name="twitter:description" content="Профиль участника сообщества We Designerz.">
-  <meta name="twitter:image" content="https://wedesignerz.com/assets/images/og-image.jpg">
-
-  <title>Профиль — We Designerz</title>
+  <title>Кабинет — We Designerz</title>
   <link rel="icon" type="image/png" href="./assets/icons/favicon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon.png" />
   <link rel="apple-touch-icon" href="./assets/icons/favicon.png" />
-  <link rel="canonical" href="https://wedesignerz.com/profile.html">
 
   <!-- Google Fonts: Onest + JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,7 +34,7 @@
 
       <nav class="nav" aria-label="Главная навигация">
         <a href="index.html" class="nav-home">Главная</a>
-        <a href="projects.html" aria-current="page">Проекты</a>
+        <a href="projects.html">Проекты</a>
         <a href="about.html">О нас</a>
         <span class="header-auth" data-header-auth>
           <button type="button" class="btn-start" data-join>Вступить</button>
@@ -66,52 +50,82 @@
   </header>
 
   <main>
-    <div class="pf-back">
-      <a href="projects.html" class="back-link" data-back-link>Все проекты</a>
-    </div>
-
     <!-- Загрузка -->
-    <section class="pf-loading" data-profile-loading>
+    <section class="pf-loading" data-me-loading>
       <p class="visually-hidden" data-loading-text></p>
       <div class="pf-skeleton" aria-hidden="true">
         <div class="skeleton pf-skel-avatar"></div>
         <div class="skeleton pf-skel-name"></div>
         <div class="skeleton pf-skel-bio"></div>
-        <div class="pf-skel-cards">
-          <div class="skeleton pf-skel-card"></div>
-          <div class="skeleton pf-skel-card"></div>
+      </div>
+    </section>
+
+    <!-- Гейт без логина -->
+    <section class="submit-gate" data-me-gate hidden>
+      <p class="submit-gate-text" data-me-gate-text></p>
+      <button type="button" class="btn-primary" data-join data-me-gate-action></button>
+    </section>
+
+    <!-- Кабинет: форма -->
+    <section class="me-form-section" data-me-cabinet hidden>
+      <div class="me-hero">
+        <h1 data-me-heading></h1>
+      </div>
+
+      <form class="submit-form me-form" id="me-form" novalidate>
+        <div class="field">
+          <label for="me-name" data-label-name></label>
+          <input id="me-name" type="text" name="displayName" maxlength="60" />
         </div>
-      </div>
+
+        <div class="field">
+          <label for="me-bio" data-label-bio></label>
+          <textarea id="me-bio" name="bio" rows="4"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="me-telegram" data-label-telegram></label>
+          <input id="me-telegram" type="text" name="telegram" maxlength="60" />
+        </div>
+
+        <div class="field">
+          <label for="me-website" data-label-website></label>
+          <input id="me-website" type="text" name="website" maxlength="200" />
+        </div>
+
+        <div class="field">
+          <label data-label-skills></label>
+          <div class="submit-chip-group" data-skills-group></div>
+          <div class="submit-custom-tool">
+            <input type="text" class="submit-custom-tool-input" data-skills-input maxlength="24" />
+            <button type="button" class="btn-secondary submit-custom-tool-add" data-skills-add></button>
+          </div>
+          <p class="field-hint" data-hint-skills></p>
+          <p class="field-error" data-error="skills" hidden></p>
+        </div>
+
+        <div class="field">
+          <label data-label-open-to></label>
+          <div class="submit-chip-group" data-open-to-group></div>
+          <p class="field-hint" data-hint-open-to></p>
+        </div>
+
+        <p class="submit-form-error" data-me-error hidden></p>
+
+        <button type="submit" class="btn-primary submit-form-submit" data-me-save></button>
+      </form>
     </section>
 
-    <!-- Профиль не найден -->
-    <section class="pf-not-found" data-profile-not-found hidden>
-      <span class="pf-not-found-glyph" aria-hidden="true">✦</span>
-      <h1 data-not-found-title></h1>
-      <p data-not-found-text></p>
-      <a href="projects.html" class="btn-secondary" data-not-found-link></a>
+    <!-- Кабинет: свои проекты -->
+    <section class="me-projects-section" data-me-cabinet hidden>
+      <h2 data-me-projects-title></h2>
+      <div class="showcase-grid" data-me-projects-grid aria-live="polite"></div>
+      <p class="showcase-empty" data-me-projects-empty hidden></p>
+      <a href="submit.html" class="btn-secondary me-projects-empty-link" data-me-projects-empty-link hidden></a>
+      <a class="pf-link me-public-link" data-me-public-link href="projects.html"></a>
     </section>
 
-    <!-- Профиль -->
-    <section class="pf-hero" data-profile-hero hidden>
-      <span class="pf-avatar" data-profile-avatar></span>
-      <h1 class="pf-name" data-profile-name></h1>
-      <a class="pf-edit-link" data-profile-edit href="me.html" hidden></a>
-      <p class="pf-bio" data-profile-bio></p>
-      <div class="pf-skills" data-profile-skills hidden></div>
-      <div class="pf-open-to" data-profile-open-to hidden></div>
-      <div class="pf-links">
-        <a class="pf-link" data-profile-telegram target="_blank" rel="noopener noreferrer" hidden></a>
-        <a class="pf-link" data-profile-website target="_blank" rel="noopener noreferrer" hidden></a>
-      </div>
-    </section>
-
-    <!-- Проекты участника -->
-    <section class="pf-projects" data-profile-projects hidden>
-      <h2 data-projects-title></h2>
-      <div class="showcase-grid" data-profile-projects-grid aria-live="polite"></div>
-      <p class="showcase-empty" data-profile-projects-empty hidden></p>
-    </section>
+    <div class="toast" id="me-toast" role="status" aria-live="polite"></div>
   </main>
 
   <!-- Footer -->
@@ -153,7 +167,7 @@
 
   <script src="./js/main.js"></script>
   <script type="module" src="./js/app.js"></script>
-  <script type="module" src="./js/profile.js"></script>
+  <script type="module" src="./js/me.js"></script>
 </body>
 
 </html>
