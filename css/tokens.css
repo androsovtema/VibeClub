@@ -69,7 +69,22 @@
   --container-max: 1200px;
   --content-col: 860px;
 
+  /* ===== РИТМ СТРАНИЦЫ =====
+   * Единая вертикаль и горизонталь для всех страниц.
+   * --page-gutter — боковой отступ контента, совпадает с шапкой/футером
+   *   (28px десктоп, 20px мобайл — переключается в styles.css).
+   * --page-top — первый блок под шапкой; --page-bottom — последний блок до футера.
+   * --section-gap — расстояние между крупными секциями внутри страницы.
+   * --heading-gap — заголовок секции ↔ её контент.
+   */
+  --page-gutter: 28px;
+  --page-top: var(--space-sm);
+  --page-bottom: var(--space-lg);
+  --section-gap: var(--space-md);
+  --heading-gap: var(--space-xs);
+
   /* ===== РАДИУСЫ ===== */
+  --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 22px;

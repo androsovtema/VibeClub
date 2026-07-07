@@ -33,7 +33,7 @@ function renderHeaderAuth(user) {
       const name = escapeHtml(user.user_metadata?.display_name || user.email);
       slot.innerHTML = `
         <span class="header-user">
-          <a class="header-user-name" href="me.html">${name}</a>
+          <a class="header-user-name" href="profile.html?id=${encodeURIComponent(user.id)}">${name}</a>
           <button type="button" class="btn-secondary header-signout" data-signout>${t('auth.header.signout')}</button>
         </span>
       `;
