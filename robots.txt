@@ -1,11 +1,3 @@
+# VibeClub — staging/preview. Закрыто от индексации до публичного запуска.
 User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://wedesignerz.com/sitemap.xml
-
-# Disallow admin areas
-Disallow: /admin.html
-
-# Disallow archived pages
-Disallow: /archive/
+Disallow: /
