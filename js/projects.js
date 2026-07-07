@@ -41,6 +41,7 @@ function normalizeProject(row) {
     title: row.title,
     description: row.description,
     coverUrl: row.cover_url || null,
+    images: Array.isArray(row.images) ? row.images : [],
     projectUrl: row.project_url,
     tags: Array.isArray(row.tags) ? row.tags : [],
     tools: Array.isArray(row.tools) ? row.tools : [],

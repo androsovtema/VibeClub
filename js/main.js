@@ -249,19 +249,76 @@
   const heroPrompt = document.querySelector('[data-prompt]');
   const heroStatus = document.querySelector('[data-status]');
   const heroBlocks = document.querySelectorAll('[data-asm]');
+  const heroTitleEl = document.querySelector('.hero-demo-block-title');
+  const heroMediaEls = document.querySelectorAll('.hero-demo-card-media');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (heroPrompt && heroBlocks.length > 0) {
-    const prompts = [
-      'сделай лендинг кофейни с меню',
-      'приложение-трекер привычек',
-      'портфолио фотографа с галереей'
+    /* main.js — не ES-модуль (общий скрипт без сборки для всех страниц),
+       импортировать i18n/контент-модуль не может, поэтому фикстура пар
+       «промпт → выдача» живёт прямо тут. */
+    const heroDemoPairs = [
+      { prompt: 'сделай лендинг кофейни с меню', icon: '☕', title: 'Кофейня «Зерно»',
+        media: ['oklch(0.4 0.1 250 / 50%)', 'oklch(0.42 0.12 320 / 50%)'] },
+      { prompt: 'приложение-трекер привычек', icon: '✅', title: 'Привыкун',
+        media: ['oklch(0.4 0.12 150 / 50%)', 'oklch(0.45 0.1 200 / 50%)'] },
+      { prompt: 'портфолио фотографа с галереей', icon: '📷', title: 'Кадр',
+        media: ['oklch(0.38 0.08 260 / 50%)', 'oklch(0.44 0.14 300 / 50%)'] },
+      { prompt: 'трекер расходов для семьи', icon: '💰', title: 'Копилка',
+        media: ['oklch(0.42 0.1 100 / 50%)', 'oklch(0.4 0.08 140 / 50%)'] },
+      { prompt: 'сайт для барбершопа с записью', icon: '💈', title: 'Стрижка №1',
+        media: ['oklch(0.4 0.15 20 / 50%)', 'oklch(0.44 0.12 40 / 50%)'] },
+      { prompt: 'приложение для заказа еды', icon: '🍔', title: 'Го-еда',
+        media: ['oklch(0.42 0.16 30 / 50%)', 'oklch(0.4 0.1 60 / 50%)'] },
+      { prompt: 'блог про путешествия с картой', icon: '🗺️', title: 'Дорожный',
+        media: ['oklch(0.4 0.1 220 / 50%)', 'oklch(0.44 0.08 180 / 50%)'] },
+      { prompt: 'магазин украшений ручной работы', icon: '💍', title: 'Самоцвет',
+        media: ['oklch(0.42 0.1 340 / 50%)', 'oklch(0.4 0.12 300 / 50%)'] },
+      { prompt: 'приложение для медитации', icon: '🧘', title: 'Тишина',
+        media: ['oklch(0.4 0.06 260 / 50%)', 'oklch(0.44 0.08 240 / 50%)'] },
+      { prompt: 'сайт репетитора по английскому', icon: '📚', title: 'Практис',
+        media: ['oklch(0.4 0.1 210 / 50%)', 'oklch(0.42 0.12 250 / 50%)'] },
+      { prompt: 'студия йоги с расписанием', icon: '🧘‍♀️', title: 'Асана',
+        media: ['oklch(0.4 0.1 160 / 50%)', 'oklch(0.44 0.08 190 / 50%)'] },
+      { prompt: 'доставка цветов онлайн', icon: '💐', title: 'Букет.ру',
+        media: ['oklch(0.42 0.14 350 / 50%)', 'oklch(0.4 0.1 10 / 50%)'] },
+      { prompt: 'платформа для фрилансеров', icon: '💼', title: 'Фриланс+',
+        media: ['oklch(0.4 0.08 230 / 50%)', 'oklch(0.44 0.1 260 / 50%)'] },
+      { prompt: 'приложение для выгула собак', icon: '🐕', title: 'ГавГулять',
+        media: ['oklch(0.42 0.12 90 / 50%)', 'oklch(0.4 0.1 130 / 50%)'] }
     ];
+
+    const shuffle = (arr) => {
+      const a = arr.slice();
+      for (let k = a.length - 1; k > 0; k--) {
+        const j = Math.floor(Math.random() * (k + 1));
+        [a[k], a[j]] = [a[j], a[k]];
+      }
+      return a;
+    };
+
+    const pairs = shuffle(heroDemoPairs);
+
+    const applyHeroPair = (pair) => {
+      if (heroTitleEl) {
+        heroTitleEl.textContent = '';
+        const iconEl = document.createElement('span');
+        iconEl.className = 'hero-demo-block-icon';
+        iconEl.setAttribute('aria-hidden', 'true');
+        iconEl.textContent = pair.icon;
+        heroTitleEl.appendChild(iconEl);
+        heroTitleEl.appendChild(document.createTextNode(pair.title));
+      }
+      heroMediaEls.forEach((el, idx) => {
+        if (pair.media[idx]) el.style.background = pair.media[idx];
+      });
+    };
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     if (reducedMotion) {
-      heroPrompt.textContent = prompts[0];
+      applyHeroPair(pairs[0]);
+      heroPrompt.textContent = pairs[0].prompt;
       heroBlocks.forEach((b) => {
         b.style.opacity = '1';
         b.style.transform = 'none';
@@ -274,7 +331,7 @@
       (async function runHeroDemo() {
         let i = 0;
         for (;;) {
-          const prompt = prompts[i % prompts.length];
+          const pair = pairs[i % pairs.length];
           heroBlocks.forEach((b) => {
             b.style.opacity = '0';
             b.style.transform = 'translateY(10px)';
@@ -284,13 +341,14 @@
             heroStatus.classList.remove('is-ok');
             heroStatus.textContent = 'печатаю промпт…';
           }
-          for (let c = 0; c < prompt.length; c++) {
-            heroPrompt.textContent += prompt[c];
+          for (let c = 0; c < pair.prompt.length; c++) {
+            heroPrompt.textContent += pair.prompt[c];
             await sleep(40);
           }
           await sleep(420);
           if (heroStatus) heroStatus.textContent = '● генерирую интерфейс…';
           await sleep(620);
+          applyHeroPair(pair);
           for (const b of heroBlocks) {
             b.style.opacity = '1';
             b.style.transform = 'translateY(0)';

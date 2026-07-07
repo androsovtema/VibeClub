@@ -24,6 +24,7 @@ const coverImg = document.querySelector('[data-project-cover-img]');
 const coverLabel = document.querySelector('[data-project-cover-label]');
 const coverCore = document.querySelector('[data-project-cover-core]');
 const coverEl = document.querySelector('[data-project-cover]');
+const galleryThumbsEl = document.querySelector('[data-project-gallery-thumbs]');
 const toolsEl = document.querySelector('[data-project-tools]');
 const titleEl = document.querySelector('[data-project-title]');
 const avatarEl = document.querySelector('[data-project-avatar]');
@@ -58,6 +59,10 @@ let hasUpvoted = false;
 let upvoteBusy = false;
 let commentBusy = false;
 let selectedKind = null;
+
+let galleryImages = [];
+let galleryIndex = 0;
+let galleryTimer = null;
 
 buildKindChips();
 
@@ -224,6 +229,75 @@ function renderProject(project) {
   upvoteCountEl.textContent = String(project.upvotes);
   updateEditButton();
   updateCommentHint();
+  buildGallery(project);
+}
+
+// Галерея: [обложка, ...images], только валидные http-URL. Одна картинка — как раньше,
+// без миниатюр и автоплея. Несколько — ряд миниатюр под обложкой, автоплей 5с по кругу,
+// глохнет навсегда при первом ручном клике.
+function buildGallery(project) {
+  stopAutoplay();
+  galleryThumbsEl.innerHTML = '';
+
+  const urls = [project.coverUrl, ...project.images].filter((url) => url && isHttpUrl(url));
+  galleryImages = urls;
+  galleryIndex = 0;
+
+  if (urls.length <= 1) {
+    galleryThumbsEl.hidden = true;
+    return;
+  }
+
+  urls.forEach((url, index) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pd-gallery-thumb';
+    if (index === 0) btn.classList.add('active');
+    btn.setAttribute('aria-pressed', String(index === 0));
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = '';
+    btn.appendChild(img);
+
+    btn.addEventListener('click', () => {
+      stopAutoplay();
+      setActiveGalleryImage(index);
+    });
+
+    galleryThumbsEl.appendChild(btn);
+  });
+
+  galleryThumbsEl.hidden = false;
+  startAutoplay();
+}
+
+function setActiveGalleryImage(index) {
+  galleryIndex = index;
+  coverImg.classList.add('is-fading');
+  coverImg.src = galleryImages[index];
+  requestAnimationFrame(() => coverImg.classList.remove('is-fading'));
+
+  galleryThumbsEl.querySelectorAll('.pd-gallery-thumb').forEach((btn, i) => {
+    const active = i === index;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function startAutoplay() {
+  if (galleryImages.length <= 1) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  galleryTimer = setInterval(() => {
+    setActiveGalleryImage((galleryIndex + 1) % galleryImages.length);
+  }, 5000);
+}
+
+function stopAutoplay() {
+  if (galleryTimer) {
+    clearInterval(galleryTimer);
+    galleryTimer = null;
+  }
 }
 
 // Кнопка «Редактировать» видна только автору проекта (RLS всё равно отобьёт

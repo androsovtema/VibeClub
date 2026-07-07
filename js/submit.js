@@ -11,9 +11,11 @@ import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS, fetchProjectById } from './projects.js';
 import { STAGE_KEYS, LOOKING_KEYS, isStage, stageLabel, lookingLabel } from './vocab.js';
 import { isHttpUrl, normalizeHttpUrl, autoGrowTextarea } from './util.js';
+import { optimizeImage } from './image.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
-const MAX_COVER_BYTES = 3 * 1024 * 1024;
+const MAX_COVER_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGES = 4;
 const COVER_MIME_EXT = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -37,6 +39,9 @@ if (gate && formWrap && form) {
   const coverPreview = form.querySelector('[data-cover-preview]');
   const coverPreviewImg = form.querySelector('[data-cover-preview-img]');
   const coverRemoveBtn = form.querySelector('[data-cover-remove]');
+  const imagesInput = form.querySelector('[data-images-input]');
+  const imagesCountEl = form.querySelector('[data-images-count]');
+  const imagesGrid = form.querySelector('[data-images-grid]');
   const submitBtn = form.querySelector('[data-submit-btn]');
   const submitError = form.querySelector('[data-submit-error]');
 
@@ -52,6 +57,10 @@ if (gate && formWrap && form) {
   let submitting = false;
   let editLoaded = false; // проект для редактирования уже подтянут
   let existingCoverUrl = null; // текущая обложка в edit-режиме (если не меняем файл)
+  // Доп. изображения: { file: File|null, url: string|null, previewUrl } — url задан для
+  // уже загруженных (edit-префилл), file — для новых, выбранных в этой сессии формы.
+  let imageItems = [];
+  let removedImageUrls = []; // старые images, убранные в edit — удалим из Storage после сохранения
 
   applyStaticText();
   buildTagChips();
@@ -82,6 +91,10 @@ if (gate && formWrap && form) {
     form.querySelector('[data-hint-cover]').textContent = t('submit.field.cover.hint');
     form.querySelector('[data-cover-remove]').textContent = t('submit.field.cover.remove');
     coverFilenameEl.textContent = t('submit.field.cover.filename_empty');
+    form.querySelector('[data-label-images]').textContent = t('submit.field.images');
+    form.querySelector('[data-images-choose]').textContent = t('submit.field.images.choose');
+    form.querySelector('[data-hint-images]').textContent = t('submit.field.images.hint');
+    updateImagesCount();
     form.querySelector('[data-label-tags]').textContent = t('submit.field.tags');
     form.querySelector('[data-hint-tags]').textContent = t('submit.field.tags.hint');
     form.querySelector('[data-label-tools]').textContent = t('submit.field.tools');
@@ -132,6 +145,12 @@ if (gate && formWrap && form) {
       coverPreviewImg.src = existingCoverUrl;
       coverPreview.hidden = false;
     }
+
+    (data.images || []).forEach((url) => {
+      if (!isHttpUrl(url) || imageItems.length >= MAX_IMAGES) return;
+      imageItems.push({ file: null, url, previewUrl: url });
+    });
+    renderImageThumbs();
 
     data.tags.forEach((tag) => selectTagChip(tag));
     data.tools.forEach((tool) => {
@@ -349,6 +368,77 @@ if (gate && formWrap && form) {
     }
   }
 
+  imagesInput.addEventListener('change', () => {
+    const files = Array.from(imagesInput.files || []);
+    imagesInput.value = ''; // сброс — позволяет выбрать тот же файл повторно
+    showFieldError('images', '');
+    for (const file of files) {
+      if (imageItems.length >= MAX_IMAGES) {
+        showFieldError('images', t('submit.error.images_max'));
+        break;
+      }
+      if (!COVER_MIME_EXT[file.type]) {
+        showFieldError('images', t('submit.error.cover_type'));
+        continue;
+      }
+      if (file.size > MAX_COVER_BYTES) {
+        showFieldError('images', t('submit.error.cover_size'));
+        continue;
+      }
+      imageItems.push({ file, url: null, previewUrl: URL.createObjectURL(file) });
+    }
+    renderImageThumbs();
+  });
+
+  function renderImageThumbs() {
+    imagesGrid.innerHTML = '';
+    imageItems.forEach((item, index) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'submit-image-thumb';
+
+      const img = document.createElement('img');
+      img.src = item.previewUrl;
+      img.alt = '';
+      thumb.appendChild(img);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'submit-cover-remove';
+      removeBtn.textContent = '×';
+      removeBtn.setAttribute('aria-label', t('submit.field.images.remove'));
+      removeBtn.addEventListener('click', () => removeImageItem(index));
+      thumb.appendChild(removeBtn);
+
+      imagesGrid.appendChild(thumb);
+    });
+    updateImagesCount();
+  }
+
+  function updateImagesCount() {
+    if (imagesCountEl) imagesCountEl.textContent = `${imageItems.length} / ${MAX_IMAGES}`;
+  }
+
+  function removeImageItem(index) {
+    const [item] = imageItems.splice(index, 1);
+    if (item.url) removedImageUrls.push(item.url);
+    if (item.file && item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    renderImageThumbs();
+  }
+
+  // Путь в бакете covers из публичного URL — для storage.remove() при удалении старых images.
+  function storagePathFromUrl(url) {
+    const marker = '/covers/';
+    const idx = url.indexOf(marker);
+    return idx === -1 ? null : url.slice(idx + marker.length);
+  }
+
+  async function cleanupRemovedImages(urls) {
+    const paths = urls.map(storagePathFromUrl).filter(Boolean);
+    if (paths.length === 0) return;
+    const { error } = await supabase.storage.from('covers').remove(paths);
+    if (error) console.warn('T17: не удалось убрать старые изображения из Storage', error);
+  }
+
   function toggleSet(set, value) {
     if (set.has(value)) {
       set.delete(value);
@@ -429,11 +519,11 @@ if (gate && formWrap && form) {
     submitBtn.textContent = isSubmitting ? busy : idle;
   }
 
-  async function uploadCover(user) {
-    const ext = COVER_MIME_EXT[coverFile.type];
+  async function uploadImageFile(user, file) {
+    const { blob, ext } = await optimizeImage(file);
     const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from('covers').upload(path, coverFile, {
-      contentType: coverFile.type
+    const { error } = await supabase.storage.from('covers').upload(path, blob, {
+      contentType: blob.type || file.type
     });
     if (error) return { url: null, error };
     const { data } = supabase.storage.from('covers').getPublicUrl(path);
@@ -451,7 +541,7 @@ if (gate && formWrap && form) {
 
     let coverUrl = isEdit ? existingCoverUrl : null;
     if (coverFile) {
-      const { url, error } = await uploadCover(currentUser);
+      const { url, error } = await uploadImageFile(currentUser, coverFile);
       if (error) {
         setSubmitting(false);
         submitError.textContent = t('submit.error.upload');
@@ -461,11 +551,29 @@ if (gate && formWrap && form) {
       coverUrl = url;
     }
 
+    // Доп. изображения — грузим ДО insert/update, чтобы не сохранить проект наполовину.
+    const uploadedImages = [];
+    for (const item of imageItems) {
+      if (item.url) {
+        uploadedImages.push(item.url);
+        continue;
+      }
+      const { url, error } = await uploadImageFile(currentUser, item.file);
+      if (error) {
+        setSubmitting(false);
+        submitError.textContent = t('submit.error.upload');
+        submitError.hidden = false;
+        return;
+      }
+      uploadedImages.push(url);
+    }
+
     const payload = {
       title: form.title.value.trim(),
       description: form.description.value.trim(),
       project_url: form.projectUrl.value.trim(),
       cover_url: coverUrl,
+      images: uploadedImages,
       tags: Array.from(selectedTags),
       tools: Array.from(selectedTools),
       stage: selectedStage,
@@ -484,6 +592,11 @@ if (gate && formWrap && form) {
       submitError.textContent = isEdit ? t('submit.edit.save_error') : t('submit.error.insert');
       submitError.hidden = false;
       return;
+    }
+
+    if (isEdit && removedImageUrls.length > 0) {
+      await cleanupRemovedImages(removedImageUrls);
+      removedImageUrls = [];
     }
 
     if (isEdit) {
@@ -506,6 +619,12 @@ if (gate && formWrap && form) {
     buildStageChips();
     buildLookingChips();
     clearCover();
+    imageItems.forEach((item) => {
+      if (item.file && item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    });
+    imageItems = [];
+    removedImageUrls = [];
+    renderImageThumbs();
     clearErrors();
     successEl.hidden = true;
     formWrap.hidden = false;

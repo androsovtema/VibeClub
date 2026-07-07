@@ -138,6 +138,19 @@
         </div>
 
         <div class="field">
+          <label for="submit-images" data-label-images></label>
+          <div class="submit-cover-control">
+            <input id="submit-images" class="submit-cover-input" type="file" name="images"
+              accept="image/jpeg,image/png,image/webp" multiple data-images-input />
+            <label for="submit-images" class="btn-secondary submit-cover-choose" data-images-choose></label>
+            <span class="submit-cover-filename" data-images-count></span>
+          </div>
+          <p class="field-hint" data-hint-images></p>
+          <div class="submit-images-grid" data-images-grid></div>
+          <p class="field-error" data-error="images" hidden></p>
+        </div>
+
+        <div class="field">
           <label data-label-tags></label>
           <div class="submit-chip-group" data-tags-group></div>
           <p class="field-hint" data-hint-tags></p>
