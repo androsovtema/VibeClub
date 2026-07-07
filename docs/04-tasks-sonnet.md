@@ -629,12 +629,11 @@ GitHub Pages max-age=600 — само рассосётся за ~10 минут).
 - `update({ is_core: true })` на своём pending → ошибка.
 - Обычное редактирование профиля и pending-проекта работает.
 - Админ в `admin.html`: publish/reject и тумблер is_core работают.
-**Статус:** SQL готов (2026-07-06). Первая версия функции ломала легитимный
+**Статус:** ЗАКРЫТО (2026-07-06). Первая версия функции ломала легитимный
 edit (bio/is_core) из-за non-short-circuit AND в Postgres — поймано на прогоне
-`security-check` (Тёма, `record "new" has no field …`). Фикс:
-`2026-07-06-rls-privilege-hardening-fix.sql` (имя таблицы во внешнем if).
-Ждёт применения фикс-миграции Тёмой + зелёного `npm run security-check`
-(все 3: атака role отбита, атака is_core отбита, bio обновляется).
+`security-check` (Тёма, `record "new" has no field …`). Фикс
+`2026-07-06-rls-privilege-hardening-fix.sql` применён. `npm run security-check`
+зелёный: атака role отбита, атака is_core отбита, bio обновляется (все 3 ✓).
 
 ## T16 — Грейды вайбкодеров, этап 1: v0/v1 (P1, после T12+T14, по команде Тёмы)
 **Контекст:** `docs/10-membership.md` — членство должно иметь видимый рост.
