@@ -75,7 +75,7 @@ export const ru = {
   'submit.field.cover.filename_empty': 'Файл не выбран',
   'submit.field.cover.hint': 'JPEG, PNG или WebP, до 10 МБ — сожмём и сконвертируем сами. Лучше всего 16:9 — например, 1280×720.',
   'submit.field.cover.remove': 'Убрать обложку',
-  'submit.field.images': 'Ещё изображения (до 4)',
+  'submit.field.images': 'Ещё изображения (до 9)',
   'submit.field.images.choose': 'Добавить файлы',
   'submit.field.images.hint': 'Необязательно. Тот же формат, что обложка — покажут проект с разных сторон.',
   'submit.field.images.remove': 'Убрать изображение',
@@ -149,7 +149,7 @@ export const ru = {
   'submit.error.cover_type': 'Файл должен быть JPEG, PNG или WebP.',
   'submit.error.cover_size': 'Файл слишком тяжёлый — максимум 10 МБ.',
   'submit.error.required_cover': 'Добавь обложку — без неё проект не попадёт в витрину.',
-  'submit.error.images_max': 'Максимум 4 дополнительных изображения.',
+  'submit.error.images_max': 'Максимум 9 дополнительных изображений.',
   'submit.error.upload': 'Не получилось загрузить обложку. Попробуй ещё раз.',
   'submit.error.insert': 'Не получилось отправить проект. Попробуй ещё раз.',
 

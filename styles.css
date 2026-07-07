@@ -3677,9 +3677,8 @@ body.menu-open {
 
 .pd-gallery-thumbs {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2xs);
-  overflow-x: auto;
-  padding-bottom: 2px;
 }
 
 .pd-gallery-thumb {

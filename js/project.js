@@ -61,6 +61,7 @@ let commentBusy = false;
 let selectedKind = null;
 
 let galleryImages = [];
+let galleryThumbImgs = [];
 let galleryIndex = 0;
 let galleryTimer = null;
 
@@ -69,6 +70,14 @@ buildKindChips();
 applyStaticText();
 wireBackLink(backLinkEl);
 commentInput.addEventListener('input', () => autoGrowTextarea(commentInput));
+
+// Большая зона показывает shimmer, пока текущий src грузится — гасим на load/error,
+// чтобы холодный CDN не оставлял «дыру» (T17.1).
+coverImg.addEventListener('load', () => coverEl.classList.remove('skeleton'));
+coverImg.addEventListener('error', () => {
+  coverEl.classList.remove('skeleton');
+  console.warn('[project] обложка не загрузилась:', coverImg.src);
+});
 
 function applyStaticText() {
   backLinkEl.textContent = t('nav.back');
@@ -154,6 +163,7 @@ function renderProject(project) {
   if (project.coverUrl) {
     coverImg.src = project.coverUrl;
     coverImg.hidden = false;
+    if (!coverImg.complete) coverEl.classList.add('skeleton');
   } else {
     coverEl.style.background = coverGradientFor(project.id);
     coverLabel.hidden = false;
@@ -241,6 +251,7 @@ function buildGallery(project) {
 
   const urls = [project.coverUrl, ...project.images].filter((url) => url && isHttpUrl(url));
   galleryImages = urls;
+  galleryThumbImgs = [];
   galleryIndex = 0;
 
   if (urls.length <= 1) {
@@ -258,6 +269,11 @@ function buildGallery(project) {
     const img = document.createElement('img');
     img.src = url;
     img.alt = '';
+    // Битая миниатюра — прячем кнопку, дальше её не будет ни в клике, ни в автоплее
+    // (isThumbReady на неё всегда вернёт false).
+    img.addEventListener('error', () => {
+      btn.hidden = true;
+    });
     btn.appendChild(img);
 
     btn.addEventListener('click', () => {
@@ -266,10 +282,19 @@ function buildGallery(project) {
     });
 
     galleryThumbsEl.appendChild(btn);
+    galleryThumbImgs[index] = img;
   });
 
   galleryThumbsEl.hidden = false;
   startAutoplay();
+}
+
+// Готова = отрисовалась не пустой (complete && naturalWidth>0). У битых картинок
+// complete становится true после error, но naturalWidth остаётся 0 — те же условия
+// держат их вне ротации навсегда.
+function isThumbReady(index) {
+  const img = galleryThumbImgs[index];
+  return !!img && img.complete && img.naturalWidth > 0;
 }
 
 function setActiveGalleryImage(index) {
@@ -277,6 +302,7 @@ function setActiveGalleryImage(index) {
   coverImg.classList.add('is-fading');
   coverImg.src = galleryImages[index];
   requestAnimationFrame(() => coverImg.classList.remove('is-fading'));
+  if (!coverImg.complete) coverEl.classList.add('skeleton');
 
   galleryThumbsEl.querySelectorAll('.pd-gallery-thumb').forEach((btn, i) => {
     const active = i === index;
@@ -288,9 +314,20 @@ function setActiveGalleryImage(index) {
 function startAutoplay() {
   if (galleryImages.length <= 1) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  galleryTimer = setInterval(() => {
-    setActiveGalleryImage((galleryIndex + 1) % galleryImages.length);
-  }, 5000);
+  galleryTimer = setInterval(advanceAutoplay, 5000);
+}
+
+// Перешагивает недогруженные/битые кадры. Если готовых кроме текущего нет —
+// ничего не делает в этом тике (не мигаем пустой зоной).
+function advanceAutoplay() {
+  const total = galleryImages.length;
+  for (let step = 1; step < total; step++) {
+    const next = (galleryIndex + step) % total;
+    if (isThumbReady(next)) {
+      setActiveGalleryImage(next);
+      return;
+    }
+  }
 }
 
 function stopAutoplay() {

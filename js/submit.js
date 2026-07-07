@@ -15,7 +15,7 @@ import { optimizeImage } from './image.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
 const MAX_COVER_BYTES = 10 * 1024 * 1024;
-const MAX_IMAGES = 4;
+const MAX_IMAGES = 9;
 const COVER_MIME_EXT = {
   'image/jpeg': 'jpg',
   'image/png': 'png',

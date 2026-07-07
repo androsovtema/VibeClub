@@ -40,7 +40,7 @@ create table if not exists public.projects (
   cover_url    text,
   images       text[] not null default '{}'
                  constraint projects_images_max
-                 check (coalesce(array_length(images, 1), 0) <= 4),
+                 check (coalesce(array_length(images, 1), 0) <= 9),
   project_url  text,
   tags         text[] not null default '{}',
   tools        text[] not null default '{}',
