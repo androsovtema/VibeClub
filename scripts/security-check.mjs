@@ -87,13 +87,23 @@ if (roleAfter === 'admin') {
 
 // --- Атака 2: самопростановка is_core на своём pending-проекте ---
 console.log('\nАтака 2 — самопростановка is_core:');
-const proj = (await (await fetch(
+let proj = (await (await fetch(
   `${URL}/rest/v1/projects?author_id=eq.${uid}&status=eq.pending&select=id,is_core&limit=1`,
   { headers: authed })).json())[0];
+
+// нет своего pending — создадим временный, потом удалим
+let temp = false;
 if (!proj) {
-  console.log('  — пропущено: нет своего pending-проекта. Добавь проект через сайт и повтори,');
-  console.log('    либо доверься тому, что триггер общий (та же функция, что для role).');
-} else {
+  const created = await fetch(`${URL}/rest/v1/projects`, {
+    method: 'POST', headers: { ...authed, Prefer: 'return=representation' },
+    body: JSON.stringify({ author_id: uid, title: 'security-check temp', status: 'pending' })
+  });
+  proj = (await created.json().catch(() => []))[0];
+  temp = !!proj;
+  if (!proj) console.log('  — не смог создать временный проект, пропускаю (триггер общий с role)');
+}
+
+if (proj) {
   const core = await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}`, {
     method: 'PATCH', headers: { ...authed, Prefer: 'return=representation' },
     body: JSON.stringify({ is_core: true })
@@ -107,15 +117,29 @@ if (!proj) {
   } else {
     bad(`PATCH прошёл (HTTP ${core.status}), is_core=${coreAfter}`);
   }
+  // убираем временный проект
+  if (temp) {
+    await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}`, { method: 'DELETE', headers: authed });
+  }
 }
 
 // --- Контроль: обычное редактирование профиля должно РАБОТАТЬ ---
 console.log('\nКонтроль — обычное редактирование (bio) должно работать:');
 const bio = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
-  method: 'PATCH', headers: authed, body: JSON.stringify({ bio: 'security-check ping' })
+  method: 'PATCH', headers: { ...authed, Prefer: 'return=representation' },
+  body: JSON.stringify({ bio: 'security-check ping' })
 });
-bio.ok ? ok(`bio обновился (HTTP ${bio.status}) — легитимный доступ не сломан`)
-       : bad(`bio НЕ обновился (HTTP ${bio.status}) — триггер зарезал лишнее!`);
+const bioBody = await bio.json().catch(() => null);
+if (bio.ok) {
+  ok(`bio обновился (HTTP ${bio.status}) — легитимный доступ не сломан`);
+  // почистим тестовую пометку
+  await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
+    method: 'PATCH', headers: authed, body: JSON.stringify({ bio: null })
+  });
+} else {
+  const msg = bioBody?.message || bioBody?.hint || JSON.stringify(bioBody);
+  bad(`bio НЕ обновился (HTTP ${bio.status}): ${msg}`);
+}
 
 console.log(`\n${'─'.repeat(48)}`);
 if (fail === 0) {
