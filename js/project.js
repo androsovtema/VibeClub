@@ -9,6 +9,7 @@ import { getCurrentUser, onAuthChange } from './auth.js';
 import { openAuthModal } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
 import { fetchProjectById, CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
+import { stageLabel, lookingLabel } from './vocab.js';
 import { isHttpUrl } from './util.js';
 
 const params = new URLSearchParams(window.location.search);
@@ -29,6 +30,10 @@ const avatarEl = document.querySelector('[data-project-avatar]');
 const authorNameEl = document.querySelector('[data-project-author-name]');
 const dateEl = document.querySelector('[data-project-date]');
 const tagsEl = document.querySelector('[data-project-tags]');
+const stageEl = document.querySelector('[data-project-stage]');
+const lookingEl = document.querySelector('[data-project-looking]');
+const lookingTitleEl = document.querySelector('[data-project-looking-title]');
+const lookingChipsEl = document.querySelector('[data-project-looking-chips]');
 const descriptionEl = document.querySelector('[data-project-description]');
 const openBtn = document.querySelector('[data-project-open]');
 const editBtn = document.querySelector('[data-project-edit]');
@@ -60,6 +65,7 @@ function applyStaticText() {
   coverLabel.textContent = t('project.cover.label');
   openBtn.textContent = t('project.action.open');
   editBtn.textContent = t('project.action.edit');
+  lookingTitleEl.textContent = t('project.looking.title');
   document.querySelector('[data-discussion-title]').textContent = t('project.discussion.title');
   commentsEmptyEl.textContent = t('project.comments.empty');
   document.querySelector('[data-comment-gate-text]').textContent = t('project.comment.gate.text');
@@ -138,6 +144,26 @@ function renderProject(project) {
     chip.textContent = CATEGORY_LABELS[tag] || tag;
     tagsEl.appendChild(chip);
   });
+
+  const stageText = stageLabel(project.stage);
+  if (stageText) {
+    stageEl.textContent = stageText;
+    stageEl.hidden = false;
+  }
+
+  // «Автор ищет» — чипы-ссылки на витрину с фильтром ?looking=<key>. Пусто → блока нет.
+  lookingChipsEl.innerHTML = '';
+  const lookingKeys = project.lookingFor.filter((key) => lookingLabel(key));
+  if (lookingKeys.length > 0) {
+    lookingKeys.forEach((key) => {
+      const chip = document.createElement('a');
+      chip.className = 'pd-looking-chip';
+      chip.href = `projects.html?looking=${encodeURIComponent(key)}`;
+      chip.textContent = lookingLabel(key);
+      lookingChipsEl.appendChild(chip);
+    });
+    lookingEl.hidden = false;
+  }
 
   descriptionEl.textContent = project.description;
 

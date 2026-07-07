@@ -9,6 +9,7 @@ import { supabase } from './supabase.js';
 import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS, fetchProjectById } from './projects.js';
+import { STAGE_KEYS, LOOKING_KEYS, isStage, stageLabel, lookingLabel } from './vocab.js';
 import { isHttpUrl, normalizeHttpUrl } from './util.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
@@ -27,6 +28,8 @@ const form = document.getElementById('submit-form');
 if (gate && formWrap && form) {
   const tagsGroup = form.querySelector('[data-tags-group]');
   const toolsGroup = form.querySelector('[data-tools-group]');
+  const stageGroup = form.querySelector('[data-stage-group]');
+  const lookingGroup = form.querySelector('[data-looking-group]');
   const customInput = form.querySelector('[data-tool-custom-input]');
   const customAddBtn = form.querySelector('[data-tool-custom-add]');
   const coverInput = form.querySelector('[data-cover-input]');
@@ -42,6 +45,8 @@ if (gate && formWrap && form) {
 
   const selectedTags = new Set();
   const selectedTools = new Set();
+  const selectedLooking = new Set();
+  let selectedStage = null; // одна стадия или null
   let coverFile = null;
   let currentUser = null;
   let submitting = false;
@@ -51,6 +56,8 @@ if (gate && formWrap && form) {
   applyStaticText();
   buildTagChips();
   buildToolChips();
+  buildStageChips();
+  buildLookingChips();
   if (isEdit) applyEditModeText();
 
   function applyStaticText() {
@@ -80,6 +87,10 @@ if (gate && formWrap && form) {
     form.querySelector('[data-hint-tools]').textContent = t('submit.field.tools.hint');
     form.querySelector('[data-tool-custom-input]').placeholder = t('submit.field.tools.custom.placeholder');
     form.querySelector('[data-tool-custom-add]').textContent = t('submit.field.tools.custom.add');
+    form.querySelector('[data-label-stage]').textContent = t('submit.field.stage');
+    form.querySelector('[data-hint-stage]').textContent = t('submit.field.stage.hint');
+    form.querySelector('[data-label-looking]').textContent = t('submit.field.looking');
+    form.querySelector('[data-hint-looking]').textContent = t('submit.field.looking.hint');
     form.querySelector('[data-submit-btn]').textContent = t('submit.action.submit');
 
     document.querySelector('[data-success-title]').textContent = t('submit.success.title');
@@ -125,6 +136,8 @@ if (gate && formWrap && form) {
       if (TOOL_PRESETS.includes(tool)) selectToolChip(tool);
       else addCustomToolValue(tool);
     });
+    if (data.stage) selectStageChip(data.stage);
+    data.lookingFor.forEach((key) => selectLookingChip(key));
   }
 
   // Гейт в edit-режиме используется как экран ошибки (нельзя редактировать).
@@ -189,6 +202,67 @@ if (gate && formWrap && form) {
       });
       toolsGroup.appendChild(chip);
     });
+  }
+
+  // Стадия — одиночный выбор (повторный клик по активной снимает).
+  function buildStageChips() {
+    stageGroup.innerHTML = '';
+    STAGE_KEYS.forEach((value) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.dataset.value = value;
+      chip.textContent = stageLabel(value);
+      chip.setAttribute('aria-pressed', 'false');
+      chip.addEventListener('click', () => {
+        const activate = selectedStage !== value;
+        selectedStage = activate ? value : null;
+        stageGroup.querySelectorAll('.chip').forEach((c) => {
+          const on = activate && c.dataset.value === value;
+          c.classList.toggle('active', on);
+          c.setAttribute('aria-pressed', String(on));
+        });
+      });
+      stageGroup.appendChild(chip);
+    });
+  }
+
+  // «Что ищу» — мультивыбор (как теги).
+  function buildLookingChips() {
+    lookingGroup.innerHTML = '';
+    LOOKING_KEYS.forEach((value) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.dataset.value = value;
+      chip.textContent = lookingLabel(value);
+      chip.setAttribute('aria-pressed', 'false');
+      chip.addEventListener('click', () => {
+        const active = toggleSet(selectedLooking, value);
+        chip.classList.toggle('active', active);
+        chip.setAttribute('aria-pressed', String(active));
+      });
+      lookingGroup.appendChild(chip);
+    });
+  }
+
+  function selectStageChip(value) {
+    if (!isStage(value)) return;
+    selectedStage = value;
+    const chip = stageGroup.querySelector(`[data-value="${CSS.escape(value)}"]`);
+    if (chip) {
+      chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
+    }
+  }
+
+  function selectLookingChip(value) {
+    selectedLooking.add(value);
+    const chip = lookingGroup.querySelector(`[data-value="${CSS.escape(value)}"]`);
+    if (chip) {
+      chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
+    }
   }
 
   function addCustomTool() {
@@ -391,7 +465,9 @@ if (gate && formWrap && form) {
       project_url: form.projectUrl.value.trim(),
       cover_url: coverUrl,
       tags: Array.from(selectedTags),
-      tools: Array.from(selectedTools)
+      tools: Array.from(selectedTools),
+      stage: selectedStage,
+      looking_for: Array.from(selectedLooking)
     };
 
     // Edit: update своего проекта, статус НЕ трогаем (перемодерации нет, триггер
@@ -421,8 +497,12 @@ if (gate && formWrap && form) {
     form.reset();
     selectedTags.clear();
     selectedTools.clear();
+    selectedLooking.clear();
+    selectedStage = null;
     buildTagChips();
     buildToolChips();
+    buildStageChips();
+    buildLookingChips();
     clearCover();
     clearErrors();
     successEl.hidden = true;

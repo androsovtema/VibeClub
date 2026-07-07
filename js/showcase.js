@@ -3,6 +3,7 @@
  * Рендерит #community-grid из Supabase, чипы категорий и (опц.) сортировку перезапрашивают данные.
  */
 import { fetchPublishedProjects, renderProjectCard, CATEGORY_LABELS } from './projects.js';
+import { isLooking, lookingLabel } from './vocab.js';
 import { t } from './i18n/ru.js';
 
 function initShowcase(grid) {
@@ -14,10 +15,13 @@ function initShowcase(grid) {
   const catParam = urlParams.get('cat');
   const catValid = catParam && Object.prototype.hasOwnProperty.call(CATEGORY_LABELS, catParam);
 
+  const lookingParam = urlParams.get('looking');
+
   const state = {
     category: (catValid ? catParam : chipsWrap?.querySelector('.filter-tag.active')?.dataset.filter) || 'all',
     sort: sortGroup?.querySelector('.sort-segment-btn.active')?.dataset.sortValue || 'new',
-    tool: urlParams.get('tool') || null
+    tool: urlParams.get('tool') || null,
+    looking: isLooking(lookingParam) ? lookingParam : null
   };
 
   if (catValid && chipsWrap) {
@@ -60,6 +64,33 @@ function initShowcase(grid) {
     chip.textContent = `✦ ${state.tool} ✕`;
   }
 
+  // Фильтр «ищут» из ?looking=<key>. Комбинируется с cat/tool по И (все ограничения
+  // применяются вместе в fetchPublishedProjects). Чип сбрасываемый, как tool.
+  function renderLookingChip() {
+    if (!chipsWrap) return;
+    let chip = chipsWrap.querySelector('[data-looking-chip]');
+    if (!state.looking) {
+      chip?.remove();
+      return;
+    }
+    if (!chip) {
+      chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'filter-tag active';
+      chip.setAttribute('data-looking-chip', '');
+      chip.addEventListener('click', () => {
+        state.looking = null;
+        const url = new URL(window.location.href);
+        url.searchParams.delete('looking');
+        window.history.replaceState({}, '', url);
+        renderLookingChip();
+        load();
+      });
+      chipsWrap.appendChild(chip);
+    }
+    chip.textContent = `${t('card.looking.prefix')}: ${lookingLabel(state.looking)} ✕`;
+  }
+
   function renderSkeletonCards() {
     grid.innerHTML = '';
     const count = Math.min(limit || 6, 6);
@@ -83,6 +114,7 @@ function initShowcase(grid) {
       category: state.category,
       sort: state.sort,
       tool: state.tool,
+      looking: state.looking,
       limit
     });
     grid.removeAttribute('aria-busy');
@@ -131,6 +163,7 @@ function initShowcase(grid) {
   });
 
   renderToolChip();
+  renderLookingChip();
   load();
 }
 

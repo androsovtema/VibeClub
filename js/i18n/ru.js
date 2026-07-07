@@ -82,6 +82,32 @@ export const ru = {
   'submit.field.tools.custom.add': 'Добавить',
   'submit.field.tools.custom.remove': 'Убрать',
 
+  // T12 — стадия и «что ищу» (оба поля необязательные)
+  'submit.field.stage': 'На какой стадии?',
+  'submit.field.stage.hint': 'Необязательно. Чтобы было понятно, куда проект дошёл.',
+  'submit.field.looking': 'Чего не хватает?',
+  'submit.field.looking.hint': 'Отметь — и в обсуждение придут те, кто может помочь. Необязательно.',
+
+  // Словарь стадий (ключи в БД → подписи)
+  'stage.idea': 'идея',
+  'stage.prototype': 'прототип',
+  'stage.mvp': 'MVP',
+  'stage.users': 'есть пользователи',
+  'stage.commercial': 'зарабатывает',
+
+  // Словарь запросов «что ищу»
+  'looking.feedback': 'фидбек',
+  'looking.testers': 'тестеры',
+  'looking.designer': 'дизайнер',
+  'looking.developer': 'разработчик',
+  'looking.cofounder': 'кофаундер',
+  'looking.client': 'клиенты',
+  'looking.investor': 'инвестиции',
+
+  // Карточка витрины и страница проекта
+  'card.looking.prefix': 'ищет',
+  'project.looking.title': 'Автор ищет',
+
   'submit.action.submit': 'Отправить на модерацию',
   'submit.action.submitting': 'Отправляем…',
 

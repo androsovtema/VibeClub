@@ -1858,7 +1858,8 @@ section {
   margin-top: auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 6px 16px;
   padding-top: 10px;
   border-top: 1px solid var(--color-border);
   font-size: var(--text-sm);
@@ -1869,6 +1870,15 @@ section {
 .community-footer-tag {
   margin-left: auto;
   color: var(--color-text-secondary);
+}
+
+/* Стадия — тихий моно-бейдж; запрос — акцент повеселее, но не кричит (T12). */
+.community-footer-stage {
+  color: var(--color-text-secondary);
+}
+
+.community-footer-looking {
+  color: var(--color-accent-violet);
 }
 
 .showcase-empty {
@@ -3786,6 +3796,65 @@ a.pd-author-name:hover {
 .pd-tag:hover {
   border-color: var(--color-accent-blue);
   color: var(--color-accent-blue);
+  text-decoration: underline;
+}
+
+/* T12 — стадия в мета-строке (моно-бейдж) + блок «Автор ищет» */
+.pd-stage[hidden] {
+  display: none;
+}
+
+.pd-stage {
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+}
+
+.pd-stage::before {
+  content: '·';
+  margin-right: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.pd-looking[hidden] {
+  display: none;
+}
+
+.pd-looking {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.pd-looking-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pd-looking-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pd-looking-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+  color: var(--color-accent-violet);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  padding: 4px 10px;
+  text-decoration: none;
+  transition: border-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+}
+
+.pd-looking-chip:hover {
+  border-color: var(--color-accent-violet);
   text-decoration: underline;
 }
 

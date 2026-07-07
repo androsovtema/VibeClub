@@ -4,6 +4,8 @@
  * Карточка строится через createElement/textContent — без сырого innerHTML пользовательских данных.
  */
 import { supabase } from './supabase.js';
+import { stageLabel, lookingLabel, validLooking } from './vocab.js';
+import { t } from './i18n/ru.js';
 
 export const CATEGORY_LABELS = {
   prod: 'Продуктивность',
@@ -48,14 +50,16 @@ function normalizeProject(row) {
     authorId: row.author_id,
     authorName: row.author?.display_name || 'Участник сообщества',
     authorAvatarUrl: row.author?.avatar_url || null,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    stage: row.stage || null,
+    lookingFor: validLooking(row.looking_for)
   };
 }
 
 /**
- * @param {{ category?: string, sort?: 'new'|'top', limit?: number, authorId?: string, tool?: string }} opts
+ * @param {{ category?: string, sort?: 'new'|'top', limit?: number, authorId?: string, tool?: string, looking?: string }} opts
  */
-export async function fetchPublishedProjects({ category, sort = 'new', limit, authorId, tool } = {}) {
+export async function fetchPublishedProjects({ category, sort = 'new', limit, authorId, tool, looking } = {}) {
   let query = supabase.from('projects').select(SELECT).eq('status', 'published');
 
   if (category && category !== 'all') {
@@ -64,6 +68,10 @@ export async function fetchPublishedProjects({ category, sort = 'new', limit, au
 
   if (tool) {
     query = query.contains('tools', [tool]);
+  }
+
+  if (looking) {
+    query = query.contains('looking_for', [looking]);
   }
 
   if (authorId) {
@@ -172,6 +180,24 @@ export function renderProjectCard(project) {
   comments.textContent = `💬 ${project.commentsCount}`;
   meta.appendChild(comments);
 
+  const stageText = stageLabel(project.stage);
+  if (stageText) {
+    const stageEl = document.createElement('span');
+    stageEl.className = 'community-footer-stage';
+    stageEl.textContent = stageText;
+    meta.appendChild(stageEl);
+  }
+
+  // Максимум один запрос на карточке, чтобы не перегружать мету.
+  const firstLooking = lookingLabel(project.lookingFor[0]);
+  if (firstLooking) {
+    const lookingEl = document.createElement('span');
+    lookingEl.className = 'community-footer-looking';
+    lookingEl.textContent = `${t('card.looking.prefix')}: ${firstLooking}`;
+    meta.appendChild(lookingEl);
+  }
+
+  // Тег последним — у него margin-left:auto, прижимает к правому краю строки.
   if (project.tags[0]) {
     const tagEl = document.createElement('span');
     tagEl.className = 'community-footer-tag';
