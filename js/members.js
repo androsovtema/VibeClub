@@ -11,8 +11,12 @@ import { initialOf } from './projects.js';
 const MEMBER_LIMIT = 36;
 const PX_PER_SECOND = 34;
 const MIN_DURATION_S = 18;
-const FILL_MIN_CHIPS = 6;
-const ROW_SPEED_FACTOR = [1, 1.35, 0.85];
+const ROW_STRIDE_PX = 50; // высота чипа (~40) + вертикальный gap (10)
+const MIN_ROWS = 2;
+const MAX_ROWS = 14;
+const MAX_CHIPS_PER_ROW = 60; // страховка от бесконечного заполнения
+const WIDTH_FILL_FACTOR = 1.4; // насколько перекрыть ширину контейнера (для бесшовной прокрутки)
+const ROW_SPEED_FACTOR = [1, 1.35, 0.85, 1.15, 0.9, 1.25];
 
 function renderChip(member) {
   const chip = document.createElement('a');
@@ -42,35 +46,40 @@ function hideMembers(grid, label) {
   if (label) label.hidden = true;
 }
 
+// Раскидывает участников по rowCount рядам. Если участников меньше, чем рядов —
+// циклически повторяет, чтобы каждый ряд был непустым (даже при одном участнике).
+// Сдвигает стартовый индекс на ряд, чтобы соседние ряды не начинались с одного ника.
 function splitIntoRows(members, rowCount) {
-  const rows = Array.from({ length: rowCount }, () => []);
-  members.forEach((member, i) => rows[i % rowCount].push(member));
-  return rows.filter((row) => row.length > 0);
+  const rows = [];
+  for (let r = 0; r < rowCount; r++) {
+    const row = [];
+    for (let i = 0; i < members.length; i++) {
+      row.push(members[(i + r) % members.length]);
+    }
+    rows.push(row);
+  }
+  return rows;
 }
 
-// Повторяет base по кругу до minCount элементов, не давая одинаковому нику
-// оказаться рядом с самим собой (кроме случая, когда участник ровно один).
+// Повторяет base по кругу до minCount элементов. Один участник — заполняем
+// повторами (пользователь этого хочет: залить блок капсулой с его ником).
 function buildFilledList(base, minCount) {
   if (base.length === 0) return [];
-  if (base.length === 1) return [base[0]];
-
-  const list = [...base];
+  const list = [];
   let cursor = 0;
-  while (list.length < minCount) {
-    const candidate = base[cursor % base.length];
-    if (candidate.id !== list[list.length - 1].id) {
-      list.push(candidate);
-    }
+  while (list.length < minCount && list.length < MAX_CHIPS_PER_ROW) {
+    list.push(base[cursor % base.length]);
     cursor++;
-    if (cursor > minCount * 4) break; // защита от зацикливания
   }
   return list;
 }
 
-function rowCountFor(total) {
-  if (total >= 8) return 3;
-  if (total >= 4) return 2;
-  return 1;
+// Сколько рядов нужно, чтобы залить высоту панели. Не зависит от числа
+// участников — мало людей заполняем повторами.
+function rowCountFor(gridHeight) {
+  if (!gridHeight) return 3;
+  const fit = Math.round(gridHeight / ROW_STRIDE_PX);
+  return Math.max(MIN_ROWS, Math.min(MAX_ROWS, fit));
 }
 
 async function initMembers() {
@@ -96,7 +105,9 @@ async function initMembers() {
   }
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const rows = splitIntoRows(data, rowCountFor(data.length));
+  const gridWidth = grid.clientWidth || 320;
+  const targetWidth = gridWidth * WIDTH_FILL_FACTOR;
+  const rows = splitIntoRows(data, rowCountFor(grid.clientHeight));
 
   rows.forEach((rowMembers, index) => {
     const rowEl = document.createElement('div');
@@ -105,18 +116,27 @@ async function initMembers() {
 
     const track = document.createElement('div');
     track.className = 'member-row-track';
-
-    const displayList = buildFilledList(rowMembers, FILL_MIN_CHIPS);
-    displayList.forEach((member) => track.appendChild(renderChip(member)));
     rowEl.appendChild(track);
     grid.appendChild(rowEl);
 
+    // Заполняем ряд по ширине: докладываем чипы, пока трек не перекроет контейнер.
+    let cursor = 0;
+    while (track.scrollWidth < targetWidth && cursor < MAX_CHIPS_PER_ROW) {
+      track.appendChild(renderChip(rowMembers[cursor % rowMembers.length]));
+      cursor++;
+    }
+    if (track.children.length === 0) {
+      buildFilledList(rowMembers, 1).forEach((m) => track.appendChild(renderChip(m)));
+    }
+
     const overflowing = track.scrollWidth > grid.clientWidth + 4;
-    if (!reducedMotion && overflowing && displayList.length > 1) {
-      displayList.forEach((member) => track.appendChild(renderChip(member)));
+    if (!reducedMotion && overflowing) {
+      // Дублируем набор для бесшовной прокрутки (@keyframes уводит на -50%).
+      const firstHalf = Array.from(track.children);
+      firstHalf.forEach((node) => track.appendChild(node.cloneNode(true)));
       const duration = Math.max(
         MIN_DURATION_S,
-        (track.scrollWidth / 2 / PX_PER_SECOND) / (ROW_SPEED_FACTOR[index] || 1)
+        (track.scrollWidth / 2 / PX_PER_SECOND) / (ROW_SPEED_FACTOR[index % ROW_SPEED_FACTOR.length] || 1)
       );
       rowEl.style.setProperty('--row-duration', `${duration}s`);
       rowEl.classList.add('is-animating');

@@ -2266,10 +2266,23 @@ section {
   display: none;
 }
 
+/* Правая колонка community-CTA тянется на высоту карточки (её задаёт левая
+   колонка), чтобы сетка участников заливала блок целиком, а не висела по центру. */
+.community-cta-grid > div:last-child {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .member-grid {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .member-row {
@@ -2285,7 +2298,7 @@ section {
 
 .member-row-track {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   width: max-content;
 }
