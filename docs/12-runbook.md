@@ -40,6 +40,8 @@
 Применённые миграции на сегодня:
 - `2026-07-03-stage-ask-profile.sql` — стадии/looking_for/skills (под T12–T14).
 - `2026-07-06-rls-privilege-hardening.sql` — защита role/is_core (T-SEC1). ✅ применена.
+- `2026-07-06-rls-privilege-hardening-fix.sql` — фикс функции (первая версия
+  ломала легитимный edit из-за non-short-circuit AND). ⏳ применить и перепроверить.
 
 ## Момент 3 — Готовлюсь к анонсу
 

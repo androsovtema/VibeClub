@@ -18,6 +18,9 @@
 -- Идемпотентно: create or replace + drop trigger if exists.
 -- =============================================================================
 
+-- ВНИМАНИЕ: имя таблицы — во внешнем if (см. фикс-миграцию 2026-07-06-…-fix.sql):
+-- SQL не гарантирует короткое замыкание AND, `new.is_core` на profiles кидает
+-- «record new has no field is_core». Не сливать tg_table_name и поле в одно AND.
 create or replace function public.protect_privileged_columns()
 returns trigger
 language plpgsql
@@ -30,16 +33,14 @@ begin
     return new;
   end if;
 
-  if tg_table_name = 'profiles'
-     and new.role is distinct from old.role
-     and not public.is_admin() then
-    raise exception 'role can only be changed by an admin';
-  end if;
-
-  if tg_table_name = 'projects'
-     and new.is_core is distinct from old.is_core
-     and not public.is_admin() then
-    raise exception 'is_core can only be changed by an admin';
+  if tg_table_name = 'profiles' then
+    if new.role is distinct from old.role and not public.is_admin() then
+      raise exception 'role can only be changed by an admin';
+    end if;
+  elsif tg_table_name = 'projects' then
+    if new.is_core is distinct from old.is_core and not public.is_admin() then
+      raise exception 'is_core can only be changed by an admin';
+    end if;
   end if;
 
   return new;
