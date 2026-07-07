@@ -31,6 +31,7 @@ const dateEl = document.querySelector('[data-project-date]');
 const tagsEl = document.querySelector('[data-project-tags]');
 const descriptionEl = document.querySelector('[data-project-description]');
 const openBtn = document.querySelector('[data-project-open]');
+const editBtn = document.querySelector('[data-project-edit]');
 const upvoteBtn = document.querySelector('[data-project-upvote]');
 const upvoteCountEl = document.querySelector('[data-upvote-count]');
 const upvoteErrorEl = document.querySelector('[data-upvote-error]');
@@ -58,6 +59,7 @@ function applyStaticText() {
   document.querySelector('[data-not-found-link]').textContent = t('project.notfound.link');
   coverLabel.textContent = t('project.cover.label');
   openBtn.textContent = t('project.action.open');
+  editBtn.textContent = t('project.action.edit');
   document.querySelector('[data-discussion-title]').textContent = t('project.discussion.title');
   commentsEmptyEl.textContent = t('project.comments.empty');
   document.querySelector('[data-comment-gate-text]').textContent = t('project.comment.gate.text');
@@ -145,6 +147,15 @@ function renderProject(project) {
   }
 
   upvoteCountEl.textContent = String(project.upvotes);
+  updateEditButton();
+}
+
+// Кнопка «Редактировать» видна только автору проекта (RLS всё равно отобьёт
+// чужой update). Ведёт на форму в режиме редактирования.
+function updateEditButton() {
+  const isOwner = !!currentUser && !!currentProject && currentUser.id === currentProject.authorId;
+  editBtn.hidden = !isOwner;
+  if (isOwner) editBtn.href = `submit.html?id=${encodeURIComponent(currentProject.id)}`;
 }
 
 async function loadUpvoteState() {
@@ -456,6 +467,7 @@ commentFormEl.addEventListener('submit', async (event) => {
 function handleAuthChange(user) {
   currentUser = user;
   updateCommentGate();
+  updateEditButton();
   if (currentProject) {
     loadUpvoteState();
     loadComments();

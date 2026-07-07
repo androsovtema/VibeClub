@@ -1,12 +1,14 @@
 /**
- * We Designerz — форма добавления проекта (T3).
- * Гейт без логина → форма после входа (без перезагрузки) → insert в Storage/projects со
- * status='pending'. RLS сам не даст вставить published/чужой author_id — фронт этого не обходит.
+ * We Designerz — форма добавления/редактирования проекта (T3 + edit route A).
+ * Добавление: гейт без логина → форма → insert со status='pending'.
+ * Редактирование (submit.html?id=…): загружаем свой проект, префилл, update
+ * (status/is_core не трогаем — их всё равно перехватит триггер и RLS). RLS сам
+ * не даст вставить/править published или чужой author_id — фронт этого не обходит.
  */
 import { supabase } from './supabase.js';
 import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
-import { CATEGORY_LABELS } from './projects.js';
+import { CATEGORY_LABELS, fetchProjectById } from './projects.js';
 import { isHttpUrl, normalizeHttpUrl } from './util.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
@@ -35,15 +37,21 @@ if (gate && formWrap && form) {
   const submitBtn = form.querySelector('[data-submit-btn]');
   const submitError = form.querySelector('[data-submit-error]');
 
+  const editId = new URLSearchParams(window.location.search).get('id');
+  const isEdit = !!editId;
+
   const selectedTags = new Set();
   const selectedTools = new Set();
   let coverFile = null;
   let currentUser = null;
   let submitting = false;
+  let editLoaded = false; // проект для редактирования уже подтянут
+  let existingCoverUrl = null; // текущая обложка в edit-режиме (если не меняем файл)
 
   applyStaticText();
   buildTagChips();
   buildToolChips();
+  if (isEdit) applyEditModeText();
 
   function applyStaticText() {
     document.querySelector('[data-submit-gate-text]').textContent = t('submit.gate.text');
@@ -78,6 +86,73 @@ if (gate && formWrap && form) {
     document.querySelector('[data-success-text]').textContent = t('submit.success.text');
     document.querySelector('[data-success-chat]').textContent = t('submit.success.chat');
     document.querySelector('[data-success-again]').textContent = t('submit.success.again');
+  }
+
+  function applyEditModeText() {
+    document.title = t('submit.edit.doctitle');
+    const heading = document.querySelector('[data-submit-heading]');
+    if (heading) heading.textContent = t('submit.edit.title');
+    submitBtn.textContent = t('submit.edit.action');
+    form.querySelector('[data-hint-cover]').textContent = t('submit.edit.cover_hint');
+  }
+
+  // Подтягивает свой проект в форму. Чужой/несуществующий — форму не показываем.
+  async function loadProjectForEdit(user) {
+    editLoaded = true;
+    const { data, error } = await fetchProjectById(editId);
+    if (error || !data) {
+      showLoadError(t('submit.edit.load_error'));
+      return;
+    }
+    if (data.authorId !== user.id) {
+      showLoadError(t('submit.edit.forbidden'));
+      return;
+    }
+
+    form.title.value = data.title || '';
+    form.description.value = data.description || '';
+    form.projectUrl.value = data.projectUrl || '';
+
+    existingCoverUrl = data.coverUrl || null;
+    if (existingCoverUrl) {
+      coverFilenameEl.textContent = t('submit.field.cover.filename_empty');
+      coverPreviewImg.src = existingCoverUrl;
+      coverPreview.hidden = false;
+    }
+
+    data.tags.forEach((tag) => selectTagChip(tag));
+    data.tools.forEach((tool) => {
+      if (TOOL_PRESETS.includes(tool)) selectToolChip(tool);
+      else addCustomToolValue(tool);
+    });
+  }
+
+  // Гейт в edit-режиме используется как экран ошибки (нельзя редактировать).
+  function showLoadError(message) {
+    formWrap.hidden = true;
+    successEl.hidden = true;
+    const gateText = document.querySelector('[data-submit-gate-text]');
+    if (gateText) gateText.textContent = message;
+    gate.hidden = false;
+  }
+
+  function selectTagChip(value) {
+    if (!CATEGORY_LABELS[value]) return;
+    selectedTags.add(value);
+    const chip = tagsGroup.querySelector(`[data-value="${CSS.escape(value)}"]`);
+    if (chip) {
+      chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
+    }
+  }
+
+  function selectToolChip(value) {
+    selectedTools.add(value);
+    const chip = toolsGroup.querySelector(`[data-value="${CSS.escape(value)}"]`);
+    if (chip) {
+      chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
+    }
   }
 
   function buildTagChips() {
@@ -117,11 +192,12 @@ if (gate && formWrap && form) {
   }
 
   function addCustomTool() {
-    const value = customInput.value.trim();
-    if (!value || selectedTools.has(value)) {
-      customInput.value = '';
-      return;
-    }
+    addCustomToolValue(customInput.value.trim());
+    customInput.value = '';
+  }
+
+  function addCustomToolValue(value) {
+    if (!value || selectedTools.has(value)) return;
     selectedTools.add(value);
 
     const chip = document.createElement('span');
@@ -143,7 +219,6 @@ if (gate && formWrap && form) {
     chip.appendChild(removeBtn);
 
     toolsGroup.appendChild(chip);
-    customInput.value = '';
   }
 
   customAddBtn.addEventListener('click', addCustomTool);
@@ -182,6 +257,7 @@ if (gate && formWrap && form) {
   });
 
   coverRemoveBtn.addEventListener('click', () => {
+    existingCoverUrl = null;
     clearCover();
     showFieldError('cover', '');
   });
@@ -251,7 +327,7 @@ if (gate && formWrap && form) {
       valid = false;
     }
 
-    if (!coverFile) {
+    if (!coverFile && !existingCoverUrl) {
       showFieldError('cover', t('submit.error.required_cover'));
       valid = false;
     }
@@ -272,7 +348,9 @@ if (gate && formWrap && form) {
   function setSubmitting(isSubmitting) {
     submitting = isSubmitting;
     submitBtn.disabled = isSubmitting;
-    submitBtn.textContent = isSubmitting ? t('submit.action.submitting') : t('submit.action.submit');
+    const idle = isEdit ? t('submit.edit.action') : t('submit.action.submit');
+    const busy = isEdit ? t('submit.edit.saving') : t('submit.action.submitting');
+    submitBtn.textContent = isSubmitting ? busy : idle;
   }
 
   async function uploadCover(user) {
@@ -295,7 +373,7 @@ if (gate && formWrap && form) {
 
     setSubmitting(true);
 
-    let coverUrl = null;
+    let coverUrl = isEdit ? existingCoverUrl : null;
     if (coverFile) {
       const { url, error } = await uploadCover(currentUser);
       if (error) {
@@ -307,22 +385,31 @@ if (gate && formWrap && form) {
       coverUrl = url;
     }
 
-    const { error } = await supabase.from('projects').insert({
-      author_id: currentUser.id,
+    const payload = {
       title: form.title.value.trim(),
       description: form.description.value.trim(),
       project_url: form.projectUrl.value.trim(),
       cover_url: coverUrl,
       tags: Array.from(selectedTags),
-      tools: Array.from(selectedTools),
-      status: 'pending'
-    });
+      tools: Array.from(selectedTools)
+    };
+
+    // Edit: update своего проекта, статус НЕ трогаем (перемодерации нет, триггер
+    // всё равно отобьёт смену status/is_core не-админом). Add: insert как pending.
+    const { error } = isEdit
+      ? await supabase.from('projects').update(payload).eq('id', editId)
+      : await supabase.from('projects').insert({ ...payload, author_id: currentUser.id, status: 'pending' });
 
     setSubmitting(false);
 
     if (error) {
-      submitError.textContent = t('submit.error.insert');
+      submitError.textContent = isEdit ? t('submit.edit.save_error') : t('submit.error.insert');
       submitError.hidden = false;
+      return;
+    }
+
+    if (isEdit) {
+      window.location.href = `project.html?id=${encodeURIComponent(editId)}`;
       return;
     }
 
@@ -347,6 +434,20 @@ if (gate && formWrap && form) {
   function applyAuthState(user) {
     currentUser = user;
     if (successEl.hidden === false) return;
+
+    if (isEdit) {
+      // Редактирование требует входа; после входа один раз подтягиваем проект.
+      if (!user) {
+        gate.hidden = false;
+        formWrap.hidden = true;
+        return;
+      }
+      gate.hidden = true;
+      formWrap.hidden = false;
+      if (!editLoaded) loadProjectForEdit(user);
+      return;
+    }
+
     gate.hidden = !!user;
     formWrap.hidden = !user;
   }

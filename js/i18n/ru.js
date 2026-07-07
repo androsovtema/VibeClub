@@ -85,6 +85,16 @@ export const ru = {
   'submit.action.submit': 'Отправить на модерацию',
   'submit.action.submitting': 'Отправляем…',
 
+  // Режим редактирования своего проекта (submit.html?id=…)
+  'submit.edit.title': 'Редактировать проект',
+  'submit.edit.doctitle': 'Редактировать проект — We Designerz',
+  'submit.edit.action': 'Сохранить',
+  'submit.edit.saving': 'Сохраняем…',
+  'submit.edit.cover_hint': 'Обложка уже загружена. Выбери файл, только если хочешь заменить.',
+  'submit.edit.load_error': 'Не удалось загрузить проект для редактирования.',
+  'submit.edit.forbidden': 'Редактировать можно только свой проект.',
+  'submit.edit.save_error': 'Не получилось сохранить. Попробуй ещё раз.',
+
   'submit.success.title': 'Улетело ✦',
   'submit.success.text': 'Прочитаем и выпустим в витрину. А пока загляни в чат — там всегда есть о чём.',
   'submit.success.chat': 'Чат сообщества',
@@ -109,6 +119,7 @@ export const ru = {
   'project.notfound.link': 'Все проекты',
   'project.notfound.doctitle': 'Проект не найден — We Designerz',
   'project.action.open': 'Открыть проект →',
+  'project.action.edit': 'Редактировать',
   'project.cover.label': 'скриншот проекта',
 
   'project.discussion.title': 'Обсуждение',

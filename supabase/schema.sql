@@ -175,6 +175,9 @@ begin
     if new.is_core is distinct from old.is_core and not public.is_admin() then
       raise exception 'is_core can only be changed by an admin';
     end if;
+    if new.status is distinct from old.status and not public.is_admin() then
+      raise exception 'status can only be changed by an admin';
+    end if;
   end if;
 
   return new;
@@ -234,11 +237,13 @@ drop policy if exists projects_insert_own_pending on public.projects;
 create policy projects_insert_own_pending on public.projects
   for insert with check (author_id = auth.uid() and status = 'pending');
 
--- Автор правит свой проект пока он pending
+-- Автор правит свой проект в любом статусе (текст/обложку/теги). Смену status и
+-- is_core перехватывает триггер protect_privileged_columns (только админ).
 drop policy if exists projects_update_own_pending on public.projects;
-create policy projects_update_own_pending on public.projects
-  for update using (author_id = auth.uid() and status = 'pending')
-  with check (author_id = auth.uid() and status = 'pending');
+drop policy if exists projects_update_own on public.projects;
+create policy projects_update_own on public.projects
+  for update using (author_id = auth.uid())
+  with check (author_id = auth.uid());
 
 -- Админ может всё (публикация/отклонение/is_core)
 drop policy if exists projects_update_admin on public.projects;
