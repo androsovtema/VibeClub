@@ -50,18 +50,25 @@ Opus и Sonnet **не общаются напрямую**. Интерфейс м
 - `js/config.js` — публичные ключи Supabase (защита на RLS, service_role сюда НЕ кладём).
 - Память ассистента (вне репо) — устойчивые факты о проекте и предпочтениях Тёмы.
 
-## Запуск и деплой
+## Запуск и деплой (обновлено 2026-07-07 — проект переехал в отдельный репо)
 
+Проект вынесен из `wdcom` (студия дизайна) в самостоятельный репозиторий/папку.
+Старая модель «в тени на ветке `redesign`» больше НЕ действует.
+- Репо: `androsovtema/VibeClub`, рабочая ветка — **`main`**. Папка на ПК:
+  `/Users/prosto/Desktop/01_Work/Products/VibeClub`.
 - Локально: `python3 -m http.server 8080` → `http://localhost:8080/index.html`.
   Не открывать `file://` и не `npm run dev` (скрипта нет).
-- Прод: GitHub Pages, домен `wedesignerz.com`, деплой **только по push в `main`**
-  (`.github/workflows/deploy.yml`).
-- **Работаем «в тени»:** весь редизайн живёт в ветке **`redesign`**. `main` = текущий
-  живой сайт, его НЕ трогаем. Push ветки `redesign` деплой не запускает.
-  - Sonnet и все правки — на ветке `redesign` (проверь `git branch --show-current`).
-  - Когда редизайн готов к запуску → влить в прод:
-    `git checkout main && git merge redesign && git push` (только тогда уедет в прод).
-  - Пуш ветки `redesign` в origin безопасен (не деплоит) — можно для бэкапа/превью.
+- Деплой: GitHub Pages через **Actions** (`.github/workflows/deploy.yml`), по push
+  в `main`. URL превью: `https://androsovtema.github.io/VibeClub/`. Внутреннее
+  (`docs/ supabase/ CLAUDE.md`/конфиги) в артефакт не попадает — не публикуется.
+- **Staging, закрыт от индексации:** `robots.txt` = `Disallow: /`, `CNAME` убран
+  (домен `wedesignerz.com` остаётся за студией `wdcom`). До публичного запуска
+  живых людей пускаем только по прямой ссылке.
+- **Название временное** («VibeClub»); финальный бренд не выбран — ребренд
+  (лого/meta/домен/`docs/`) отдельной задачей.
+- Supabase — **отдельный** проект `ndhyvspgkelxgqmfmmry` (не общий со студией),
+  публичные ключи в `js/config.js`, схема из `supabase/schema.sql`.
+- `wdcom` (старый репо) заморожен на `main` = студия; работу там не ведём.
 
 ## Принципы
 
