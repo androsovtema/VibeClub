@@ -48,19 +48,30 @@ export function autoGrowTextarea(el) {
  * вложенности — несколько оверлеев могут быть открыты одновременно, скролл
  * возвращается только когда закрыт последний. Ширина скроллбара компенсируется
  * padding-right, иначе контент дёргается при скрытии полосы прокрутки.
+ * overflow:hidden не останавливает touch-скролл в iOS Safari, поэтому body
+ * фиксируется (position:fixed) со смещением на текущий скролл; при
+ * разблокировке позиция возвращается мгновенно (behavior:'instant', иначе
+ * scroll-behavior:smooth из styles.css анимировал бы возврат).
  */
 let scrollLockCount = 0;
 let savedBodyPaddingRight = '';
+let savedScrollY = 0;
 
 export function lockScroll() {
   if (scrollLockCount === 0) {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     savedBodyPaddingRight = document.body.style.paddingRight;
-    document.body.style.overflow = 'hidden';
+    savedScrollY = window.scrollY;
     if (scrollbarWidth > 0) {
       const currentPadding = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
       document.body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
     }
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
   }
   scrollLockCount++;
 }
@@ -69,8 +80,14 @@ export function unlockScroll() {
   if (scrollLockCount === 0) return;
   scrollLockCount--;
   if (scrollLockCount === 0) {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
     document.body.style.overflow = '';
     document.body.style.paddingRight = savedBodyPaddingRight;
+    window.scrollTo({ top: savedScrollY, left: 0, behavior: 'instant' });
   }
 }
 
