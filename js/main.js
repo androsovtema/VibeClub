@@ -19,6 +19,7 @@
   function toggleMenu(isOpen) {
     if (!burger || !nav || !header) return;
 
+    const wasOpen = nav.classList.contains('open');
     burger.classList.toggle('open', isOpen);
     nav.classList.toggle('open', isOpen);
     header.classList.toggle('open', isOpen);
@@ -26,8 +27,11 @@
     burger.setAttribute('aria-expanded', isOpen);
     // Счётчик блокировки скролла живёт в util.js (ES-модуль, мост на window
     // через app.js) — main.js сам импортировать его не может.
-    if (isOpen) window.wdzLockScroll?.();
-    else window.wdzUnlockScroll?.();
+    // Лок трогаем только при реальной смене состояния: pageshow из bfcache
+    // зовёт toggleMenu(false) безусловно, и без гарда закрытое меню снимало
+    // бы чужой лок (например, открытой модалки).
+    if (isOpen && !wasOpen) window.wdzLockScroll?.();
+    else if (!isOpen && wasOpen) window.wdzUnlockScroll?.();
   }
 
   function closeMenu() {

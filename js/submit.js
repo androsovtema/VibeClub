@@ -345,8 +345,16 @@ if (gate && formWrap && form) {
       clearCover();
       return;
     }
-    const { width, height } = await readImageDimensions(file);
-    if (width < height) {
+    let dims;
+    try {
+      dims = await readImageDimensions(file);
+    } catch {
+      // Битый файл валидного MIME: createImageBitmap не смог декодировать
+      showFieldError('cover', t('submit.error.cover_type'));
+      clearCover();
+      return;
+    }
+    if (dims.width < dims.height) {
       showFieldError('cover', t('submit.error.orientation'));
       clearCover();
       return;
@@ -391,8 +399,14 @@ if (gate && formWrap && form) {
         showFieldError('images', t('submit.error.cover_size'));
         continue;
       }
-      const { width, height } = await readImageDimensions(file);
-      if (width < height) {
+      let dims;
+      try {
+        dims = await readImageDimensions(file);
+      } catch {
+        showFieldError('images', t('submit.error.cover_type'));
+        continue;
+      }
+      if (dims.width < dims.height) {
         showFieldError('images', t('submit.error.orientation'));
         continue;
       }
