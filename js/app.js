@@ -5,7 +5,14 @@
 import { getCurrentUser, onAuthChange, signOut } from './auth.js';
 import { openAuthModal, setAuthSuccessHandler } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
-import { escapeHtml } from './util.js';
+import { escapeHtml, lockScroll, unlockScroll } from './util.js';
+
+// main.js — classic script (не модуль, см. его комментарий вверху), импортировать
+// util.js не может. Мост на window даёт бургер-меню тот же счётчик блокировки
+// скролла, что и auth-модалке — иначе оба напрямую трогают body.style.overflow
+// и мешают друг другу при одновременном открытии.
+window.wdzLockScroll = lockScroll;
+window.wdzUnlockScroll = unlockScroll;
 
 function showToast(message, isError = false) {
   const toast = document.getElementById('join-toast');

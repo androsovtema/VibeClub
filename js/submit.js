@@ -11,7 +11,7 @@ import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS, fetchProjectById } from './projects.js';
 import { STAGE_KEYS, LOOKING_KEYS, isStage, stageLabel, lookingLabel } from './vocab.js';
 import { isHttpUrl, normalizeHttpUrl, autoGrowTextarea } from './util.js';
-import { optimizeImage } from './image.js';
+import { optimizeImage, readImageDimensions } from './image.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
 const MAX_COVER_BYTES = 10 * 1024 * 1024;
@@ -328,7 +328,7 @@ if (gate && formWrap && form) {
     if (value) form.projectUrl.value = normalizeHttpUrl(value);
   });
 
-  coverInput.addEventListener('change', () => {
+  coverInput.addEventListener('change', async () => {
     const file = coverInput.files?.[0];
     showFieldError('cover', '');
     if (!file) {
@@ -342,6 +342,12 @@ if (gate && formWrap && form) {
     }
     if (file.size > MAX_COVER_BYTES) {
       showFieldError('cover', t('submit.error.cover_size'));
+      clearCover();
+      return;
+    }
+    const { width, height } = await readImageDimensions(file);
+    if (width < height) {
+      showFieldError('cover', t('submit.error.orientation'));
       clearCover();
       return;
     }
@@ -368,7 +374,7 @@ if (gate && formWrap && form) {
     }
   }
 
-  imagesInput.addEventListener('change', () => {
+  imagesInput.addEventListener('change', async () => {
     const files = Array.from(imagesInput.files || []);
     imagesInput.value = ''; // сброс — позволяет выбрать тот же файл повторно
     showFieldError('images', '');
@@ -383,6 +389,11 @@ if (gate && formWrap && form) {
       }
       if (file.size > MAX_COVER_BYTES) {
         showFieldError('images', t('submit.error.cover_size'));
+        continue;
+      }
+      const { width, height } = await readImageDimensions(file);
+      if (width < height) {
+        showFieldError('images', t('submit.error.orientation'));
         continue;
       }
       imageItems.push({ file, url: null, previewUrl: URL.createObjectURL(file) });

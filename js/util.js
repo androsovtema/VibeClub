@@ -44,6 +44,37 @@ export function autoGrowTextarea(el) {
 }
 
 /**
+ * Блокировка скролла фона под оверлеями (модалка, мобильное меню) со счётчиком
+ * вложенности — несколько оверлеев могут быть открыты одновременно, скролл
+ * возвращается только когда закрыт последний. Ширина скроллбара компенсируется
+ * padding-right, иначе контент дёргается при скрытии полосы прокрутки.
+ */
+let scrollLockCount = 0;
+let savedBodyPaddingRight = '';
+
+export function lockScroll() {
+  if (scrollLockCount === 0) {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    savedBodyPaddingRight = document.body.style.paddingRight;
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      const currentPadding = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
+      document.body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+    }
+  }
+  scrollLockCount++;
+}
+
+export function unlockScroll() {
+  if (scrollLockCount === 0) return;
+  scrollLockCount--;
+  if (scrollLockCount === 0) {
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = savedBodyPaddingRight;
+  }
+}
+
+/**
  * Ссылка «Назад»: если пришли изнутри сайта — history.back(), иначе (прямой
  * заход, внешний переход, новая вкладка) — обычный переход по href (fallback).
  */

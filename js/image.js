@@ -41,6 +41,18 @@ export async function optimizeImage(file, { maxSide = 1600, quality = 0.82 } = {
   return { blob, ext };
 }
 
+/**
+ * Ширина/высота файла ПОСЛЕ нормализации EXIF-ориентации (та же опция
+ * imageOrientation, что и в optimizeImage) — для валидации пропорций на
+ * загрузке, до самого ресайза.
+ */
+export async function readImageDimensions(file) {
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  const { width, height } = bitmap;
+  bitmap.close?.();
+  return { width, height };
+}
+
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }

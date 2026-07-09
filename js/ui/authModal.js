@@ -3,8 +3,10 @@
  * Инжектится в body при первом вызове openAuthModal(). Работает на любой странице,
  * подключившей ./app.js. Стиль — на токенах css/tokens.css, компонент описан в styles.css.
  */
-import { signUpEmailPassword, signInEmailPassword, signInMagicLink } from '../auth.js';
+import { supabase } from '../supabase.js';
+import { signUpEmailPassword, signInEmailPassword, signInMagicLink, getCurrentUser } from '../auth.js';
 import { t, mapAuthError } from '../i18n/ru.js';
+import { lockScroll, unlockScroll } from '../util.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const WELCOME_KEY = 'wdz-welcome-shown';
@@ -259,12 +261,36 @@ function attachEvents() {
 
 let onSuccessCallback = null;
 
-function onAuthSuccess(message) {
-  if (!localStorage.getItem(WELCOME_KEY)) {
+// «Первый раз» определяем по возрасту профиля (created_at ставит триггер при
+// регистрации), а не по localStorage — иначе новое устройство/очищенное
+// хранилище показывает welcome старожилам. WELCOME_KEY остаётся подавителем
+// повторного показа в том же браузере.
+async function isFreshRegistration() {
+  const user = await getCurrentUser();
+  if (!user) return false;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('created_at')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (error || !data?.created_at) return false;
+  const ageMs = Date.now() - new Date(data.created_at).getTime();
+  return ageMs < 10 * 60 * 1000;
+}
+
+async function onAuthSuccess(message) {
+  if (localStorage.getItem(WELCOME_KEY)) {
+    closeAuthModal();
+    onSuccessCallback?.(message);
+    return;
+  }
+
+  if (await isFreshRegistration()) {
     localStorage.setItem(WELCOME_KEY, '1');
     showWelcome();
     return;
   }
+
   closeAuthModal();
   onSuccessCallback?.(message);
 }
@@ -287,6 +313,7 @@ export function openAuthModal(initialTab = 'signin') {
   lastFocused = document.activeElement;
   overlay.hidden = false;
   document.body.classList.add('auth-modal-open');
+  lockScroll();
   switchTab(initialTab);
 }
 
@@ -294,5 +321,6 @@ export function closeAuthModal() {
   if (!overlay || overlay.hidden) return;
   overlay.hidden = true;
   document.body.classList.remove('auth-modal-open');
+  unlockScroll();
   lastFocused?.focus();
 }

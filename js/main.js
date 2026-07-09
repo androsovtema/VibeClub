@@ -24,7 +24,10 @@
     header.classList.toggle('open', isOpen);
     document.body.classList.toggle('menu-open', isOpen);
     burger.setAttribute('aria-expanded', isOpen);
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    // Счётчик блокировки скролла живёт в util.js (ES-модуль, мост на window
+    // через app.js) — main.js сам импортировать его не может.
+    if (isOpen) window.wdzLockScroll?.();
+    else window.wdzUnlockScroll?.();
   }
 
   function closeMenu() {
@@ -59,6 +62,12 @@
       }
     });
   }
+
+  // bfcache возвращает страницу со снапшотом DOM как есть — если меню было
+  // открыто перед переходом (системная «Назад»), снапшот приходит открытым.
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) toggleMenu(false);
+  });
 
   /* ====================
      LOGO SCROLL ANIMATION
