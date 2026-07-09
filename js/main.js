@@ -375,9 +375,13 @@
 
 /**
  * Каретка-хамелеон в полях ввода: цвет курсора идёт по циклу
- * электрик-градиента (синий → фиолет → пурпур → тёплый) в такт
- * морганию каретки в шапке (1.1s). caret-color не анимируется
- * через keyframes в Blink, поэтому цикл — на таймере.
+ * электрик-градиента (синий → фиолет → пурпур → тёплый).
+ * caret-color не анимируется через keyframes в Blink, поэтому цикл —
+ * на таймере, синхронизированном с морганием системной каретки:
+ * Blink/macOS мигают 500мс видима / 500мс скрыта (период 1000мс),
+ * отсчёт заново от фокуса и каждого ввода. Цвет меняем на 750мс
+ * после последнего сброса — в середине скрытой фазы, чтобы смена
+ * никогда не была видна; каждое появление — уже новый цвет.
  */
 (function () {
   'use strict';
@@ -396,10 +400,39 @@
     .filter(Boolean);
   if (colors.length === 0) return;
 
+  const BLINK_PERIOD = 1000;
+  const HIDDEN_MID = 750;
+
   let i = 0;
+  let delayTimer = null;
+  let cycleTimer = null;
   root.style.setProperty('--caret-cycle-color', colors[0]);
-  setInterval(() => {
+
+  function advance() {
     i = (i + 1) % colors.length;
     root.style.setProperty('--caret-cycle-color', colors[i]);
-  }, 1100);
+  }
+
+  /* Любое событие, сбрасывающее моргание каретки (фокус, ввод,
+     перемещение курсора), перезапускает и наш отсчёт. Пока человек
+     печатает, каретка сплошная — цвет в это время не трогаем. */
+  function resync() {
+    clearTimeout(delayTimer);
+    clearInterval(cycleTimer);
+    delayTimer = setTimeout(() => {
+      advance();
+      cycleTimer = setInterval(advance, BLINK_PERIOD);
+    }, HIDDEN_MID);
+  }
+
+  ['focusin', 'input', 'keydown', 'pointerdown'].forEach((type) => {
+    document.addEventListener(
+      type,
+      (event) => {
+        const t = event.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) resync();
+      },
+      true
+    );
+  });
 })();
