@@ -372,3 +372,34 @@
   }
 
 })();
+
+/**
+ * Каретка-хамелеон в полях ввода: цвет курсора идёт по циклу
+ * электрик-градиента (синий → фиолет → пурпур → тёплый) в такт
+ * морганию каретки в шапке (1.1s). caret-color не анимируется
+ * через keyframes в Blink, поэтому цикл — на таймере.
+ */
+(function () {
+  'use strict';
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const root = document.documentElement;
+  const tokens = getComputedStyle(root);
+  const colors = [
+    '--color-accent-blue',
+    '--color-accent-violet',
+    '--color-accent-purple',
+    '--color-accent-warm',
+  ]
+    .map((name) => tokens.getPropertyValue(name).trim())
+    .filter(Boolean);
+  if (colors.length === 0) return;
+
+  let i = 0;
+  root.style.setProperty('--caret-cycle-color', colors[0]);
+  setInterval(() => {
+    i = (i + 1) % colors.length;
+    root.style.setProperty('--caret-cycle-color', colors[i]);
+  }, 1100);
+})();

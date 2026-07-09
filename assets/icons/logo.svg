@@ -1,13 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 30" width="140" height="30">
-  <!-- Полный текст: We Designerz -->
-  <g class="logo-full">
-    <text x="0" y="22" font-family="Cormorant Garamond, serif" font-size="20" font-weight="500" letter-spacing="0.02em" fill="#2d3628">W</text>
-    <text x="14" y="22" font-family="Cormorant Garamond, serif" font-size="20" font-weight="500" letter-spacing="0.02em" fill="#2d3628" class="logo-fade">e</text>
-    <text x="26" y="22" font-family="Cormorant Garamond, serif" font-size="20" font-weight="500" letter-spacing="0.02em" fill="#2d3628"> </text>
-    <text x="32" y="22" font-family="Cormorant Garamond, serif" font-size="20" font-weight="500" letter-spacing="0.02em" fill="#2d3628">D</text>
-    <text x="46" y="22" font-family="Cormorant Garamond, serif" font-size="20" font-weight="500" letter-spacing="0.02em" fill="#2d3628" class="logo-fade">esignerz</text>
-  </g>
-  
-  <!-- Сокращенный текст: WD -->
-  <text x="0" y="22" font-family="Cormorant Garamond, serif" font-size="20" font-weight="500" letter-spacing="0.02em" fill="#2d3628" class="logo-short">WD</text>
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M26 84V67.4857L59.6 52.7929C61.2232 52.0643 62.9275 51.4571 64.713 50.9714C66.4986 50.4857 67.9188 50.1619 68.9739 50C67.9188 49.8381 66.4986 49.5548 64.713 49.15C62.9275 48.6643 61.2232 48.0571 59.6 47.3286L26 32.6357V16L82 41.2571V58.6214L26 84Z" fill="url(#paint0_linear_741_13)"/>
+<defs>
+<linearGradient id="paint0_linear_741_13" x1="26" y1="50.6415" x2="80.0758" y2="40.4408" gradientUnits="userSpaceOnUse">
+<stop stop-color="#5A9FF0"/>
+<stop offset="0.45" stop-color="#8A63F0"/>
+<stop offset="0.78" stop-color="#D55AC8"/>
+<stop offset="1" stop-color="#F0B45A"/>
+</linearGradient>
+</defs>
 </svg>

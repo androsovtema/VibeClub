@@ -162,12 +162,35 @@ h4 {
 }
 
 .logo {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
+}
+
+.logo[hidden] {
+  display: none;
+}
+
+.logo-mark {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+
+/* Каретка после имени: имя клуба — печатающийся промпт.
+ * Каждое появление — следующий цвет из электрик-градиента. */
+.logo-caret {
+  display: inline-block;
+  width: 8px;
+  height: 19px;
+  margin-left: -4px;
+  background: var(--color-accent-blue);
+  animation: caret-blink-cycle 4.4s step-end infinite;
 }
 
 .logo,
@@ -684,18 +707,60 @@ section {
   width: 0.5em;
   margin-left: 2px;
   background: var(--color-accent-blue);
-  animation: caret-blink 1s step-end infinite;
+  animation: caret-blink-cycle 4.4s step-end infinite;
 }
 
-@keyframes caret-blink {
-  0%,
-  100% {
+/* Мигание каретки: каждое появление — следующий цвет градиента
+ * (синий → фиолет → пурпур → тёплый). step-end держит цвет весь такт. */
+@keyframes caret-blink-cycle {
+  0% {
     opacity: 1;
+    background-color: var(--color-accent-blue);
+  }
+
+  12.5% {
+    opacity: 0;
+  }
+
+  25% {
+    opacity: 1;
+    background-color: var(--color-accent-violet);
+  }
+
+  37.5% {
+    opacity: 0;
   }
 
   50% {
+    opacity: 1;
+    background-color: var(--color-accent-purple);
+  }
+
+  62.5% {
     opacity: 0;
   }
+
+  75% {
+    opacity: 1;
+    background-color: var(--color-accent-warm);
+  }
+
+  87.5% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+    background-color: var(--color-accent-blue);
+  }
+}
+
+/* Курсор в реальных полях ввода — тот же цикл цветов.
+ * caret-color не анимируется keyframes в Blink, поэтому переменную
+ * --caret-cycle-color крутит таймер в js/main.js. */
+input,
+textarea {
+  caret-color: var(--caret-cycle-color, var(--color-accent-blue));
 }
 
 /*************************
