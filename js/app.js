@@ -3,9 +3,14 @@
  * Вешает открытие модалки логина на все [data-join], отражает состояние сессии в хедере.
  */
 import { getCurrentUser, onAuthChange, signOut } from './auth.js';
-import { openAuthModal, setAuthSuccessHandler } from './ui/authModal.js';
+import { openAuthModal, setAuthSuccessHandler, maybeShowWelcome } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
 import { escapeHtml, lockScroll, unlockScroll } from './util.js';
+
+// GoTrue кладёт тип редиректа в хеш (#access_token=...&type=signup|recovery|magiclink)
+// — читаем один раз при загрузке, до того как supabase-js сам подчистит хеш.
+const URL_AUTH_TYPE = new URLSearchParams(window.location.hash.slice(1)).get('type');
+let urlAuthHandled = false;
 
 // main.js — classic script (не модуль, см. его комментарий вверху), импортировать
 // util.js не может. Мост на window даёт бургер-меню тот же счётчик блокировки
@@ -84,11 +89,22 @@ renderStaticNotes();
 
 setAuthSuccessHandler((message) => showToast(message));
 
-onAuthChange((user, authEvent) => {
+onAuthChange(async (user, authEvent) => {
   currentUser = user;
   renderHeaderAuth(user);
   updateJoinButtons(user);
   if (authEvent === 'SIGNED_OUT') showToast(t('auth.success.signout'));
+
+  if (authEvent === 'PASSWORD_RECOVERY') {
+    urlAuthHandled = true;
+    openAuthModal('reset');
+  }
+
+  if (authEvent === 'SIGNED_IN' && URL_AUTH_TYPE === 'signup' && !urlAuthHandled) {
+    urlAuthHandled = true;
+    const shownWelcome = await maybeShowWelcome();
+    if (!shownWelcome) showToast(t('auth.success.email_confirmed'));
+  }
 });
 
 getCurrentUser().then((user) => {

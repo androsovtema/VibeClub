@@ -3599,6 +3599,23 @@ body.menu-open {
   color: var(--color-text-secondary);
 }
 
+.auth-confirm,
+.auth-reset {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-confirm[hidden],
+.auth-reset[hidden] {
+  display: none;
+}
+
+.auth-modal-email {
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
 .auth-modal-error {
   font-size: 13px;
   color: var(--color-error);

@@ -4,16 +4,28 @@
  * подключившей ./app.js. Стиль — на токенах css/tokens.css, компонент описан в styles.css.
  */
 import { supabase } from '../supabase.js';
-import { signUpEmailPassword, signInEmailPassword, signInMagicLink, getCurrentUser } from '../auth.js';
+import {
+  signUpEmailPassword,
+  signInEmailPassword,
+  signInMagicLink,
+  getCurrentUser,
+  isExistingUser,
+  resendSignupEmail,
+  resetPasswordForEmail,
+  updatePassword
+} from '../auth.js';
 import { t, mapAuthError } from '../i18n/ru.js';
 import { lockScroll, unlockScroll } from '../util.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const WELCOME_KEY = 'wdz-welcome-shown';
+const RESEND_COOLDOWN_S = 60;
 
 let overlay = null;
 let modal = null;
 let lastFocused = null;
+let confirmContext = null;
+let cooldownTimer = null;
 
 function buildMarkup() {
   const el = document.createElement('div');
@@ -47,6 +59,7 @@ function buildMarkup() {
           </div>
           <p class="auth-modal-error" data-error hidden></p>
           <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signin')}</button>
+          <button type="button" class="auth-modal-link" data-forgot-toggle>${t('auth.action.forgot')}</button>
           <button type="button" class="auth-modal-link" data-magic-toggle>${t('auth.action.magiclink')}</button>
         </form>
 
@@ -64,7 +77,6 @@ function buildMarkup() {
             <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
           </div>
           <p class="auth-modal-error" data-error hidden></p>
-          <p class="auth-modal-success" data-success hidden></p>
           <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signup')}</button>
         </form>
 
@@ -77,6 +89,39 @@ function buildMarkup() {
           <p class="auth-modal-success" data-success hidden></p>
           <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.magiclink.submit')}</button>
           <button type="button" class="auth-modal-link" data-magic-back>${t('auth.action.back')}</button>
+        </form>
+
+        <form class="auth-modal-form" data-form="forgot" hidden novalidate>
+          <div class="field">
+            <label for="auth-forgot-email">${t('auth.field.email')}</label>
+            <input id="auth-forgot-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
+          </div>
+          <p class="auth-modal-error" data-error hidden></p>
+          <button type="submit" class="btn-primary auth-modal-submit">${t('auth.forgot.submit')}</button>
+          <button type="button" class="auth-modal-link" data-forgot-back>${t('auth.action.back')}</button>
+        </form>
+      </div>
+
+      <div class="auth-confirm" data-confirm-view hidden>
+        <p class="auth-modal-subtitle" data-confirm-text></p>
+        <p class="auth-modal-error" data-confirm-error hidden></p>
+        <button type="button" class="btn-primary auth-modal-submit" data-confirm-resend>${t('auth.confirm.resend')}</button>
+        <button type="button" class="auth-modal-link" data-confirm-back></button>
+      </div>
+
+      <div class="auth-reset" data-reset-view hidden>
+        <p class="auth-modal-subtitle">${t('auth.reset.text')}</p>
+        <form class="auth-modal-form" data-form="reset-password" novalidate>
+          <div class="field">
+            <label for="auth-reset-password">${t('auth.reset.field.password')}</label>
+            <input id="auth-reset-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
+          </div>
+          <div class="field">
+            <label for="auth-reset-password-confirm">${t('auth.reset.field.password_confirm')}</label>
+            <input id="auth-reset-password-confirm" type="password" name="passwordConfirm" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
+          </div>
+          <p class="auth-modal-error" data-error hidden></p>
+          <button type="submit" class="btn-primary auth-modal-submit">${t('auth.reset.submit')}</button>
         </form>
       </div>
 
@@ -132,9 +177,17 @@ function showSuccess(form, message) {
   }
 }
 
+function hideAllViews() {
+  modal.querySelector('[data-auth-view]').hidden = true;
+  modal.querySelector('[data-confirm-view]').hidden = true;
+  modal.querySelector('[data-reset-view]').hidden = true;
+  modal.querySelector('[data-welcome-view]').hidden = true;
+  clearInterval(cooldownTimer);
+}
+
 function showWelcome() {
   modal.querySelector('[data-modal-title]').textContent = t('auth.welcome.title');
-  modal.querySelector('[data-auth-view]').hidden = true;
+  hideAllViews();
   const welcomeView = modal.querySelector('[data-welcome-view]');
   welcomeView.hidden = false;
   welcomeView.querySelector('.auth-welcome-step')?.focus();
@@ -142,17 +195,86 @@ function showWelcome() {
 
 function resetToAuthView() {
   modal.querySelector('[data-modal-title]').textContent = t('auth.modal.title');
+  confirmContext = null;
+  hideAllViews();
   modal.querySelector('[data-auth-view]').hidden = false;
-  modal.querySelector('[data-welcome-view]').hidden = true;
+}
+
+function resetResendCooldown() {
+  clearInterval(cooldownTimer);
+  const btn = modal.querySelector('[data-confirm-resend]');
+  btn.disabled = false;
+  btn.textContent = t('auth.confirm.resend');
+  const errorEl = modal.querySelector('[data-confirm-error]');
+  errorEl.textContent = '';
+  errorEl.hidden = true;
+}
+
+function startResendCooldown() {
+  const btn = modal.querySelector('[data-confirm-resend]');
+  let remaining = RESEND_COOLDOWN_S;
+  btn.disabled = true;
+  btn.textContent = t('auth.confirm.resend.cooldown').replace('{s}', remaining);
+  clearInterval(cooldownTimer);
+  cooldownTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(cooldownTimer);
+      btn.disabled = false;
+      btn.textContent = t('auth.confirm.resend');
+      return;
+    }
+    btn.textContent = t('auth.confirm.resend.cooldown').replace('{s}', remaining);
+  }, 1000);
+}
+
+function showConfirmView({ type, email, resendFn }) {
+  confirmContext = { type, email, resendFn };
+  modal.querySelector('[data-modal-title]').textContent = t('auth.confirm.title');
+  hideAllViews();
+
+  const confirmView = modal.querySelector('[data-confirm-view]');
+  confirmView.hidden = false;
+
+  const textEl = confirmView.querySelector('[data-confirm-text]');
+  const emailEl = document.createElement('strong');
+  emailEl.className = 'auth-modal-email';
+  emailEl.textContent = email;
+  textEl.textContent = '';
+  textEl.append(
+    t('auth.confirm.text.prefix'),
+    emailEl,
+    type === 'reset' ? t('auth.confirm.text.suffix.reset') : t('auth.confirm.text.suffix.signup')
+  );
+
+  confirmView.querySelector('[data-confirm-back]').textContent =
+    type === 'reset' ? t('auth.confirm.back.reset') : t('auth.confirm.back.signup');
+
+  resetResendCooldown();
+  confirmView.querySelector('[data-confirm-resend]').focus();
+}
+
+function showResetView() {
+  modal.querySelector('[data-modal-title]').textContent = t('auth.reset.title');
+  hideAllViews();
+  modal.querySelector('[data-reset-view]').hidden = false;
+  modal.querySelector('[data-form="reset-password"] [name="password"]').focus();
 }
 
 function switchTab(tabName) {
+  modal.querySelector('[data-modal-title]').textContent = t('auth.modal.title');
+  confirmContext = null;
+  hideAllViews();
+  modal.querySelector('[data-auth-view]').hidden = false;
+
   modal.querySelectorAll('.auth-modal-tab').forEach((tab) => {
     const active = tab.dataset.tab === tabName;
     tab.classList.toggle('is-active', active);
     tab.setAttribute('aria-selected', String(active));
   });
-  modal.querySelectorAll('.auth-modal-form').forEach((form) => {
+  // Форма reset-password живёт вне data-auth-view (в auth-reset) — querySelectorAll
+  // без скоупа гасила бы её тем же переключателем и не восстанавливала обратно.
+  modal.querySelectorAll('[data-auth-view] .auth-modal-form').forEach((form) => {
     form.hidden = form.dataset.form !== tabName;
   });
   focusFirstField();
@@ -202,6 +324,33 @@ function attachEvents() {
   modal.querySelector('[data-magic-toggle]').addEventListener('click', () => switchTab('magiclink'));
   modal.querySelector('[data-magic-back]').addEventListener('click', () => switchTab('signin'));
 
+  modal.querySelector('[data-forgot-toggle]').addEventListener('click', () => {
+    const signinEmail = modal.querySelector('[data-form="signin"] [name="email"]').value.trim();
+    switchTab('forgot');
+    if (signinEmail) modal.querySelector('[data-form="forgot"] [name="email"]').value = signinEmail;
+  });
+  modal.querySelector('[data-forgot-back]').addEventListener('click', () => switchTab('signin'));
+
+  modal.querySelector('[data-confirm-resend]').addEventListener('click', async () => {
+    if (!confirmContext) return;
+    const btn = modal.querySelector('[data-confirm-resend]');
+    const errorEl = modal.querySelector('[data-confirm-error]');
+    btn.disabled = true;
+    const { error } = await confirmContext.resendFn();
+    if (error) {
+      errorEl.textContent = mapAuthError(error);
+      errorEl.hidden = false;
+      btn.disabled = false;
+      return;
+    }
+    errorEl.hidden = true;
+    startResendCooldown();
+  });
+
+  modal.querySelector('[data-confirm-back]').addEventListener('click', () => {
+    switchTab(confirmContext?.type === 'reset' ? 'signin' : 'signup');
+  });
+
   modal.querySelector('[data-form="signin"]').addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -237,8 +386,14 @@ function attachEvents() {
 
     if (data?.session) {
       onAuthSuccess(t('auth.success.signup'));
+    } else if (isExistingUser(data)) {
+      switchTab('signin');
+      const signinForm = modal.querySelector('[data-form="signin"]');
+      signinForm.email.value = email;
+      showError(signinForm, t('auth.error.user_exists_signin'));
+      signinForm.password.focus();
     } else {
-      showSuccess(form, t('auth.success.signup_confirm'));
+      showConfirmView({ type: 'signup', email, resendFn: () => resendSignupEmail(email) });
     }
   });
 
@@ -256,6 +411,39 @@ function attachEvents() {
     if (error) return showError(form, mapAuthError(error));
 
     showSuccess(form, t('auth.success.magiclink'));
+  });
+
+  modal.querySelector('[data-form="forgot"]').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const email = form.email.value.trim();
+    showError(form, '');
+    if (!email) return showError(form, t('auth.error.required_email'));
+
+    setLoading(form, true);
+    const { error } = await resetPasswordForEmail(email);
+    setLoading(form, false);
+    if (error) return showError(form, mapAuthError(error));
+
+    showConfirmView({ type: 'reset', email, resendFn: () => resetPasswordForEmail(email) });
+  });
+
+  modal.querySelector('[data-form="reset-password"]').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const password = form.password.value;
+    const passwordConfirm = form.passwordConfirm.value;
+    showError(form, '');
+    if (!password) return showError(form, t('auth.error.required_password'));
+    if (password !== passwordConfirm) return showError(form, t('auth.error.password_mismatch'));
+
+    setLoading(form, true);
+    const { error } = await updatePassword(password);
+    setLoading(form, false);
+    if (error) return showError(form, mapAuthError(error));
+
+    closeAuthModal();
+    onSuccessCallback?.(t('auth.success.password_updated'));
   });
 }
 
@@ -278,19 +466,27 @@ async function isFreshRegistration() {
   return ageMs < 10 * 60 * 1000;
 }
 
+// Общая точка для «первого входа»: и сабмита формы внутри модалки, и
+// возврата по ссылке подтверждения почты (модалка тогда может быть ещё не
+// создана и закрыта — ensureModal/open делают это сами).
+export async function maybeShowWelcome() {
+  if (localStorage.getItem(WELCOME_KEY)) return false;
+  if (!(await isFreshRegistration())) return false;
+
+  localStorage.setItem(WELCOME_KEY, '1');
+  ensureModal();
+  if (overlay.hidden) {
+    lastFocused = document.activeElement;
+    overlay.hidden = false;
+    document.body.classList.add('auth-modal-open');
+    lockScroll();
+  }
+  showWelcome();
+  return true;
+}
+
 async function onAuthSuccess(message) {
-  if (localStorage.getItem(WELCOME_KEY)) {
-    closeAuthModal();
-    onSuccessCallback?.(message);
-    return;
-  }
-
-  if (await isFreshRegistration()) {
-    localStorage.setItem(WELCOME_KEY, '1');
-    showWelcome();
-    return;
-  }
-
+  if (await maybeShowWelcome()) return;
   closeAuthModal();
   onSuccessCallback?.(message);
 }
@@ -314,7 +510,11 @@ export function openAuthModal(initialTab = 'signin') {
   overlay.hidden = false;
   document.body.classList.add('auth-modal-open');
   lockScroll();
-  switchTab(initialTab);
+  if (initialTab === 'reset') {
+    showResetView();
+  } else {
+    switchTab(initialTab);
+  }
 }
 
 export function closeAuthModal() {

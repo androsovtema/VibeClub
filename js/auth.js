@@ -9,9 +9,36 @@ export async function signUpEmailPassword(email, password, displayName) {
     email,
     password,
     options: {
-      data: { display_name: displayName }
+      data: { display_name: displayName },
+      emailRedirectTo: window.location.origin + window.location.pathname
     }
   });
+}
+
+// Повторный signup уже подтверждённой почты Supabase маскирует под успех
+// (анти-enumeration): error нет, session нет, а identities — пустой массив.
+export function isExistingUser(data) {
+  return Boolean(data?.user) && Array.isArray(data.user.identities) && data.user.identities.length === 0;
+}
+
+export async function resendSignupEmail(email) {
+  return supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: {
+      emailRedirectTo: window.location.origin + window.location.pathname
+    }
+  });
+}
+
+export async function resetPasswordForEmail(email) {
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+}
+
+export async function updatePassword(password) {
+  return supabase.auth.updateUser({ password });
 }
 
 export async function signInEmailPassword(email, password) {
