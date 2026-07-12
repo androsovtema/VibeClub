@@ -16,6 +16,9 @@ import { optimizeImage, readImageDimensions } from './image.js';
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
 const MAX_COVER_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGES = 9;
+const MAX_DESCRIPTION_LEN = 5000;
+const MAX_URL_LEN = 300;
+const MAX_TOOLS = 10;
 const COVER_MIME_EXT = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -217,6 +220,11 @@ if (gate && formWrap && form) {
       chip.textContent = value;
       chip.setAttribute('aria-pressed', 'false');
       chip.addEventListener('click', () => {
+        if (!selectedTools.has(value) && selectedTools.size >= MAX_TOOLS) {
+          showFieldError('tools', t('submit.error.tools_max'));
+          return;
+        }
+        showFieldError('tools', '');
         const active = toggleSet(selectedTools, value);
         chip.classList.toggle('active', active);
         chip.setAttribute('aria-pressed', String(active));
@@ -293,6 +301,11 @@ if (gate && formWrap && form) {
 
   function addCustomToolValue(value) {
     if (!value || selectedTools.has(value)) return;
+    if (selectedTools.size >= MAX_TOOLS) {
+      showFieldError('tools', t('submit.error.tools_max'));
+      return;
+    }
+    showFieldError('tools', '');
     selectedTools.add(value);
 
     const chip = document.createElement('span');
@@ -508,6 +521,9 @@ if (gate && formWrap && form) {
     if (!description) {
       showFieldError('description', t('submit.error.required_description'));
       valid = false;
+    } else if (description.length > MAX_DESCRIPTION_LEN) {
+      showFieldError('description', t('submit.error.max_description'));
+      valid = false;
     }
 
     if (!url) {
@@ -515,6 +531,9 @@ if (gate && formWrap && form) {
       valid = false;
     } else if (!isHttpUrl(url)) {
       showFieldError('url', t('submit.error.invalid_url'));
+      valid = false;
+    } else if (url.length > MAX_URL_LEN) {
+      showFieldError('url', t('submit.error.max_url'));
       valid = false;
     }
 

@@ -10,7 +10,9 @@ import { openAuthModal } from './ui/authModal.js';
 import { t } from './i18n/ru.js';
 import { fetchProjectById, CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
 import { stageLabel, lookingLabel, validLooking, KIND_KEYS, isKind, kindLabel } from './vocab.js';
-import { isHttpUrl, autoGrowTextarea, wireBackLink } from './util.js';
+import { isHttpUrl, autoGrowTextarea } from './util.js';
+
+const MAX_COMMENT_LEN = 2000;
 
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get('id');
@@ -68,7 +70,6 @@ let galleryTimer = null;
 buildKindChips();
 
 applyStaticText();
-wireBackLink(backLinkEl);
 commentInput.addEventListener('input', () => autoGrowTextarea(commentInput));
 
 // Большая зона показывает shimmer, пока текущий src грузится — гасим на load/error,
@@ -135,6 +136,15 @@ function updateCommentHint() {
   const keys = currentProject ? validLooking(currentProject.lookingFor) : [];
   const key = keys[0];
   commentHintEl.textContent = key ? t(`project.comment.hint.${key}`) : t('project.comment.hint.default');
+}
+
+// Серверные маркеры из raise exception (T18) — распознаём в error.message и
+// показываем человеко-читаемый текст вместо общей ошибки/падения в консоль.
+function commentErrorMessage(error) {
+  const msg = error?.message || '';
+  if (msg.includes('comment_cooldown')) return t('project.comment.error.cooldown');
+  if (msg.includes('comment_hourly_limit')) return t('project.comment.error.hourly');
+  return null;
 }
 
 function formatDate(iso) {
@@ -512,6 +522,7 @@ function startEditComment(content, body, actions, comment) {
 
   const textarea = document.createElement('textarea');
   textarea.className = 'comment-edit-textarea';
+  textarea.maxLength = MAX_COMMENT_LEN;
   textarea.value = comment.body;
 
   const errorEl = document.createElement('p');
@@ -551,6 +562,11 @@ function startEditComment(content, body, actions, comment) {
   saveBtn.addEventListener('click', async () => {
     const newBody = textarea.value.trim();
     if (!newBody) return;
+    if (newBody.length > MAX_COMMENT_LEN) {
+      errorEl.textContent = t('project.comment.error.max_len');
+      errorEl.hidden = false;
+      return;
+    }
 
     saveBtn.disabled = true;
     cancelBtn.disabled = true;
@@ -559,7 +575,7 @@ function startEditComment(content, body, actions, comment) {
     cancelBtn.disabled = false;
 
     if (error) {
-      errorEl.textContent = t('project.comment.edit.error');
+      errorEl.textContent = commentErrorMessage(error) || t('project.comment.edit.error');
       errorEl.hidden = false;
       return;
     }
@@ -635,6 +651,12 @@ commentFormEl.addEventListener('submit', async (event) => {
   if (!body) return;
 
   commentErrorEl.hidden = true;
+  if (body.length > MAX_COMMENT_LEN) {
+    commentErrorEl.textContent = t('project.comment.error.max_len');
+    commentErrorEl.hidden = false;
+    return;
+  }
+
   commentBusy = true;
   commentSubmitBtn.disabled = true;
   commentSubmitBtn.textContent = t('project.comment.submitting');
@@ -651,7 +673,7 @@ commentFormEl.addEventListener('submit', async (event) => {
   commentSubmitBtn.textContent = t('project.comment.submit');
 
   if (error) {
-    commentErrorEl.textContent = t('project.comment.error');
+    commentErrorEl.textContent = commentErrorMessage(error) || t('project.comment.error');
     commentErrorEl.hidden = false;
     return;
   }

@@ -5,11 +5,25 @@
 -- Идемпотентно в разумных пределах (drop policy if exists перед create).
 -- ВАЖНО: `create table if not exists` не добавит колонки в уже созданную БД —
 -- на живой базе новые поля накатываются миграциями из supabase/migrations/
--- (последняя: 2026-07-12-profile-contacts.sql — github/phone/email_public/custom_link).
+-- (последняя: 2026-07-11-antispam-limits.sql — лимиты длины/массивов, cooldown
+-- комментариев, hardening триггерных функций).
 -- =============================================================================
 
 -- ---------- Расширения ----------
 create extension if not exists "pgcrypto";  -- gen_random_uuid()
+
+-- =============================================================================
+-- ХЕЛПЕРЫ (нужны до CHECK-ограничений в таблицах ниже)
+-- =============================================================================
+-- Длина каждого элемента text[] — подзапросы в CHECK запрещены Postgres,
+-- поэтому длину элементов массива (tags/tools/skills) проверяем immutable-функцией.
+create or replace function public.array_elems_fit(arr text[], max_len int)
+returns boolean
+language sql
+immutable
+as $$
+  select coalesce(bool_and(char_length(x) <= max_len), true) from unnest(arr) x
+$$;
 
 -- =============================================================================
 -- ТАБЛИЦЫ
@@ -18,9 +32,15 @@ create extension if not exists "pgcrypto";  -- gen_random_uuid()
 -- ---------- profiles (расширение auth.users) ----------
 create table if not exists public.profiles (
   id            uuid primary key references auth.users(id) on delete cascade,
-  display_name  text,
-  avatar_url    text,
-  bio           text,
+  display_name  text
+                  constraint profiles_display_name_len
+                  check (display_name is null or char_length(display_name) <= 60),
+  avatar_url    text
+                  constraint profiles_avatar_url_len
+                  check (avatar_url is null or char_length(avatar_url) <= 500),
+  bio           text
+                  constraint profiles_bio_len
+                  check (bio is null or char_length(bio) <= 500),
   telegram      text check (char_length(telegram) <= 100),
   website       text check (char_length(website) <= 300),
   github        text check (char_length(github) <= 100),
@@ -30,7 +50,10 @@ create table if not exists public.profiles (
   custom_link_url   text check (char_length(custom_link_url) <= 300),
   role          text not null default 'member'
                   check (role in ('member','core','admin')),
-  skills        text[] not null default '{}',
+  skills        text[] not null default '{}'
+                  constraint profiles_skills_max
+                  check (coalesce(array_length(skills, 1), 0) <= 12
+                         and public.array_elems_fit(skills, 24)),
   open_to       text[] not null default '{}'
                   check (open_to <@ array['collab','orders','team']::text[]),
   created_at    timestamptz not null default now()
@@ -40,15 +63,29 @@ create table if not exists public.profiles (
 create table if not exists public.projects (
   id           uuid primary key default gen_random_uuid(),
   author_id    uuid not null references public.profiles(id) on delete cascade,
-  title        text not null,
-  description  text,
-  cover_url    text,
+  title        text not null
+                 constraint projects_title_len
+                 check (char_length(title) <= 80),
+  description  text
+                 constraint projects_description_len
+                 check (description is null or char_length(description) <= 5000),
+  cover_url    text
+                 constraint projects_cover_url_len
+                 check (cover_url is null or char_length(cover_url) <= 500),
   images       text[] not null default '{}'
                  constraint projects_images_max
                  check (coalesce(array_length(images, 1), 0) <= 9),
-  project_url  text,
-  tags         text[] not null default '{}',
-  tools        text[] not null default '{}',
+  project_url  text
+                 constraint projects_project_url_len
+                 check (project_url is null or char_length(project_url) <= 300),
+  tags         text[] not null default '{}'
+                 constraint projects_tags_max
+                 check (coalesce(array_length(tags, 1), 0) <= 10
+                        and public.array_elems_fit(tags, 30)),
+  tools        text[] not null default '{}'
+                 constraint projects_tools_max
+                 check (coalesce(array_length(tools, 1), 0) <= 10
+                        and public.array_elems_fit(tools, 30)),
   stage        text
                  check (stage is null or stage in
                    ('idea','prototype','mvp','users','commercial')),
@@ -71,7 +108,9 @@ create table if not exists public.comments (
   id          uuid primary key default gen_random_uuid(),
   project_id  uuid not null references public.projects(id) on delete cascade,
   author_id   uuid not null references public.profiles(id) on delete cascade,
-  body        text not null,
+  body        text not null
+                constraint comments_body_len
+                check (char_length(body) <= 2000),
   kind        text
                 check (kind is null or kind in
                   ('ux','idea','bug','market','contact','collab')),
@@ -80,6 +119,7 @@ create table if not exists public.comments (
   created_at  timestamptz not null default now()
 );
 create index if not exists comments_project_idx on public.comments (project_id, created_at);
+create index if not exists comments_author_idx on public.comments (author_id);
 
 -- ---------- project_upvotes (уникальный лайк на пользователя) ----------
 create table if not exists public.project_upvotes (
@@ -88,6 +128,7 @@ create table if not exists public.project_upvotes (
   created_at  timestamptz not null default now(),
   primary key (project_id, user_id)
 );
+create index if not exists upvotes_user_idx on public.project_upvotes (user_id);
 
 -- ---------- feedback («Нашли проблему?», T22) ----------
 create table if not exists public.feedback (
@@ -214,6 +255,59 @@ drop trigger if exists trg_protect_projects_is_core on public.projects;
 create trigger trg_protect_projects_is_core
   before update on public.projects
   for each row execute function public.protect_privileged_columns();
+
+-- ---------- Cooldown на комментарии (T18, антиспам) ----------
+-- Не чаще 1/20сек и 30/час на автора. Апвоуты намеренно не троттлим — составной
+-- PK уже запрещает повторный голос, а cooldown там ухудшил бы обычный UX.
+-- Сообщение исключения — машиночитаемый маркер (comment_cooldown /
+-- comment_hourly_limit), клиент распознаёт его в error.message и показывает
+-- человеко-читаемый текст.
+create or replace function public.enforce_comment_cooldown()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  last_at timestamptz;
+  hourly_count integer;
+begin
+  select max(created_at) into last_at
+    from public.comments
+    where author_id = new.author_id;
+
+  if last_at is not null and now() - last_at < interval '20 seconds' then
+    raise exception 'comment_cooldown';
+  end if;
+
+  select count(*) into hourly_count
+    from public.comments
+    where author_id = new.author_id
+      and created_at > now() - interval '1 hour';
+
+  if hourly_count >= 30 then
+    raise exception 'comment_hourly_limit';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_comment_cooldown on public.comments;
+create trigger trg_comment_cooldown
+  before insert on public.comments
+  for each row execute function public.enforce_comment_cooldown();
+
+-- ---------- Hardening: закрыть триггерные функции от прямого REST-вызова ----------
+-- Supabase Advisors (2026-07-11): SECURITY DEFINER-функции без явного revoke
+-- торчат в /rest/v1/rpc/... для anon/authenticated. Триггеры продолжают
+-- работать — EXECUTE проверяется у владельца триггера, не у вызывающего.
+-- is_admin() НЕ трогаем: вызывается в RLS-политиках от имени запрашивающего
+-- пользователя, revoke сломает админские политики.
+revoke execute on function public.handle_new_user() from anon, authenticated;
+revoke execute on function public.protect_privileged_columns() from anon, authenticated;
+revoke execute on function public.sync_project_upvotes() from anon, authenticated;
+revoke execute on function public.enforce_comment_cooldown() from anon, authenticated;
 
 -- =============================================================================
 -- RLS — ВКЛЮЧЕНИЕ

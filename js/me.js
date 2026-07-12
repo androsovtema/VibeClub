@@ -17,6 +17,7 @@ import {
 
 const MAX_SKILLS = 10;
 const MAX_SKILL_LEN = 24;
+const MAX_BIO_LEN = 500;
 
 const loadingEl = document.querySelector('[data-me-loading]');
 const gateEl = document.querySelector('[data-me-gate]');
@@ -283,6 +284,12 @@ form.addEventListener('submit', async (event) => {
 
   clearErrors();
 
+  const bio = form.bio.value.trim();
+  if (bio.length > MAX_BIO_LEN) {
+    showFieldError('bio', t('me.error.bio_len'));
+    return;
+  }
+
   const rawWebsite = form.website.value.trim();
   const website = rawWebsite ? normalizeHttpUrl(rawWebsite) : '';
   if (website !== rawWebsite) form.website.value = website;
@@ -328,7 +335,7 @@ form.addEventListener('submit', async (event) => {
 
   const payload = {
     display_name: form.displayName.value.trim() || null,
-    bio: form.bio.value.trim() || null,
+    bio: bio || null,
     telegram: form.telegram.value.trim() || null,
     website: website || null,
     github: github || null,

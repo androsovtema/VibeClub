@@ -112,13 +112,13 @@
 
         <div class="field">
           <label for="submit-description" data-label-description></label>
-          <textarea id="submit-description" name="description" rows="5" required></textarea>
+          <textarea id="submit-description" name="description" rows="5" maxlength="5000" required></textarea>
           <p class="field-error" data-error="description" hidden></p>
         </div>
 
         <div class="field">
           <label for="submit-url" data-label-url></label>
-          <input id="submit-url" type="url" name="projectUrl" required />
+          <input id="submit-url" type="url" name="projectUrl" maxlength="300" required />
           <p class="field-error" data-error="url" hidden></p>
         </div>
 
