@@ -68,6 +68,7 @@ export const ru = {
   'auth.error.email_not_confirmed': 'Почта ещё не подтверждена — проверь письмо со ссылкой.',
   'auth.error.rate_limit': 'Слишком часто. Подожди пару минут и попробуй снова.',
   'auth.error.password_mismatch': 'Пароли не совпадают.',
+  'auth.error.same_password': 'Это твой текущий пароль. Придумай новый, отличный от старого.',
   'auth.error.required_email': 'Укажи почту.',
   'auth.error.required_password': 'Укажи пароль.',
   'auth.error.required_name': 'Укажи имя.',
@@ -301,7 +302,32 @@ export const ru = {
 
   'admin.iscore.label': 'Флагман We Designerz',
   'admin.comment.project.prefix': 'Проект:',
-  'admin.error.generic': 'Не получилось выполнить действие. Попробуй ещё раз.'
+  'admin.error.generic': 'Не получилось выполнить действие. Попробуй ещё раз.',
+
+  // T22 — «Нашли проблему?»
+  'admin.tab.feedback': 'Обращения',
+  'admin.feedback.empty': 'Обращений нет — тишина и покой',
+  'admin.feedback.show_done': 'Показать обработанные',
+  'admin.feedback.guest': 'Гость',
+  'admin.feedback.contact.prefix': 'Связь:',
+  'admin.action.done': 'Обработано',
+
+  'feedback.footer.link': 'Нашли проблему?',
+  'feedback.modal.title': 'Нашли проблему?',
+  'feedback.modal.subtitle': 'Опиши как есть — разберёмся. Если что-то сломалось у гостя, это тоже сюда.',
+  'feedback.field.message': 'Что случилось?',
+  'feedback.field.message.placeholder': 'Расскажи по-человечески: что делал, что пошло не так',
+  'feedback.field.contact': 'Как с тобой связаться? (необязательно)',
+  'feedback.field.contact.placeholder': 'Почта, телеграм — как удобно',
+  'feedback.action.submit': 'Отправить',
+  'feedback.action.submitting': 'Отправляем…',
+  'feedback.action.close': 'Закрыть',
+  'feedback.success.title': 'Спасибо, разберёмся',
+  'feedback.success.text': 'Прочитаем и, если нужно, ответим — если оставил контакт.',
+  'feedback.action.again': 'Написать ещё',
+  'feedback.error.required_message': 'Расскажи, что случилось — минимум пара слов.',
+  'feedback.error.generic': 'Не получилось отправить. Попробуй ещё раз.',
+  'feedback.cooldown': 'Отправить снова через {s} с'
 };
 
 export function t(key) {
@@ -314,6 +340,7 @@ const CODE_MAP = {
   weak_password: 'auth.error.weak_password',
   validation_failed: 'auth.error.invalid_email',
   email_not_confirmed: 'auth.error.email_not_confirmed',
+  same_password: 'auth.error.same_password',
   over_email_send_rate_limit: 'auth.error.rate_limit',
   over_request_rate_limit: 'auth.error.rate_limit'
 };
@@ -324,6 +351,7 @@ const MESSAGE_MAP = [
   [/password should be at least/i, 'auth.error.weak_password'],
   [/unable to validate email address/i, 'auth.error.invalid_email'],
   [/email not confirmed/i, 'auth.error.email_not_confirmed'],
+  [/different from the old password/i, 'auth.error.same_password'],
   [/rate limit|after \d+ seconds/i, 'auth.error.rate_limit']
 ];
 

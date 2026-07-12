@@ -84,6 +84,19 @@ create table if not exists public.project_upvotes (
   primary key (project_id, user_id)
 );
 
+-- ---------- feedback («Нашли проблему?», T22) ----------
+create table if not exists public.feedback (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz not null default now(),
+  user_id     uuid references auth.users(id) on delete set null,
+  page        text not null check (char_length(page) <= 300),
+  message     text not null check (char_length(message) between 10 and 2000),
+  contact     text check (char_length(contact) <= 200),
+  status      text not null default 'new' check (status in ('new','done'))
+);
+create index if not exists feedback_status_created_idx
+  on public.feedback (status, created_at desc);
+
 -- =============================================================================
 -- ФУНКЦИИ И ТРИГГЕРЫ
 -- =============================================================================
@@ -204,6 +217,7 @@ alter table public.profiles        enable row level security;
 alter table public.projects        enable row level security;
 alter table public.comments        enable row level security;
 alter table public.project_upvotes enable row level security;
+alter table public.feedback        enable row level security;
 
 -- =============================================================================
 -- RLS — ПОЛИТИКИ: profiles
@@ -298,6 +312,29 @@ create policy upvotes_insert_self on public.project_upvotes
 drop policy if exists upvotes_delete_self on public.project_upvotes;
 create policy upvotes_delete_self on public.project_upvotes
   for delete using (user_id = auth.uid());
+
+-- =============================================================================
+-- RLS — ПОЛИТИКИ: feedback
+-- =============================================================================
+-- Отправить может кто угодно (гость или залогиненный), но за себя: либо
+-- user_id = null (аноним), либо свой собственный auth.uid() — чужой uid
+-- подставить нельзя.
+drop policy if exists feedback_insert_anyone on public.feedback;
+create policy feedback_insert_anyone on public.feedback
+  for insert to anon, authenticated
+  with check (user_id is null or user_id = auth.uid());
+
+-- Читать и разбирать список может только админ.
+drop policy if exists feedback_select_admin on public.feedback;
+create policy feedback_select_admin on public.feedback
+  for select using (public.is_admin());
+
+-- Менять (закрывать, status → 'done') может только админ.
+drop policy if exists feedback_update_admin on public.feedback;
+create policy feedback_update_admin on public.feedback
+  for update using (public.is_admin()) with check (public.is_admin());
+
+-- Удалять нельзя никому — политики delete нет.
 
 -- =============================================================================
 -- STORAGE — bucket для обложек

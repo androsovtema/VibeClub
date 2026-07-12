@@ -85,6 +85,10 @@
           <span data-tab-label></span>
           <span class="adm-tab-count" data-tab-count>0</span>
         </button>
+        <button type="button" class="adm-tab" data-tab-btn="feedback" role="tab" aria-selected="false">
+          <span data-tab-label></span>
+          <span class="adm-tab-count" data-tab-count>0</span>
+        </button>
       </div>
 
       <p class="adm-error" data-admin-error hidden></p>
@@ -108,6 +112,15 @@
         <div class="adm-list" data-comments-mod-list aria-live="polite"></div>
         <p class="adm-empty" data-comments-mod-empty hidden></p>
       </div>
+
+      <div class="adm-panel" data-tab-panel="feedback" hidden>
+        <label class="adm-feedback-toggle">
+          <input type="checkbox" data-feedback-show-done />
+          <span data-feedback-show-done-label></span>
+        </label>
+        <div class="adm-list" data-feedback-list aria-live="polite"></div>
+        <p class="adm-empty" data-feedback-empty hidden></p>
+      </div>
     </section>
   </main>
 
@@ -129,6 +142,7 @@
               <a href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">Чат сообщества</a>
               <a href="https://www.youtube.com/@wedesignerz/" target="_blank" rel="noopener noreferrer">YouTube-канал</a>
               <a href="projects.html">Витрина проектов</a>
+              <button type="button" class="footer-feedback-link" data-feedback-open></button>
             </div>
           </div>
           <div>

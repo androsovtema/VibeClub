@@ -24,32 +24,39 @@ const panelEls = {
   pending: document.querySelector('[data-tab-panel="pending"]'),
   published: document.querySelector('[data-tab-panel="published"]'),
   rejected: document.querySelector('[data-tab-panel="rejected"]'),
-  comments: document.querySelector('[data-tab-panel="comments"]')
+  comments: document.querySelector('[data-tab-panel="comments"]'),
+  feedback: document.querySelector('[data-tab-panel="feedback"]')
 };
 const listEls = {
   pending: document.querySelector('[data-pending-list]'),
   published: document.querySelector('[data-published-list]'),
   rejected: document.querySelector('[data-rejected-list]'),
-  comments: document.querySelector('[data-comments-mod-list]')
+  comments: document.querySelector('[data-comments-mod-list]'),
+  feedback: document.querySelector('[data-feedback-list]')
 };
 const emptyEls = {
   pending: document.querySelector('[data-pending-empty]'),
   published: document.querySelector('[data-published-empty]'),
   rejected: document.querySelector('[data-rejected-empty]'),
-  comments: document.querySelector('[data-comments-mod-empty]')
+  comments: document.querySelector('[data-comments-mod-empty]'),
+  feedback: document.querySelector('[data-feedback-empty]')
 };
 const countEls = {
   pending: document.querySelector('[data-tab-btn="pending"] [data-tab-count]'),
   published: document.querySelector('[data-tab-btn="published"] [data-tab-count]'),
   rejected: document.querySelector('[data-tab-btn="rejected"] [data-tab-count]'),
-  comments: document.querySelector('[data-tab-btn="comments"] [data-tab-count]')
+  comments: document.querySelector('[data-tab-btn="comments"] [data-tab-count]'),
+  feedback: document.querySelector('[data-tab-btn="feedback"] [data-tab-count]')
 };
+const feedbackShowDoneEl = document.querySelector('[data-feedback-show-done]');
 
-const state = { pending: [], published: [], rejected: [], comments: [] };
+const state = { pending: [], published: [], rejected: [], comments: [], feedback: [] };
+let feedbackAll = [];
 let dashboardLoaded = false;
 
 applyStaticText();
 wireTabs();
+wireFeedbackToggle();
 
 function applyStaticText() {
   document.querySelector('[data-loading-text]').textContent = t('admin.loading');
@@ -62,17 +69,24 @@ function applyStaticText() {
   document.querySelector('[data-tab-btn="published"] [data-tab-label]').textContent = t('admin.tab.published');
   document.querySelector('[data-tab-btn="rejected"] [data-tab-label]').textContent = t('admin.tab.rejected');
   document.querySelector('[data-tab-btn="comments"] [data-tab-label]').textContent = t('admin.tab.comments');
+  document.querySelector('[data-tab-btn="feedback"] [data-tab-label]').textContent = t('admin.tab.feedback');
 
   emptyEls.pending.textContent = t('admin.pending.empty');
   emptyEls.published.textContent = t('admin.published.empty');
   emptyEls.rejected.textContent = t('admin.rejected.empty');
   emptyEls.comments.textContent = t('admin.comments.empty');
+  emptyEls.feedback.textContent = t('admin.feedback.empty');
+  document.querySelector('[data-feedback-show-done-label]').textContent = t('admin.feedback.show_done');
 }
 
 function wireTabs() {
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tabBtn));
   });
+}
+
+function wireFeedbackToggle() {
+  feedbackShowDoneEl.addEventListener('change', () => renderPanel('feedback'));
 }
 
 function switchTab(tab) {
@@ -201,17 +215,53 @@ async function fetchRecentComments() {
   return data || [];
 }
 
+async function fetchFeedback() {
+  const { data, error } = await supabase
+    .from('feedback')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    showError(error);
+    return [];
+  }
+  const rows = data || [];
+
+  const userIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+  let profileMap = {};
+  if (userIds.length) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', userIds);
+    profileMap = Object.fromEntries((profiles || []).map((p) => [p.id, p.display_name]));
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    createdAt: row.created_at,
+    page: row.page,
+    message: row.message,
+    contact: row.contact,
+    status: row.status,
+    authorName: row.user_id ? (profileMap[row.user_id] || 'Участник сообщества') : null
+  }));
+}
+
 async function loadAll() {
-  const [pending, published, rejected, comments] = await Promise.all([
+  const [pending, published, rejected, comments, feedback] = await Promise.all([
     fetchProjectsByStatus('pending'),
     fetchProjectsByStatus('published'),
     fetchProjectsByStatus('rejected'),
-    fetchRecentComments()
+    fetchRecentComments(),
+    fetchFeedback()
   ]);
   state.pending = pending;
   state.published = published;
   state.rejected = rejected;
   state.comments = comments;
+  feedbackAll = feedback;
+  state.feedback = feedback.filter((f) => f.status === 'new');
   Object.keys(state).forEach(renderPanel);
   updateCounts();
 }
@@ -225,14 +275,31 @@ function updateCounts() {
 function renderPanel(tab) {
   const listEl = listEls[tab];
   listEl.innerHTML = '';
-  const list = state[tab];
+  const list = tab === 'feedback'
+    ? (feedbackShowDoneEl.checked ? feedbackAll : state.feedback)
+    : state[tab];
   emptyEls[tab].hidden = list.length > 0;
 
   if (tab === 'comments') {
     list.forEach((comment) => listEl.appendChild(renderCommentItem(comment)));
+  } else if (tab === 'feedback') {
+    list.forEach((feedback) => listEl.appendChild(renderFeedbackItem(feedback)));
   } else {
     list.forEach((project) => listEl.appendChild(renderProjectCard(project, tab)));
   }
+}
+
+async function markFeedbackDone(feedback) {
+  clearError();
+  const { error } = await supabase.from('feedback').update({ status: 'done' }).eq('id', feedback.id);
+  if (error) {
+    showError(error);
+    return;
+  }
+  feedback.status = 'done';
+  state.feedback = state.feedback.filter((f) => f.id !== feedback.id);
+  renderPanel('feedback');
+  updateCounts();
 }
 
 function moveProject(project, fromTab, toTab) {
@@ -540,6 +607,61 @@ function renderCommentItem(comment) {
   content.appendChild(actions);
 
   item.append(avatar, content);
+  return item;
+}
+
+/* ---------- Обращения (T22) ---------- */
+
+function renderFeedbackItem(feedback) {
+  const item = document.createElement('div');
+  item.className = 'adm-feedback-item';
+  item.classList.toggle('is-done', feedback.status === 'done');
+
+  const head = document.createElement('div');
+  head.className = 'adm-feedback-head';
+  const dateEl = document.createElement('span');
+  dateEl.className = 'adm-feedback-date';
+  dateEl.textContent = formatDate(feedback.createdAt);
+  const pageEl = document.createElement('span');
+  pageEl.className = 'adm-feedback-page';
+  pageEl.textContent = feedback.page;
+  head.append(dateEl, pageEl);
+  if (feedback.status === 'done') {
+    const statusEl = document.createElement('span');
+    statusEl.className = 'adm-feedback-status';
+    statusEl.textContent = t('admin.action.done');
+    head.appendChild(statusEl);
+  }
+
+  const message = document.createElement('p');
+  message.className = 'adm-feedback-message';
+  message.textContent = feedback.message;
+
+  const meta = document.createElement('div');
+  meta.className = 'adm-feedback-meta';
+  const authorEl = document.createElement('span');
+  authorEl.textContent = feedback.authorName || t('admin.feedback.guest');
+  meta.appendChild(authorEl);
+  if (feedback.contact) {
+    const contactEl = document.createElement('span');
+    contactEl.textContent = `${t('admin.feedback.contact.prefix')} ${feedback.contact}`;
+    meta.appendChild(contactEl);
+  }
+
+  item.append(head, message, meta);
+
+  if (feedback.status === 'new') {
+    const actions = document.createElement('div');
+    actions.className = 'adm-card-actions';
+    const doneBtn = document.createElement('button');
+    doneBtn.type = 'button';
+    doneBtn.className = 'btn-primary btn-sm';
+    doneBtn.textContent = t('admin.action.done');
+    doneBtn.addEventListener('click', () => markFeedbackDone(feedback));
+    actions.appendChild(doneBtn);
+    item.appendChild(actions);
+  }
+
   return item;
 }
 

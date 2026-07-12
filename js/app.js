@@ -4,6 +4,7 @@
  */
 import { getCurrentUser, onAuthChange, signOut } from './auth.js';
 import { openAuthModal, setAuthSuccessHandler, maybeShowWelcome } from './ui/authModal.js';
+import { openFeedbackModal } from './ui/feedbackModal.js';
 import { t } from './i18n/ru.js';
 import { escapeHtml, lockScroll, unlockScroll } from './util.js';
 
@@ -37,6 +38,9 @@ function renderStaticNotes() {
   document.querySelectorAll('[data-community-cta-note]').forEach((el) => {
     el.textContent = t('community.cta.note');
   });
+  document.querySelectorAll('[data-feedback-open]').forEach((el) => {
+    el.textContent = t('feedback.footer.link');
+  });
 }
 
 function renderHeaderAuth(user) {
@@ -67,6 +71,12 @@ function updateJoinButtons(user) {
 let currentUser = null;
 
 document.addEventListener('click', (event) => {
+  const feedbackBtn = event.target.closest('[data-feedback-open]');
+  if (feedbackBtn) {
+    event.preventDefault();
+    openFeedbackModal();
+    return;
+  }
   const joinBtn = event.target.closest('[data-join]');
   if (joinBtn) {
     event.preventDefault();
