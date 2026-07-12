@@ -10,7 +10,12 @@ import { escapeHtml, lockScroll, unlockScroll } from './util.js';
 
 // GoTrue кладёт тип редиректа в хеш (#access_token=...&type=signup|recovery|magiclink)
 // — читаем один раз при загрузке, до того как supabase-js сам подчистит хеш.
-const URL_AUTH_TYPE = new URLSearchParams(window.location.hash.slice(1)).get('type');
+const URL_HASH_PARAMS = new URLSearchParams(window.location.hash.slice(1));
+const URL_AUTH_TYPE = URL_HASH_PARAMS.get('type');
+// Протухшая/использованная ссылка из письма: GoTrue редиректит с ошибкой в хеше
+// (#error=access_denied&error_code=otp_expired…) — supabase-js её не трогает,
+// и без обработки человек молча оказывается на главной без объяснений.
+const URL_AUTH_ERROR = URL_HASH_PARAMS.get('error_code') || URL_HASH_PARAMS.get('error');
 let urlAuthHandled = false;
 
 // main.js — classic script (не модуль, см. его комментарий вверху), импортировать
@@ -96,6 +101,11 @@ document.addEventListener('click', (event) => {
 });
 
 renderStaticNotes();
+
+if (URL_AUTH_ERROR) {
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  showToast(t('auth.error.link_expired'), true);
+}
 
 setAuthSuccessHandler((message) => showToast(message));
 

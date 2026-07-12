@@ -33,6 +33,36 @@ export function normalizeHttpUrl(value) {
   return `https://${trimmed}`;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?\d{7,15}$/;
+const GITHUB_HANDLE_RE = /^[\w-]+$/;
+
+export function isValidEmail(value) {
+  return EMAIL_RE.test(String(value).trim());
+}
+
+/** Убирает пробелы/скобки/дефисы, оставляя ведущий + и цифры. */
+export function normalizePhone(value) {
+  return String(value).trim().replace(/(?!^\+)[^\d]/g, '');
+}
+
+export function isValidPhone(value) {
+  return PHONE_RE.test(value);
+}
+
+/** github.com/ник или @ник → ник (без протокола, домена, @, слэшей). */
+export function normalizeGithubHandle(value) {
+  return String(value).trim()
+    .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
+    .replace(/^@/, '')
+    .replace(/\/+$/, '')
+    .replace(/^\/+/, '');
+}
+
+export function isValidGithubHandle(value) {
+  return GITHUB_HANDLE_RE.test(value);
+}
+
 /**
  * Textarea растёт под текст до max-height из CSS (60vh), дальше — внутренний
  * скролл (overflow-y: auto в CSS). Вызывать на input и сразу после программной

@@ -85,14 +85,46 @@
           <textarea id="me-bio" name="bio" rows="4"></textarea>
         </div>
 
-        <div class="field">
-          <label for="me-telegram" data-label-telegram></label>
-          <input id="me-telegram" type="text" name="telegram" maxlength="60" />
-        </div>
+        <div class="me-contacts">
+          <h2 data-contacts-heading></h2>
+          <p class="field-hint" data-contacts-warning></p>
 
-        <div class="field">
-          <label for="me-website" data-label-website></label>
-          <input id="me-website" type="text" name="website" maxlength="200" />
+          <div class="field">
+            <label for="me-telegram" data-label-telegram></label>
+            <input id="me-telegram" type="text" name="telegram" maxlength="100" />
+          </div>
+
+          <div class="field">
+            <label for="me-website" data-label-website></label>
+            <input id="me-website" type="text" name="website" maxlength="300" />
+          </div>
+
+          <div class="field">
+            <label for="me-github" data-label-github></label>
+            <input id="me-github" type="text" name="github" maxlength="100" />
+            <p class="field-error" data-error="github" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="me-phone" data-label-phone></label>
+            <input id="me-phone" type="text" name="phone" maxlength="30" />
+            <p class="field-error" data-error="phone" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="me-email-public" data-label-email-public></label>
+            <input id="me-email-public" type="text" name="emailPublic" maxlength="200" />
+            <p class="field-error" data-error="email_public" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="me-link-label" data-label-custom-link></label>
+            <div class="me-custom-link-row">
+              <input id="me-link-label" type="text" name="customLinkLabel" maxlength="60" />
+              <input id="me-link-url" type="text" name="customLinkUrl" maxlength="300" />
+            </div>
+            <p class="field-error" data-error="custom_link" hidden></p>
+          </div>
         </div>
 
         <div class="field">

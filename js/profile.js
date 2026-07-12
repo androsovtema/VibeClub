@@ -6,7 +6,7 @@
 import { supabase } from './supabase.js';
 import { t } from './i18n/ru.js';
 import { fetchPublishedProjects, renderProjectCard, initialOf } from './projects.js';
-import { isHttpUrl, wireBackLink } from './util.js';
+import { isHttpUrl, wireBackLink, isValidEmail, isValidPhone, isValidGithubHandle } from './util.js';
 import { getCurrentUser } from './auth.js';
 import { validOpenTo, openToLabel } from './vocab.js';
 
@@ -24,8 +24,13 @@ const bioEl = document.querySelector('[data-profile-bio]');
 const editLink = document.querySelector('[data-profile-edit]');
 const skillsEl = document.querySelector('[data-profile-skills]');
 const openToEl = document.querySelector('[data-profile-open-to]');
+const linksEl = document.querySelector('[data-profile-links]');
 const telegramLink = document.querySelector('[data-profile-telegram]');
 const websiteLink = document.querySelector('[data-profile-website]');
+const githubLink = document.querySelector('[data-profile-github]');
+const phoneLink = document.querySelector('[data-profile-phone]');
+const emailLink = document.querySelector('[data-profile-email]');
+const customLinkEl = document.querySelector('[data-profile-custom-link]');
 
 const projectsGrid = document.querySelector('[data-profile-projects-grid]');
 const projectsEmpty = document.querySelector('[data-profile-projects-empty]');
@@ -113,9 +118,37 @@ function renderProfile(profile) {
 
   if (profile.website && isHttpUrl(profile.website)) {
     websiteLink.href = profile.website;
-    websiteLink.textContent = profile.website;
+    websiteLink.textContent = profile.website.replace(/^https?:\/\//i, '');
     websiteLink.hidden = false;
   }
+
+  if (profile.github && isValidGithubHandle(profile.github)) {
+    githubLink.href = `https://github.com/${encodeURIComponent(profile.github)}`;
+    githubLink.textContent = profile.github;
+    githubLink.hidden = false;
+  }
+
+  if (profile.phone && isValidPhone(profile.phone)) {
+    phoneLink.href = `tel:${profile.phone}`;
+    phoneLink.textContent = profile.phone;
+    phoneLink.hidden = false;
+  }
+
+  if (profile.email_public && isValidEmail(profile.email_public)) {
+    emailLink.href = `mailto:${profile.email_public}`;
+    emailLink.textContent = profile.email_public;
+    emailLink.hidden = false;
+  }
+
+  if (profile.custom_link_url && isHttpUrl(profile.custom_link_url)) {
+    customLinkEl.href = profile.custom_link_url;
+    customLinkEl.textContent = profile.custom_link_label || profile.custom_link_url.replace(/^https?:\/\//i, '');
+    customLinkEl.hidden = false;
+  }
+
+  const anyLinkVisible = [telegramLink, websiteLink, githubLink, phoneLink, emailLink, customLinkEl]
+    .some((el) => !el.hidden);
+  linksEl.hidden = !anyLinkVisible;
 }
 
 async function loadProjects() {
@@ -135,7 +168,7 @@ async function init() {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name, avatar_url, bio, telegram, website, skills, open_to')
+    .select('id, display_name, avatar_url, bio, telegram, website, github, phone, email_public, custom_link_label, custom_link_url, skills, open_to')
     .eq('id', profileId)
     .single();
 

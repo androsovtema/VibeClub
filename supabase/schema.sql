@@ -5,7 +5,7 @@
 -- Идемпотентно в разумных пределах (drop policy if exists перед create).
 -- ВАЖНО: `create table if not exists` не добавит колонки в уже созданную БД —
 -- на живой базе новые поля накатываются миграциями из supabase/migrations/
--- (сейчас: 2026-07-03-stage-ask-profile.sql — stage/looking_for/kind/skills/open_to).
+-- (последняя: 2026-07-12-profile-contacts.sql — github/phone/email_public/custom_link).
 -- =============================================================================
 
 -- ---------- Расширения ----------
@@ -21,8 +21,13 @@ create table if not exists public.profiles (
   display_name  text,
   avatar_url    text,
   bio           text,
-  telegram      text,
-  website       text,
+  telegram      text check (char_length(telegram) <= 100),
+  website       text check (char_length(website) <= 300),
+  github        text check (char_length(github) <= 100),
+  phone         text check (char_length(phone) <= 30),
+  email_public  text check (char_length(email_public) <= 200),
+  custom_link_label text check (char_length(custom_link_label) <= 60),
+  custom_link_url   text check (char_length(custom_link_url) <= 300),
   role          text not null default 'member'
                   check (role in ('member','core','admin')),
   skills        text[] not null default '{}',

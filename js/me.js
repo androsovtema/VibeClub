@@ -9,7 +9,11 @@ import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
 import { fetchOwnProjects, renderProjectCard } from './projects.js';
 import { OPEN_TO_KEYS, openToLabel, validOpenTo } from './vocab.js';
-import { isHttpUrl, normalizeHttpUrl, autoGrowTextarea } from './util.js';
+import {
+  isHttpUrl, normalizeHttpUrl, autoGrowTextarea,
+  isValidEmail, normalizePhone, isValidPhone,
+  normalizeGithubHandle, isValidGithubHandle
+} from './util.js';
 
 const MAX_SKILLS = 10;
 const MAX_SKILL_LEN = 24;
@@ -50,10 +54,21 @@ function applyStaticText() {
   form.querySelector('[data-label-name]').textContent = t('me.field.name');
   form.querySelector('[data-label-bio]').textContent = t('me.field.bio');
   form.querySelector('#me-bio').placeholder = t('me.field.bio.placeholder');
+  form.querySelector('[data-contacts-heading]').textContent = t('me.field.contacts.heading');
+  form.querySelector('[data-contacts-warning]').textContent = t('me.field.contacts.warning');
   form.querySelector('[data-label-telegram]').textContent = t('me.field.telegram');
   form.querySelector('#me-telegram').placeholder = t('me.field.telegram.placeholder');
   form.querySelector('[data-label-website]').textContent = t('me.field.website');
   form.querySelector('#me-website').placeholder = t('me.field.website.placeholder');
+  form.querySelector('[data-label-github]').textContent = t('me.field.github');
+  form.querySelector('#me-github').placeholder = t('me.field.github.placeholder');
+  form.querySelector('[data-label-phone]').textContent = t('me.field.phone');
+  form.querySelector('#me-phone').placeholder = t('me.field.phone.placeholder');
+  form.querySelector('[data-label-email-public]').textContent = t('me.field.email_public');
+  form.querySelector('#me-email-public').placeholder = t('me.field.email_public.placeholder');
+  form.querySelector('[data-label-custom-link]').textContent = t('me.field.custom_link');
+  form.querySelector('#me-link-label').placeholder = t('me.field.custom_link.label_placeholder');
+  form.querySelector('#me-link-url').placeholder = t('me.field.custom_link.url_placeholder');
   form.querySelector('[data-label-skills]').textContent = t('me.field.skills');
   skillsInput.placeholder = t('me.field.skills.placeholder');
   skillsAddBtn.textContent = t('me.field.skills.add');
@@ -186,6 +201,21 @@ form.website.addEventListener('blur', () => {
   if (value) form.website.value = normalizeHttpUrl(value);
 });
 
+form.customLinkUrl.addEventListener('blur', () => {
+  const value = form.customLinkUrl.value.trim();
+  if (value) form.customLinkUrl.value = normalizeHttpUrl(value);
+});
+
+form.phone.addEventListener('blur', () => {
+  const value = form.phone.value.trim();
+  if (value) form.phone.value = normalizePhone(value);
+});
+
+form.github.addEventListener('blur', () => {
+  const value = form.github.value.trim();
+  if (value) form.github.value = normalizeGithubHandle(value);
+});
+
 form.bio.addEventListener('input', () => autoGrowTextarea(form.bio));
 
 function showToast(message, isError = false) {
@@ -201,7 +231,7 @@ function showToast(message, isError = false) {
 async function loadProfile(user) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('display_name, bio, telegram, website, skills, open_to')
+    .select('display_name, bio, telegram, website, github, phone, email_public, custom_link_label, custom_link_url, skills, open_to')
     .eq('id', user.id)
     .single();
 
@@ -212,6 +242,11 @@ async function loadProfile(user) {
   autoGrowTextarea(form.bio);
   form.telegram.value = data.telegram || '';
   form.website.value = data.website || '';
+  form.github.value = data.github || '';
+  form.phone.value = data.phone || '';
+  form.emailPublic.value = data.email_public || '';
+  form.customLinkLabel.value = data.custom_link_label || '';
+  form.customLinkUrl.value = data.custom_link_url || '';
 
   skills = Array.isArray(data.skills) ? data.skills.filter(Boolean) : [];
   renderSkillChips();
@@ -257,6 +292,36 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
+  const rawCustomLinkUrl = form.customLinkUrl.value.trim();
+  const customLinkUrl = rawCustomLinkUrl ? normalizeHttpUrl(rawCustomLinkUrl) : '';
+  if (customLinkUrl !== rawCustomLinkUrl) form.customLinkUrl.value = customLinkUrl;
+  if (customLinkUrl && !isHttpUrl(customLinkUrl)) {
+    showFieldError('custom_link', t('me.error.custom_link_url'));
+    return;
+  }
+
+  const phone = form.phone.value.trim() ? normalizePhone(form.phone.value) : '';
+  if (phone !== form.phone.value.trim()) form.phone.value = phone;
+  if (phone && !isValidPhone(phone)) {
+    showFieldError('phone', t('me.error.phone'));
+    return;
+  }
+
+  const emailPublic = form.emailPublic.value.trim();
+  if (emailPublic && !isValidEmail(emailPublic)) {
+    showFieldError('email_public', t('me.error.email_public'));
+    return;
+  }
+
+  const github = form.github.value.trim() ? normalizeGithubHandle(form.github.value) : '';
+  if (github !== form.github.value.trim()) form.github.value = github;
+  if (github && !isValidGithubHandle(github)) {
+    showFieldError('github', t('me.error.github'));
+    return;
+  }
+
+  const customLinkLabel = form.customLinkLabel.value.trim();
+
   saving = true;
   saveBtn.disabled = true;
   saveBtn.textContent = t('me.action.saving');
@@ -266,6 +331,11 @@ form.addEventListener('submit', async (event) => {
     bio: form.bio.value.trim() || null,
     telegram: form.telegram.value.trim() || null,
     website: website || null,
+    github: github || null,
+    phone: phone || null,
+    email_public: emailPublic || null,
+    custom_link_label: customLinkLabel || null,
+    custom_link_url: customLinkUrl || null,
     skills,
     open_to: Array.from(selectedOpenTo)
   };
