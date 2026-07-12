@@ -81,7 +81,6 @@ function showFormView() {
   modal.querySelector('[data-feedback-view]').hidden = false;
   modal.querySelector('[data-feedback-success-view]').hidden = true;
   showError('');
-  modal.querySelector('[data-feedback-contact-field]').hidden = Boolean(currentUser);
   modal.querySelector('#feedback-message').focus();
 }
 

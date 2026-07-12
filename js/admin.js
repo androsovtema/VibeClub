@@ -244,6 +244,7 @@ async function fetchFeedback() {
     message: row.message,
     contact: row.contact,
     status: row.status,
+    userId: row.user_id,
     authorName: row.user_id ? (profileMap[row.user_id] || 'Участник сообщества') : null
   }));
 }
@@ -639,8 +640,11 @@ function renderFeedbackItem(feedback) {
 
   const meta = document.createElement('div');
   meta.className = 'adm-feedback-meta';
-  const authorEl = document.createElement('span');
+  const authorEl = document.createElement(feedback.userId ? 'a' : 'span');
   authorEl.textContent = feedback.authorName || t('admin.feedback.guest');
+  if (feedback.userId) {
+    authorEl.href = `profile.html?id=${encodeURIComponent(feedback.userId)}`;
+  }
   meta.appendChild(authorEl);
   if (feedback.contact) {
     const contactEl = document.createElement('span');
