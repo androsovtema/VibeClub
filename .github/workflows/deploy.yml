@@ -42,6 +42,8 @@ jobs:
             --exclude='audits' \
             --exclude='supabase' \
             --exclude='CLAUDE.md' \
+            --exclude='AGENTS.md' \
+            --exclude='scripts' \
             --exclude='package.json' \
             --exclude='package-lock.json' \
             --exclude='eslint.config.js' \

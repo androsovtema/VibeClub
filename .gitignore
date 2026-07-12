@@ -36,3 +36,6 @@ _site/
 
 # Local Claude settings
 .claude/settings.local.json
+
+# ShipStudio metadata
+.shipstudio/
