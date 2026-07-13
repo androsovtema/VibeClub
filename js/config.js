@@ -11,3 +11,6 @@ export const SUPABASE_ANON_KEY =
 // Hero-счётчики показываются только при достижении обоих порогов (10-membership.md, T15).
 export const STATS_MIN_MEMBERS = 30;
 export const STATS_MIN_PROJECTS = 15;
+
+// Umami Cloud (T19). Пусто — аналитика полностью выключена (см. js/analytics.js).
+export const UMAMI_WEBSITE_ID = 'aa405870-f795-48e3-8b63-14485b24e226';

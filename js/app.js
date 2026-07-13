@@ -7,6 +7,9 @@ import { openAuthModal, setAuthSuccessHandler, maybeShowWelcome } from './ui/aut
 import { openFeedbackModal } from './ui/feedbackModal.js';
 import { t } from './i18n/ru.js';
 import { escapeHtml, lockScroll, unlockScroll } from './util.js';
+import { initAnalytics, track } from './analytics.js';
+
+initAnalytics();
 
 // GoTrue кладёт тип редиректа в хеш (#access_token=...&type=signup|recovery|magiclink)
 // — читаем один раз при загрузке, до того как supabase-js сам подчистит хеш.
@@ -86,6 +89,8 @@ document.addEventListener('click', (event) => {
   if (joinBtn) {
     event.preventDefault();
     const isGate = joinBtn.hasAttribute('data-comment-gate-action') || joinBtn.hasAttribute('data-submit-gate-action');
+    const place = isGate ? 'gate' : joinBtn.closest('[data-header-auth]') ? 'nav' : 'hero';
+    track('join_click', { place });
     if (currentUser && !isGate) {
       window.location.href = 'submit.html';
     } else {
@@ -122,8 +127,14 @@ onAuthChange(async (user, authEvent) => {
 
   if (authEvent === 'SIGNED_IN' && URL_AUTH_TYPE === 'signup' && !urlAuthHandled) {
     urlAuthHandled = true;
+    track('auth_success', { kind: 'signup' });
     const shownWelcome = await maybeShowWelcome();
     if (!shownWelcome) showToast(t('auth.success.email_confirmed'));
+  }
+
+  if (authEvent === 'SIGNED_IN' && URL_AUTH_TYPE === 'magiclink' && !urlAuthHandled) {
+    urlAuthHandled = true;
+    track('auth_success', { kind: 'magic' });
   }
 });
 

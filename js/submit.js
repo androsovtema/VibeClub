@@ -12,6 +12,7 @@ import { CATEGORY_LABELS, fetchProjectById } from './projects.js';
 import { STAGE_KEYS, LOOKING_KEYS, isStage, stageLabel, lookingLabel } from './vocab.js';
 import { isHttpUrl, normalizeHttpUrl, autoGrowTextarea } from './util.js';
 import { optimizeImage, readImageDimensions } from './image.js';
+import { track } from './analytics.js';
 
 const TOOL_PRESETS = ['Claude', 'ChatGPT', 'Cursor', 'v0', 'Lovable', 'Bolt'];
 const MAX_COVER_BYTES = 10 * 1024 * 1024;
@@ -72,6 +73,7 @@ if (gate && formWrap && form) {
   buildLookingChips();
   if (isEdit) applyEditModeText();
   form.description.addEventListener('input', () => autoGrowTextarea(form.description));
+  form.addEventListener('input', () => track('submit_start'), { once: true });
 
   function applyStaticText() {
     document.querySelector('[data-submit-gate-text]').textContent = t('submit.gate.text');
@@ -648,6 +650,7 @@ if (gate && formWrap && form) {
       return;
     }
 
+    track('submit_sent');
     formWrap.hidden = true;
     successEl.hidden = false;
   });

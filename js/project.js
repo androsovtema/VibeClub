@@ -11,8 +11,10 @@ import { t } from './i18n/ru.js';
 import { fetchProjectById, CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
 import { stageLabel, lookingLabel, validLooking, KIND_KEYS, isKind, kindLabel } from './vocab.js';
 import { isHttpUrl, autoGrowTextarea } from './util.js';
+import { track } from './analytics.js';
 
 const MAX_COMMENT_LEN = 2000;
+const COMMENTED_BEFORE_KEY = 'wdz-commented-before';
 
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get('id');
@@ -676,6 +678,13 @@ commentFormEl.addEventListener('submit', async (event) => {
     commentErrorEl.textContent = commentErrorMessage(error) || t('project.comment.error');
     commentErrorEl.hidden = false;
     return;
+  }
+
+  if (localStorage.getItem(COMMENTED_BEFORE_KEY)) {
+    track('comment_sent');
+  } else {
+    localStorage.setItem(COMMENTED_BEFORE_KEY, '1');
+    track('comment_sent', { first: true });
   }
 
   commentInput.value = '';

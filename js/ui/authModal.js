@@ -16,6 +16,7 @@ import {
 } from '../auth.js';
 import { t, mapAuthError } from '../i18n/ru.js';
 import { lockScroll, unlockScroll } from '../util.js';
+import { track } from '../analytics.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const WELCOME_KEY = 'wdz-welcome-shown';
@@ -365,6 +366,7 @@ function attachEvents() {
     setLoading(form, false);
     if (error) return showError(form, mapAuthError(error));
 
+    track('auth_success', { kind: 'login' });
     onAuthSuccess(t('auth.success.signin'));
   });
 
@@ -385,6 +387,7 @@ function attachEvents() {
     if (error) return showError(form, mapAuthError(error));
 
     if (data?.session) {
+      track('auth_success', { kind: 'signup' });
       onAuthSuccess(t('auth.success.signup'));
     } else if (isExistingUser(data)) {
       switchTab('signin');
@@ -505,6 +508,7 @@ function ensureModal() {
 
 export function openAuthModal(initialTab = 'signin') {
   ensureModal();
+  track('auth_open');
   resetToAuthView();
   lastFocused = document.activeElement;
   overlay.hidden = false;

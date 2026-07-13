@@ -34,6 +34,13 @@
 «Вступить» ведёт в auth-модалку, не в Telegram — членство живёт на платформе
 (`00-vision.md`, `10-membership.md`).
 
+### UTM-метки в ссылках из YouTube-описаний
+
+Шаблон: `?utm_source=youtube&utm_medium=video&utm_campaign=<слаг-видео>`
+(например `https://wedesignerz.com/?utm_source=youtube&utm_medium=video&utm_campaign=2026-08-launch`).
+Umami сам разбирает UTM из URL — смотреть в дашборде cloud.umami.is → сайт →
+раздел «UTM» / «Campaigns» (T19).
+
 ## Чек-лист готовности к анонсу
 
 > Пересмотрен по аудиту 2026-07-10 (`audits/current-review/2026-07-10-verdict.md`):

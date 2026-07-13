@@ -10,6 +10,7 @@ import { t } from './i18n/ru.js';
 import { CATEGORY_LABELS, coverGradientFor, initialOf } from './projects.js';
 import { isHttpUrl } from './util.js';
 import { kindLabel } from './vocab.js';
+import { track } from './analytics.js';
 
 const PROJECT_SELECT = '*, author:profiles!projects_author_id_fkey(display_name)';
 const COMMENTS_LIMIT = 50;
@@ -319,6 +320,7 @@ async function updateProjectStatus(project, newStatus, fromTab) {
     showError(error);
     return;
   }
+  if (newStatus === 'published') track('publish');
   moveProject(project, fromTab, newStatus);
 }
 
