@@ -985,6 +985,103 @@ textarea {
   color: var(--color-text-tertiary);
 }
 
+.footer-bottom a {
+  color: inherit;
+}
+
+.footer-bottom a:hover {
+  color: var(--color-text-primary);
+}
+
+/*************************
+ *  PRIVACY PAGE  *
+ *************************/
+.privacy-hero {
+  max-width: var(--content-col);
+  margin: 0 auto;
+  padding: var(--page-top) var(--page-gutter) 0;
+}
+
+.privacy-hero h1 {
+  font-size: var(--text-4xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.privacy-hero-text {
+  margin-top: var(--space-2xs);
+  color: var(--color-text-secondary);
+  font-size: var(--text-lg);
+  line-height: 1.6;
+}
+
+.privacy-toc {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.privacy-toc a {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: border-color var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+}
+
+.privacy-toc a:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent-violet);
+}
+
+.privacy-section {
+  max-width: var(--content-col);
+  margin: 0 auto;
+  padding: var(--section-gap) var(--page-gutter) 0;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.privacy-section p {
+  margin-bottom: var(--space-2xs);
+}
+
+.privacy-section p:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-section:last-of-type {
+  padding-bottom: var(--page-bottom);
+}
+
+.privacy-section h2 {
+  font-size: var(--text-2xl);
+  color: var(--color-text-primary);
+  margin-bottom: var(--heading-gap);
+}
+
+.privacy-section h3 {
+  font-size: var(--text-lg);
+  color: var(--color-text-primary);
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-2xs);
+}
+
+.privacy-section h3:first-of-type {
+  margin-top: 0;
+}
+
+.privacy-list {
+  margin: 0 0 var(--space-2xs);
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 /*************************
  *  ABOUT PAGE SPECIFIC  *
  *************************/
@@ -3355,9 +3452,9 @@ textarea {
    (moved from inline styles)
    ==================== */
 
-/* Back navigation for project pages */
+/* Back navigation for project pages — гуттер совпадает с section (--page-gutter) */
 .back-nav {
-  padding: var(--space-xs) var(--space-md) 0;
+  padding: var(--page-top) var(--page-gutter) 0;
   max-width: var(--container-max);
   margin: 0 auto;
 }
@@ -3556,6 +3653,36 @@ body.menu-open {
 .auth-modal-submit {
   width: 100%;
   margin-top: 4px;
+}
+
+.auth-modal-consent {
+  margin-bottom: var(--space-2xs);
+}
+
+.auth-modal-consent label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.auth-modal-consent input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--color-accent-violet);
+}
+
+.auth-modal-consent a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-modal-consent a:hover {
+  color: var(--color-accent-violet);
 }
 
 .auth-modal-link {

@@ -20,6 +20,7 @@ export const ru = {
   'auth.field.password.placeholder': 'Минимум 6 символов',
   'auth.action.signin': 'Войти',
   'auth.action.signup': 'Вступить в клуб',
+  'auth.consent.label': 'Принимаю <a href="privacy.html" target="_blank" rel="noopener noreferrer">правила клуба и политику данных</a>',
   'auth.action.magiclink': 'Войти по ссылке на почту',
   'auth.action.magiclink.submit': 'Отправить ссылку',
   'auth.action.forgot': 'Забыл пароль?',

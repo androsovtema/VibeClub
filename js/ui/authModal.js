@@ -77,8 +77,14 @@ function buildMarkup() {
             <label for="auth-signup-password">${t('auth.field.password')}</label>
             <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
           </div>
+          <div class="auth-modal-consent">
+            <label>
+              <input type="checkbox" name="consent" data-consent required />
+              <span>${t('auth.consent.label')}</span>
+            </label>
+          </div>
           <p class="auth-modal-error" data-error hidden></p>
-          <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signup')}</button>
+          <button type="submit" class="btn-primary auth-modal-submit" data-signup-submit disabled>${t('auth.action.signup')}</button>
         </form>
 
         <form class="auth-modal-form" data-form="magiclink" hidden novalidate>
@@ -332,6 +338,10 @@ function attachEvents() {
   });
   modal.querySelector('[data-forgot-back]').addEventListener('click', () => switchTab('signin'));
 
+  modal.querySelector('[data-consent]').addEventListener('change', (event) => {
+    modal.querySelector('[data-signup-submit]').disabled = !event.target.checked;
+  });
+
   modal.querySelector('[data-confirm-resend]').addEventListener('click', async () => {
     if (!confirmContext) return;
     const btn = modal.querySelector('[data-confirm-resend]');
@@ -384,6 +394,7 @@ function attachEvents() {
     setLoading(form, true);
     const { data, error } = await signUpEmailPassword(email, password, name);
     setLoading(form, false);
+    form.querySelector('[data-signup-submit]').disabled = !form.querySelector('[data-consent]').checked;
     if (error) return showError(form, mapAuthError(error));
 
     if (data?.session) {
