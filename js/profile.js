@@ -6,7 +6,7 @@
 import { supabase } from './supabase.js';
 import { t } from './i18n/ru.js';
 import { fetchPublishedProjects, renderProjectCard, initialOf } from './projects.js';
-import { isHttpUrl, wireBackLink, isValidEmail, isValidPhone, isValidGithubHandle } from './util.js';
+import { isHttpUrl, isValidEmail, isValidPhone, isValidGithubHandle } from './util.js';
 import { getCurrentUser } from './auth.js';
 import { validOpenTo, openToLabel } from './vocab.js';
 
@@ -37,7 +37,6 @@ const projectsEmpty = document.querySelector('[data-profile-projects-empty]');
 const backLinkEl = document.querySelector('[data-back-link]');
 
 applyStaticText();
-wireBackLink(backLinkEl);
 
 function applyStaticText() {
   backLinkEl.textContent = t('nav.back');

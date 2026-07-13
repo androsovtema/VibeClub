@@ -1002,6 +1002,8 @@ textarea {
 }
 
 .about-hero-marker {
+  grid-row: 2;
+  grid-column: 1;
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: clamp(40px, 6vw, 64px);
@@ -1016,10 +1018,14 @@ textarea {
 }
 
 .about-hero-body {
+  grid-row: 2;
+  grid-column: 2;
   max-width: 760px;
 }
 
 .about-hero-kicker {
+  grid-row: 1;
+  grid-column: 2;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -1119,7 +1125,8 @@ textarea {
 }
 
 .portfolio-cover {
-  aspect-ratio: 4 / 3;
+  /* Обложки кейсов рисуются строго 16:9 — держим тот же формат, чтобы не резать */
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--color-bg-sunken);
 }
@@ -3215,9 +3222,9 @@ textarea {
     font-size: 19px;
   }
 
-  /* Уменьшаем отступы back-nav на мобильных */
+  /* Уменьшаем отступы back-nav на мобильных, гуттер тот же, что у section */
   body .back-nav {
-    padding: var(--space-xs) var(--space-xs) 0;
+    padding: var(--space-xs) var(--page-gutter) 0;
     max-width: 100%;
     margin: 0;
     box-sizing: border-box;

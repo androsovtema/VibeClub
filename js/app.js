@@ -6,7 +6,7 @@ import { getCurrentUser, onAuthChange, signOut } from './auth.js';
 import { openAuthModal, setAuthSuccessHandler, maybeShowWelcome } from './ui/authModal.js';
 import { openFeedbackModal } from './ui/feedbackModal.js';
 import { t } from './i18n/ru.js';
-import { escapeHtml, lockScroll, unlockScroll } from './util.js';
+import { escapeHtml, lockScroll, unlockScroll, wireBackLink } from './util.js';
 import { initAnalytics, track } from './analytics.js';
 
 initAnalytics();
@@ -106,6 +106,10 @@ document.addEventListener('click', (event) => {
 });
 
 renderStaticNotes();
+
+// Единая логика «Назад» для всех страниц: изнутри сайта — history.back(),
+// прямой заход — переход по href. Страничные скрипты её не дублируют.
+document.querySelectorAll('[data-back-link]').forEach(wireBackLink);
 
 if (URL_AUTH_ERROR) {
   history.replaceState(null, '', window.location.pathname + window.location.search);
