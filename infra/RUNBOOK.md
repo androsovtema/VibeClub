@@ -104,6 +104,23 @@ docker compose ps   # все сервисы — статус healthy/running, н
 Если что-то в `Restarting` дольше минуты — смотри логи:
 `docker compose logs <имя-сервиса> --tail=50`.
 
+Известные ошибки (обе пойманы на живом подъёме 2026-07-14):
+- `auth` в Restarting, в логах `must be owner of function uid (SQLSTATE
+  42501)` — образ postgres создал auth-функции владельцем `postgres`, а
+  GoTrue ходит как `supabase_auth_admin`.
+- `storage` в Restarting, в логах `28P01 ... auth_failed` — образ создаёт
+  роль `supabase_storage_admin` после init-скриптов, пароль из `roles.sql`
+  по ней не попадает.
+
+На свежей установке оба фикса применяются сами
+(`volumes/db/auth-fn-owner.sql` монтируется в фазу migrations); если поймал
+на уже созданной базе — выполни руками:
+
+```bash
+docker compose exec -T db psql -U postgres -d postgres < volumes/db/auth-fn-owner.sql
+docker compose restart auth
+```
+
 ### Проверка здоровья (изнутри VPS)
 
 Ни один сервис, кроме Caddy, не публикует порт на хост (только внутренняя
@@ -149,6 +166,11 @@ for f in supabase/migrations/*.sql; do
   echo "=== $f ==="
   docker compose exec -T db psql -U postgres -d postgres < "$f"
 done
+# ВАЖНО: glob сортирует по алфавиту, а не по дате применения — из-за этого
+# `...hardening-FIX.sql` прогоняется РАНЬШЕ базовой `...hardening.sql`
+# (дефис < точки), и в базе остаётся старая (багованная) версия функции
+# protect_privileged_columns. Перекатываем фикс поверх ещё раз:
+docker compose exec -T db psql -U postgres -d postgres < supabase/migrations/2026-07-06-rls-privilege-hardening-fix.sql
 ```
 
 (`supabase/` должен уже лежать в `/root/vibeclub/supabase` — скопирован на

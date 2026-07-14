@@ -59,3 +59,10 @@ python3 -m http.server 8080
 ```
 
 затем открыть `http://localhost:8080/index.html`.
+
+## RU-VPS (T-LOC)
+
+Бэкенд переезжает на self-hosted Supabase (`infra/`, миграция — `infra/RUNBOOK.md`).
+Доступ к серверу: **`ssh vibeclub`** (алиас в `~/.ssh/config` этой машины,
+ключевая аутентификация, пароль не нужен). Рабочая папка на сервере —
+`/root/vibeclub`. Секреты — только в `infra/.env` на сервере (в репо не коммитить).

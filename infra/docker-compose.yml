@@ -33,6 +33,7 @@ services:
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       - ./volumes/db/umami.sql:/docker-entrypoint-initdb.d/init-scripts/96-umami.sql:Z
+      - ./volumes/db/auth-fn-owner.sql:/docker-entrypoint-initdb.d/migrations/zz-auth-fn-owner.sql:Z
       - ./volumes/db/data:/var/lib/postgresql/data:Z
       - db-config:/etc/postgresql-custom
     healthcheck:
@@ -165,6 +166,9 @@ services:
       PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS:-1000}
       PGRST_DB_EXTRA_SEARCH_PATH: public
       PGRST_DB_ANON_ROLE: anon
+      # Без admin-сервера healthcheck `postgrest --ready` всегда красный.
+      PGRST_ADMIN_SERVER_PORT: 3001
+      PGRST_ADMIN_SERVER_HOST: localhost
       PGRST_JWT_SECRET: ${JWT_SECRET}
       PGRST_DB_USE_LEGACY_GUCS: "false"
       PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
@@ -247,7 +251,9 @@ services:
 
   umami:
     container_name: vibeclub-umami
-    image: ghcr.io/umami-software/umami:v3.2.0
+    # Тег обязательно postgresql-* (вариант под Postgres); v3 у Umami нет,
+    # актуальная ветка — 2.x (проверено по ghcr.io/v2/.../tags/list).
+    image: ghcr.io/umami-software/umami:postgresql-v2.20.2
     restart: unless-stopped
     depends_on:
       db:
