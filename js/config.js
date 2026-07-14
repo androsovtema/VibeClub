@@ -12,5 +12,11 @@ export const SUPABASE_ANON_KEY =
 export const STATS_MIN_MEMBERS = 30;
 export const STATS_MIN_PROJECTS = 15;
 
-// Umami Cloud (T19). Пусто — аналитика полностью выключена (см. js/analytics.js).
+// Umami (T19, self-host — T-LOC). Пусто — аналитика полностью выключена
+// (см. js/analytics.js).
 export const UMAMI_WEBSITE_ID = 'aa405870-f795-48e3-8b63-14485b24e226';
+
+// Адрес скрипта Umami. Дефолт — текущий cloud-URL, чтобы не сломать T19 до
+// переезда; после локализации (RUNBOOK.md, шаг 8) меняется на
+// 'https://stats.wedesignerz.com/script.js' вместе с новым UMAMI_WEBSITE_ID.
+export const UMAMI_SRC = 'https://cloud.umami.is/script.js';

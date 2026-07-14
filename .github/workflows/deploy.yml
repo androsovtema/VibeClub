@@ -28,7 +28,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       # На Pages уходят только файлы сайта. Внутреннее (docs/, audits/,
-      # supabase/, CLAUDE.md, конфиги) не публикуется.
+      # supabase/, infra/, CLAUDE.md, конфиги) не публикуется.
       - name: Build site artifact
         run: |
           mkdir -p _site
@@ -41,6 +41,7 @@ jobs:
             --exclude='docs' \
             --exclude='audits' \
             --exclude='supabase' \
+            --exclude='infra' \
             --exclude='CLAUDE.md' \
             --exclude='AGENTS.md' \
             --exclude='scripts' \

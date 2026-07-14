@@ -33,6 +33,7 @@ _site/
 # Environment
 .env
 .env.local
+infra/.env
 
 # Local Claude settings
 .claude/settings.local.json

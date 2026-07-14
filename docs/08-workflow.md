@@ -267,8 +267,30 @@ Opus и Sonnet **не общаются напрямую**. Интерфейс м
   disabled без галочки, вход не затронут). Линтеры 0, 375px ок. Ревью Opus
   принято (живой прогон). Финализировано Тёмой 2026-07-13: контакт удаления
   данных/жалоб — veteristema@gmail.com, SLA — 24 часа (TODO сняты).
-- Дальше: **T-LOC (локализация; исполнение ранбука — после покупки VPS) →
-  уведомление РКН (Тёма) → подключение домена (чек-лист `05-launch.md`) →
-  анонс**
+- **T-LOC — артефакты готовы** (Sonnet, 2026-07-13): `infra/` (docker-compose
+  урезанный из официального supabase/docker: db/kong/auth/rest/storage+imgproxy/
+  meta + self-host umami + Caddy, без realtime/functions/logflare/vector/studio),
+  `infra/RUNBOOK.md` (9 шагов с командами и проверками), `infra/scripts/`
+  (gen-keys.mjs — легаси JWT ANON/SERVICE_ROLE_KEY, проверено декодом;
+  backup.sh — ночной pg_dump+storage в S3 Timeweb с ротацией 14 суток;
+  copy-storage.mjs — перенос файлов бакета `covers`), `infra/mail-templates/`
+  (TODO-заглушки — реальные тексты T21 из Cloud Dashboard вставляет Тёма перед
+  шагом 7 ранбука). Фронт: `js/config.js`/`js/analytics.js` — `UMAMI_SRC`
+  параметризован (дефолт — cloud, не ломает T19), `js/config.js` НЕ
+  переключён (переключение — шаг 8 ранбука, отдельный коммит).
+  `.github/workflows/deploy.yml` — `infra/` исключена из Pages-артефакта
+  (проверено локальным прогоном rsync-команды). Линтеры 0. Исполнение ранбука
+  на реальном VPS — за Тёмой (нет доступа к серверу/DNS/Unisender/Timeweb в
+  этой сессии). Ревью Opus 2026-07-14 (сверка с официальным supabase/docker
+  и исходниками GoTrue v2.189.0), пофикшено: шаблоны писем раздаются через
+  Caddy (`/mail-templates/*`) — GoTrue качает их только по HTTP(S), файловый
+  путь молча откатывался на дефолтный английский шаблон;
+  `--exclude-table=auth.schema_migrations` в дампе шага 4.1 (иначе duplicate
+  key об служебную таблицу GoTrue); бэкап базы umami в backup.sh; `order by
+  ord` при замене хоста в `projects.images`; ожидаемые HTTP-коды в проверках
+  ранбука; путь крона в шапке backup.sh.
+- Дальше: **исполнение `infra/RUNBOOK.md` на VPS (Тёма) →
+  уведомление РКН (шаг 9 ранбука, `14-ru-compliance.md`) →
+  подключение домена (чек-лист `05-launch.md`) → анонс**
   → **T16** (грейды v0/v1, промпт готов; триггер — живые данные, не дата)
   → P2-бэклог (`09-growth-plan.md`).

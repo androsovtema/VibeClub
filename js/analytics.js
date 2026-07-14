@@ -1,10 +1,11 @@
 /**
- * We Designerz — обёртка над Umami Cloud (T19).
+ * We Designerz — обёртка над Umami (T19). Источник скрипта — UMAMI_SRC в
+ * js/config.js (cloud сейчас, self-host после T-LOC).
  * UMAMI_WEBSITE_ID пуст ИЛИ hostname localhost/127.0.0.1 — скрипт не грузим,
  * track() пишет в консоль (так проверяем воронку локально). Никакого PII
  * в событиях: только имена событий и короткие enum-пропсы.
  */
-import { UMAMI_WEBSITE_ID } from './config.js';
+import { UMAMI_WEBSITE_ID, UMAMI_SRC } from './config.js';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 let enabled = false;
@@ -13,7 +14,7 @@ export function initAnalytics() {
   if (!UMAMI_WEBSITE_ID || IS_LOCAL) return;
   const script = document.createElement('script');
   script.defer = true;
-  script.src = 'https://cloud.umami.is/script.js';
+  script.src = UMAMI_SRC;
   script.dataset.websiteId = UMAMI_WEBSITE_ID;
   document.head.appendChild(script);
   enabled = true;

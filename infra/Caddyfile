@@ -1,0 +1,29 @@
+# We Designerz — reverse proxy + авто-TLS (T-LOC).
+# Caddy сам получает и обновляет сертификаты Let's Encrypt (ACME HTTP-01),
+# нужны только A-записи api.wedesignerz.com и stats.wedesignerz.com → IP VPS
+# (см. RUNBOOK.md, шаг 1) и открытые 80/443 в ufw.
+
+{
+	email veteristema@gmail.com
+}
+
+api.wedesignerz.com {
+	encode gzip
+
+	# Шаблоны писем для GoTrue: GOTRUE_MAILER_TEMPLATES_* принимает только
+	# HTTP(S)-URL (файловый путь GoTrue не читает), поэтому Caddy раздаёт
+	# ./mail-templates статикой — auth забирает их отсюда.
+	handle_path /mail-templates/* {
+		root * /srv/mail-templates
+		file_server
+	}
+
+	handle {
+		reverse_proxy kong:8000
+	}
+}
+
+stats.wedesignerz.com {
+	reverse_proxy umami:3000
+	encode gzip
+}
