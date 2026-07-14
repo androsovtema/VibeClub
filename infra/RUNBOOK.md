@@ -302,15 +302,58 @@ select count(*) from public.projects, unnest(images) img where img like '%supaba
 
 ---
 
-## Шаг 6 — SMTP
+## Шаг 6 — почта (send-email hook → Unisender Web API)
 
-`infra/.env` уже содержит `SMTP_HOST/PORT/USER/PASS` (шаг 1.2). После
-`docker compose up -d` (или `docker compose restart auth`, если .env поменялся
-после подъёма) — тестовое письмо. `/recover` шлёт письмо только существующему
-пользователю — если тестовой почты ещё нет в базе (после шага 4 данные уже
-перенесены, но можно и на пустой базе завести тестовый аккаунт через
-`/auth/v1/signup` тем же способом), просто зарегистрируйся ей на сайте один
-раз, потом:
+**Почему не SMTP.** `infra/.env` содержит `SMTP_HOST/PORT/USER/PASS`
+(шаг 1.2), но SMTP-порты Unisender Go (`smtp.go2.unisender.ru`, 587/465)
+**недоступны по TCP** ни с VPS, ни с домашней машины Тёмы (два независимых
+провайдера, диагностика 2026-07-14, живой ICMP-ping проходит — фильтрация
+именно на TCP-уровне, поддержка Unisender блок отрицает, но факт
+воспроизводится). SMTP-переменные в `.env` оставлены как есть (GoTrue их не
+трогает, пока hook включён) — просто письма реальным путём не идут.
+
+**Web API Unisender рабочий** — проверено, письмо доставлено:
+
+```bash
+curl -s -X POST "https://go2.unisender.ru/ru/transactional/api/v1/email/send.json" \
+  -H "X-API-KEY: <ключ>" -H "Content-Type: application/json" \
+  -d '{"message":{"recipients":[{"email":"..."}],"body":{"html":"..."},
+       "subject":"...","from_email":"noreply@mail.wedesignerz.com","from_name":"We Designerz"}}'
+# -> {"status":"success","job_id":"..."}
+```
+
+Решение — `infra/mail-bridge/` (Node без npm-зависимостей, сервис
+`mail-bridge` в `docker-compose.yml`, порт `9998` только на внутренней
+docker-сети): принимает вебхук GoTrue `send-email` (подпись
+standard-webhooks проверяется секретом `SEND_EMAIL_HOOK_SECRET`), рендерит
+письмо из `./mail-templates/*.html` и шлёт через Web API Unisender.
+
+### 6.1 Секрет и ключ
+
+```bash
+cd infra
+node scripts/gen-keys.mjs --update-env   # допишет SEND_EMAIL_HOOK_SECRET, если его ещё нет
+```
+
+Впиши руками в `infra/.env` (на сервере, не в репозитории):
+- `UNISENDER_API_KEY` — тот же API-ключ, что уже лежит как `SMTP_PASS`.
+- Проверь `MAIL_FROM` / `MAIL_FROM_NAME` / `API_EXTERNAL_BASE` — дефолты в
+  `.env.example` обычно верны как есть.
+
+### 6.2 Поднять и проверить
+
+```bash
+docker compose up -d mail-bridge auth
+docker compose ps mail-bridge auth   # оба healthy
+docker ps --format '{{.Names}}\t{{.Ports}}' | grep mail-bridge
+# Ожидаем: порты пустые/только внутренние — НЕ должно быть 0.0.0.0:9998
+```
+
+Живой тест — `/recover` шлёт письмо только существующему пользователю (если
+тестовой почты ещё нет в базе — заведи через `/auth/v1/signup` тем же
+способом или зарегистрируйся на сайте один раз; см. также грабли с
+`free_tier` Unisender ниже — до верификации домена сработает только на уже
+проверенный тестовый адрес):
 
 ```bash
 curl -X POST https://api.wedesignerz.com/auth/v1/recover \
@@ -319,12 +362,46 @@ curl -X POST https://api.wedesignerz.com/auth/v1/recover \
   -d '{"email":"<твоя личная почта для теста>"}'
 ```
 
-Проверка: письмо пришло (папка «Входящие», проверь и «Спам»). Если нет — 
-`docker compose logs auth | grep -i smtp` покажет ошибку соединения/логина.
+Проверка: письмо пришло (папка «Входящие», проверь и «Спам»), ссылка в нём
+ведёт на `https://api.wedesignerz.com/auth/v1/verify?token=...&type=recovery&redirect_to=...`
+и по ней происходит вход. Если нет — `docker compose logs mail-bridge --tail=50`
+(там же видно `невалидная подпись` или ошибку Unisender без PII) и
+`docker compose logs auth | grep -i hook`.
+
+Невалидная подпись вебхука должна отбиваться 401 — проверить можно прямым
+curl на мост изнутри VPS (`docker compose exec auth wget -qO- --header "webhook-id: x" --header "webhook-timestamp: $(date +%s)" --header "webhook-signature: v1,AAAA" --post-data '{}' http://127.0.0.1:9998/`) — ожидаем `401` (живьём проверено 2026-07-14).
+
+**Грабли живого подъёма (2026-07-14), уже исправлены в репо:**
+- GoTrue валидирует `http://`-хуки ТОЛЬКО для хостов `localhost`/`127.0.0.1`/
+  `::1`/`host.docker.internal` (`internal/conf/configuration.go`,
+  `ValidateExtensibilityPoint`) — обычное имя сервиса вида
+  `http://mail-bridge:9998/` роняет `auth` при старте с фатальной ошибкой
+  `only localhost, 127.0.0.1, and ::1 are supported with http`. Поэтому
+  `mail-bridge` в `docker-compose.yml` поднят с `network_mode: service:auth`
+  (общий сетевой неймспейс с `auth`), а `GOTRUE_HOOK_SEND_EMAIL_URI` —
+  `http://127.0.0.1:9998/`. Именно `127.0.0.1`, не `localhost`: `/etc/hosts`
+  в образе резолвит `localhost` и в `127.0.0.1`, и в `::1`, а `server.mjs`
+  слушает только IPv4 — через `::1` было `connection refused`.
+- `server.mjs` по умолчанию ищет `../mail-templates` от своего расположения
+  (верно для локального запуска), но в контейнере оба bind-mount'а плоские
+  внутри `/app` — понадобился явный `MAIL_TEMPLATES_DIR: /app/mail-templates`
+  в `environment` сервиса `mail-bridge`.
+- **Unisender Go на тарифе `free_tier` шлёт письма ТОЛЬКО на «проверенные»
+  адреса/домены** (проверено живьём: `/recover` на `veteristema@gmail.com`
+  доставился, а `/signup` на новый адрес того же `gmail.com` упал с `403
+  ... 'free_tier' tariff it is allowed to send letters only to the
+  'checked' domains or 'checked' emails`). Это блокер не мостика, а самого
+  аккаунта Unisender — **до анонса обязательно поднять тариф или
+  верифицировать домен `mail.wedesignerz.com`** в кабинете Unisender Go,
+  иначе реальные пользователи (кроме проверенных тестовых адресов) вообще
+  не получат ни одного письма. Живой тест `/signup` на новый адрес до этого
+  момента невозможен — только `/recover` на уже одобренный адрес.
 
 **SPF/DKIM для `mail.wedesignerz.com`:** записи выдаёт кабинет Unisender Go
 (раздел «Домены отправки» → добавить домен → скопировать TXT-записи в DNS).
-Без этого письма будут падать в спам массово — сделать до анонса.
+Без этого письма будут падать в спам массово — сделать до анонса. Это же
+действие (верификация домена отправки), как правило, снимает и ограничение
+`free_tier` из пункта выше — сделать одним заходом в кабинет.
 
 ---
 
@@ -340,7 +417,9 @@ curl -X POST https://api.wedesignerz.com/auth/v1/recover \
 2. `python3 -m http.server 8080` → `http://localhost:8080/index.html`
 3. Пройти живьём:
    - [ ] Регистрация с новой почтой → письмо подтверждения → переход по
-     ссылке → вход
+     ссылке → вход (до верификации домена/тарифа в Unisender Go — см. шаг 6 —
+     письмо дойдёт только на заранее проверенный тестовый адрес, не на
+     произвольный новый)
    - [ ] Сабмит проекта с обязательной обложкой
    - [ ] Публикация в админке (нужен свой `role='admin'`:
      `docker compose exec db psql -U postgres -d postgres -c "update public.profiles set role='admin' where id='<uuid>';"`)

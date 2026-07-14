@@ -52,6 +52,9 @@ const secrets = {
   S3_PROTOCOL_ACCESS_KEY_SECRET: randomBytes(32).toString('hex'),
   UMAMI_DB_PASSWORD: randomBytes(16).toString('hex'),
   UMAMI_APP_SECRET: randomBytes(24).toString('base64'),
+  // standard-webhooks секрет для GoTrue send-email hook (T-LOC mail-bridge) —
+  // формат v1,whsec_<base64 32 байта>, см. infra/mail-bridge/server.mjs.
+  SEND_EMAIL_HOOK_SECRET: `v1,whsec_${randomBytes(32).toString('base64')}`,
 };
 
 console.log('# Сгенерированные секреты — вставь в infra/.env\n');

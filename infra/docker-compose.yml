@@ -141,12 +141,75 @@ services:
       # GoTrue умеет забирать шаблоны ТОЛЬКО по HTTP(S) (файловый путь молча
       # игнорируется с откатом на дефолтный английский шаблон), поэтому их
       # раздаёт Caddy: /mail-templates/* → ./mail-templates (см. Caddyfile).
+      # Эти GOTRUE_MAILER_TEMPLATES_*/SUBJECTS_* используются, только если
+      # send-email hook ниже недоступен/выключен (GoTrue делает on/off
+      # переключение через Hook.SendEmail.Enabled, SMTP-путь остаётся
+      # фолбэком в конфиге) — реально письма сейчас идут через hook →
+      # mail-bridge, потому что SMTP-порты Unisender Go недоступны с VPS
+      # (см. RUNBOOK.md, шаг 6, диагностика 2026-07-14).
       GOTRUE_MAILER_SUBJECTS_CONFIRMATION: ${MAILER_SUBJECTS_CONFIRMATION}
       GOTRUE_MAILER_TEMPLATES_CONFIRMATION: ${SUPABASE_PUBLIC_URL}/mail-templates/confirmation.html
       GOTRUE_MAILER_SUBJECTS_RECOVERY: ${MAILER_SUBJECTS_RECOVERY}
       GOTRUE_MAILER_TEMPLATES_RECOVERY: ${SUPABASE_PUBLIC_URL}/mail-templates/recovery.html
       GOTRUE_MAILER_SUBJECTS_EMAIL_CHANGE: ${MAILER_SUBJECTS_EMAIL_CHANGE}
       GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: ${SUPABASE_PUBLIC_URL}/mail-templates/email_change.html
+
+      # Send-email hook — обходит SMTP совсем (SMTP-порты Unisender Go
+      # недоступны по TCP с VPS, см. RUNBOOK.md шаг 6). GoTrue валидирует
+      # http://-хуки ТОЛЬКО для хостов localhost/127.0.0.1/::1/
+      # host.docker.internal (internal/conf/configuration.go,
+      # ValidateExtensibilityPoint) — обычное имя сервиса вида
+      # "http://mail-bridge:9998/" GoTrue при старте отклоняет
+      # (`only localhost, 127.0.0.1, and ::1 are supported with http`,
+      # проверено живьём). Поэтому mail-bridge ниже сидит в СЕТЕВОМ
+      # НЕЙМСПЕЙСЕ auth (network_mode: service:auth) — для auth это и есть
+      # 127.0.0.1:9998, наружу и на остальные сервисы (в т.ч. под именем
+      # "auth" для kong) это никак не влияет. Именно 127.0.0.1, не
+      # "localhost": /etc/hosts в образе резолвит localhost и в 127.0.0.1,
+      # и в ::1, а сервер в server.mjs слушает только IPv4 — через ::1
+      # запрос уходит в "connection refused" (поймано живьём).
+      GOTRUE_HOOK_SEND_EMAIL_ENABLED: "true"
+      GOTRUE_HOOK_SEND_EMAIL_URI: http://127.0.0.1:9998/
+      GOTRUE_HOOK_SEND_EMAIL_SECRETS: ${SEND_EMAIL_HOOK_SECRET}
+
+  mail-bridge:
+    # Мост GoTrue send-email hook → Unisender Go Web API (RUNBOOK.md шаг 6).
+    # Без Dockerfile: голый node:22-alpine + bind-mount server.mjs. Только
+    # stdlib (fetch встроен в Node 18+) — см. комментарий в server.mjs.
+    # network_mode: service:auth — см. комментарий у GOTRUE_HOOK_SEND_EMAIL_URI
+    # выше. Порт 9998 не публикуется НИКУДА (ни на хост, ни на docker-сеть
+    # под собственным именем) — виден только auth через loopback общего
+    # неймспейса. depends_on не нужен: network_mode: service:auth сам
+    # заставляет Compose поднять auth первым.
+    container_name: vibeclub-mail-bridge
+    image: node:22.17.0-alpine
+    restart: unless-stopped
+    network_mode: "service:auth"
+    command: ["node", "/app/server.mjs"]
+    volumes:
+      - ./mail-bridge/server.mjs:/app/server.mjs:ro,z
+      - ./mail-templates:/app/mail-templates:ro,z
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9998/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    environment:
+      PORT: 9998
+      # server.mjs по умолчанию ищет шаблоны в ../mail-templates от своего
+      # расположения (верно для локального запуска из infra/mail-bridge/) —
+      # в контейнере же оба bind-mount'а плоские внутри /app, путь другой.
+      MAIL_TEMPLATES_DIR: /app/mail-templates
+      SEND_EMAIL_HOOK_SECRET: ${SEND_EMAIL_HOOK_SECRET}
+      UNISENDER_API_URL: ${UNISENDER_API_URL}
+      UNISENDER_API_KEY: ${UNISENDER_API_KEY}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+      API_EXTERNAL_BASE: ${API_EXTERNAL_BASE}
+      MAILER_SUBJECTS_CONFIRMATION: ${MAILER_SUBJECTS_CONFIRMATION}
+      MAILER_SUBJECTS_RECOVERY: ${MAILER_SUBJECTS_RECOVERY}
+      MAILER_SUBJECTS_EMAIL_CHANGE: ${MAILER_SUBJECTS_EMAIL_CHANGE}
 
   rest:
     container_name: vibeclub-rest
