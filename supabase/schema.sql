@@ -196,6 +196,10 @@ as $$
 declare
   pid uuid := coalesce(new.project_id, old.project_id);
 begin
+  -- Транзакционный флаг: разрешает protect_privileged_columns менять
+  -- projects.upvotes именно из этого доверенного триггера. Прямой UPDATE
+  -- upvotes из браузера флага не ставит и будет отбит (SEC-02).
+  perform set_config('app.upvote_sync', 'on', true);
   update public.projects
     set upvotes = (select count(*) from public.project_upvotes where project_id = pid)
     where id = pid;
@@ -233,12 +237,45 @@ begin
     if new.role is distinct from old.role and not public.is_admin() then
       raise exception 'role can only be changed by an admin';
     end if;
+    -- Служебное поле: клиент не должен переписывать дату создания (SEC-11).
+    if new.created_at is distinct from old.created_at then
+      raise exception 'created_at is immutable';
+    end if;
   elsif tg_table_name = 'projects' then
     if new.is_core is distinct from old.is_core and not public.is_admin() then
       raise exception 'is_core can only be changed by an admin';
     end if;
     if new.status is distinct from old.status and not public.is_admin() then
       raise exception 'status can only be changed by an admin';
+    end if;
+    -- upvotes меняет только доверенный триггер sync_project_upvotes, который
+    -- выставляет транзакционный флаг app.upvote_sync. Прямая накрутка из REST
+    -- отбивается (SEC-02).
+    if new.upvotes is distinct from old.upvotes
+       and current_setting('app.upvote_sync', true) is distinct from 'on' then
+      raise exception 'upvotes can only be changed via project_upvotes';
+    end if;
+    -- Неизменяемые служебные поля (SEC-11).
+    if new.created_at is distinct from old.created_at then
+      raise exception 'created_at is immutable';
+    end if;
+    if new.author_id is distinct from old.author_id then
+      raise exception 'author_id is immutable';
+    end if;
+  elsif tg_table_name = 'comments' then
+    -- Автор правит только текст своего комментария. Перепривязку к другому
+    -- проекту, смену автора/даты и статус (модерация) блокируем (SEC-11).
+    if new.project_id is distinct from old.project_id then
+      raise exception 'project_id is immutable';
+    end if;
+    if new.author_id is distinct from old.author_id then
+      raise exception 'author_id is immutable';
+    end if;
+    if new.created_at is distinct from old.created_at then
+      raise exception 'created_at is immutable';
+    end if;
+    if new.status is distinct from old.status and not public.is_admin() then
+      raise exception 'comment status can only be changed by an admin';
     end if;
   end if;
 
@@ -254,6 +291,11 @@ create trigger trg_protect_profiles_role
 drop trigger if exists trg_protect_projects_is_core on public.projects;
 create trigger trg_protect_projects_is_core
   before update on public.projects
+  for each row execute function public.protect_privileged_columns();
+
+drop trigger if exists trg_protect_comments on public.comments;
+create trigger trg_protect_comments
+  before update on public.comments
   for each row execute function public.protect_privileged_columns();
 
 -- ---------- Cooldown на комментарии (T18, антиспам) ----------
@@ -304,10 +346,13 @@ create trigger trg_comment_cooldown
 -- работать — EXECUTE проверяется у владельца триггера, не у вызывающего.
 -- is_admin() НЕ трогаем: вызывается в RLS-политиках от имени запрашивающего
 -- пользователя, revoke сломает админские политики.
-revoke execute on function public.handle_new_user() from anon, authenticated;
-revoke execute on function public.protect_privileged_columns() from anon, authenticated;
-revoke execute on function public.sync_project_upvotes() from anon, authenticated;
-revoke execute on function public.enforce_comment_cooldown() from anon, authenticated;
+-- SEC-03: revoke и от PUBLIC тоже. Default privileges выдают EXECUTE роли
+-- PUBLIC, поэтому revoke только у anon/authenticated не закрывает вызов через
+-- PostgREST. is_admin() намеренно не трогаем (вызывается в RLS-политиках).
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.protect_privileged_columns() from public, anon, authenticated;
+revoke execute on function public.sync_project_upvotes() from public, anon, authenticated;
+revoke execute on function public.enforce_comment_cooldown() from public, anon, authenticated;
 
 -- =============================================================================
 -- RLS — ВКЛЮЧЕНИЕ
@@ -438,14 +483,20 @@ create policy feedback_update_admin on public.feedback
 -- =============================================================================
 -- STORAGE — bucket для обложек
 -- =============================================================================
-insert into storage.buckets (id, name, public)
-values ('covers', 'covers', true)
-on conflict (id) do nothing;
+-- SEC-04: серверные лимиты на bucket (браузерная проверка обходится прямым API).
+-- Тип — только изображения, размер — 10 МБ. on conflict обновляет уже созданный.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('covers', 'covers', true, 10485760,
+        array['image/jpeg','image/png','image/webp'])
+on conflict (id) do update
+  set public             = excluded.public,
+      file_size_limit    = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
 
--- Читать обложки может кто угодно (bucket публичный)
+-- SEC-18: НЕ даём anon SELECT-политику — иначе список объектов bucket утекает
+-- через storage API. Публичный bucket всё равно отдаёт файлы по прямому URL без
+-- SELECT-политики, поэтому обложки продолжают грузиться, а листинг закрыт.
 drop policy if exists covers_read on storage.objects;
-create policy covers_read on storage.objects
-  for select using (bucket_id = 'covers');
 
 -- Загружать/менять/удалять — только авторизованные, в своей папке (первый сегмент = uid)
 drop policy if exists covers_insert_auth on storage.objects;

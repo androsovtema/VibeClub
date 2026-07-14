@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 /**
- * Проверка RLS-защиты привилегированных колонок (T-SEC1).
- * Логинится ОБЫЧНОЙ (не-admin) учёткой и пробует две атаки:
+ * Проверка RLS-защиты привилегированных колонок (T-SEC1, аудит 2026-07-14).
+ * Логинится ОБЫЧНОЙ (не-admin) учёткой и пробует атаки:
  *   1) выставить себе role='admin'
  *   2) выставить себе is_core=true на своём pending-проекте
- * Обе должны отбиться. Если проходят — миграция не применена или сломана.
+ *   3) накрутить projects.upvotes прямым PATCH (SEC-02)
+ *   4) подменить projects.created_at (SEC-11)
+ *   5) анонимно получить листинг bucket covers (SEC-18)
+ * Все должны отбиться. Если проходят — миграция не применена или сломана.
  *
  * Запуск:
  *   node scripts/security-check.mjs you@example.com твой_пароль
@@ -117,10 +120,57 @@ if (proj) {
   } else {
     bad(`PATCH прошёл (HTTP ${core.status}), is_core=${coreAfter}`);
   }
+  // --- Атака 3: накрутка upvotes прямым PATCH (SEC-02) ---
+  console.log('\nАтака 3 — накрутка projects.upvotes прямым PATCH:');
+  const up = await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}`, {
+    method: 'PATCH', headers: { ...authed, Prefer: 'return=representation' },
+    body: JSON.stringify({ upvotes: 9999 })
+  });
+  const upBody = await up.json().catch(() => null);
+  const upAfter = (await (await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}&select=upvotes`, { headers: authed })).json())[0]?.upvotes;
+  if (upAfter === 9999) {
+    bad(`ДЫРА: upvotes стал 9999 (HTTP ${up.status}). Триггер не защищает счётчик!`);
+  } else if (!up.ok) {
+    ok(`отбито (HTTP ${up.status}: ${upBody?.message || 'ошибка'}), upvotes остался ${upAfter}`);
+  } else {
+    bad(`PATCH прошёл (HTTP ${up.status}), upvotes=${upAfter} — проверь вручную`);
+  }
+
+  // --- Атака 4: подмена created_at (SEC-11) ---
+  console.log('\nАтака 4 — подмена projects.created_at:');
+  const fake = '2000-01-01T00:00:00Z';
+  const ca = await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}`, {
+    method: 'PATCH', headers: { ...authed, Prefer: 'return=representation' },
+    body: JSON.stringify({ created_at: fake })
+  });
+  const caBody = await ca.json().catch(() => null);
+  const caAfter = (await (await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}&select=created_at`, { headers: authed })).json())[0]?.created_at;
+  if (caAfter && new Date(caAfter).getFullYear() === 2000) {
+    bad(`ДЫРА: created_at переписан на ${caAfter} (HTTP ${ca.status})`);
+  } else if (!ca.ok) {
+    ok(`отбито (HTTP ${ca.status}: ${caBody?.message || 'ошибка'})`);
+  } else {
+    bad(`PATCH прошёл (HTTP ${ca.status}), created_at=${caAfter} — проверь вручную`);
+  }
+
   // убираем временный проект
   if (temp) {
     await fetch(`${URL}/rest/v1/projects?id=eq.${proj.id}`, { method: 'DELETE', headers: authed });
   }
+}
+
+// --- Атака 5: анонимный листинг объектов storage (SEC-18) ---
+console.log('\nАтака 5 — анонимный листинг bucket covers:');
+const listRes = await fetch(`${URL}/storage/v1/object/list/covers`, {
+  method: 'POST', headers: base, body: JSON.stringify({ prefix: '', limit: 100 })
+});
+const listBody = await listRes.json().catch(() => null);
+if (listRes.ok && Array.isArray(listBody) && listBody.length > 0) {
+  bad(`ДЫРА: аноним получил список ${listBody.length} объектов (HTTP ${listRes.status})`);
+} else if (listRes.ok && Array.isArray(listBody) && listBody.length === 0) {
+  ok(`листинг вернул пусто (HTTP ${listRes.status}) — SELECT-политика закрыта`);
+} else {
+  ok(`отбито (HTTP ${listRes.status})`);
 }
 
 // --- Контроль: обычное редактирование профиля должно РАБОТАТЬ ---

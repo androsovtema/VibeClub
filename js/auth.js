@@ -3,14 +3,29 @@
  * Google не используем (заблокирован в РФ). service_role нигде не используется.
  */
 import { supabase } from './supabase.js';
+import { getCaptchaToken } from './captcha.js';
+
+// Turnstile может не отдать токен (блокировщик, offline, отказ челленджа).
+// Возвращаем ошибку в форме Supabase ({ data, error }), а не кидаем исключение:
+// вызывающие формы ждут именно такой контракт, иначе повиснут в setLoading(true).
+async function captcha() {
+  try {
+    return { token: await getCaptchaToken() };
+  } catch {
+    return { error: { code: 'captcha_failed', message: 'captcha challenge failed' } };
+  }
+}
 
 export async function signUpEmailPassword(email, password, displayName) {
+  const { token: captchaToken, error } = await captcha();
+  if (error) return { data: null, error };
   return supabase.auth.signUp({
     email,
     password,
     options: {
       data: { display_name: displayName },
-      emailRedirectTo: window.location.origin + window.location.pathname
+      emailRedirectTo: window.location.origin + window.location.pathname,
+      captchaToken
     }
   });
 }
@@ -22,18 +37,24 @@ export function isExistingUser(data) {
 }
 
 export async function resendSignupEmail(email) {
+  const { token: captchaToken, error } = await captcha();
+  if (error) return { data: null, error };
   return supabase.auth.resend({
     type: 'signup',
     email,
     options: {
-      emailRedirectTo: window.location.origin + window.location.pathname
+      emailRedirectTo: window.location.origin + window.location.pathname,
+      captchaToken
     }
   });
 }
 
 export async function resetPasswordForEmail(email) {
+  const { token: captchaToken, error } = await captcha();
+  if (error) return { data: null, error };
   return supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname
+    redirectTo: window.location.origin + window.location.pathname,
+    captchaToken
   });
 }
 
@@ -42,14 +63,19 @@ export async function updatePassword(password) {
 }
 
 export async function signInEmailPassword(email, password) {
-  return supabase.auth.signInWithPassword({ email, password });
+  const { token: captchaToken, error } = await captcha();
+  if (error) return { data: null, error };
+  return supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
 }
 
 export async function signInMagicLink(email) {
+  const { token: captchaToken, error } = await captcha();
+  if (error) return { data: null, error };
   return supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.origin + window.location.pathname
+      emailRedirectTo: window.location.origin + window.location.pathname,
+      captchaToken
     }
   });
 }

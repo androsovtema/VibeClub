@@ -64,7 +64,8 @@ export const ru = {
   'auth.error.invalid_credentials': 'Неверная почта или пароль.',
   'auth.error.user_exists': 'Эта почта уже зарегистрирована. Попробуй войти.',
   'auth.error.user_exists_signin': 'Эта почта уже в клубе. Войди — или восстанови пароль.',
-  'auth.error.weak_password': 'Пароль слишком короткий — минимум 6 символов.',
+  'auth.error.weak_password': 'Пароль слишком короткий — минимум 12 символов.',
+  'auth.error.captcha_failed': 'Не удалось пройти проверку «я не робот». Обнови страницу и попробуй ещё раз. Если не помогает — отключи блокировщик рекламы.',
   'auth.error.invalid_email': 'Проверь адрес почты — что-то не так с форматом.',
   'auth.error.email_not_confirmed': 'Почта ещё не подтверждена — проверь письмо со ссылкой.',
   'auth.error.rate_limit': 'Слишком часто. Подожди пару минут и попробуй снова.',
@@ -368,7 +369,8 @@ const CODE_MAP = {
   email_not_confirmed: 'auth.error.email_not_confirmed',
   same_password: 'auth.error.same_password',
   over_email_send_rate_limit: 'auth.error.rate_limit',
-  over_request_rate_limit: 'auth.error.rate_limit'
+  over_request_rate_limit: 'auth.error.rate_limit',
+  captcha_failed: 'auth.error.captcha_failed'
 };
 
 const MESSAGE_MAP = [
