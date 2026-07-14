@@ -2,13 +2,30 @@
 # Caddy сам получает и обновляет сертификаты Let's Encrypt (ACME HTTP-01),
 # нужны только A-записи api.wedesignerz.com и stats.wedesignerz.com → IP VPS
 # (см. RUNBOOK.md, шаг 1) и открытые 80/443 в ufw.
-
 {
 	email veteristema@gmail.com
+	# Не отдавать наружу «Server: Caddy» — на одну зацепку меньше при фингерпринте.
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+# Общий набор security-заголовков для обоих доменов.
+(security_headers) {
+	header {
+		# HSTS: браузер год ходит только по HTTPS (кэш ACME уже валиден).
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Не давать угадывать MIME и встраивать в чужие фреймы.
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
 }
 
 api.wedesignerz.com {
 	encode gzip
+	import security_headers
 
 	# Шаблоны писем для GoTrue: GOTRUE_MAILER_TEMPLATES_* принимает только
 	# HTTP(S)-URL (файловый путь GoTrue не читает), поэтому Caddy раздаёт
@@ -24,6 +41,7 @@ api.wedesignerz.com {
 }
 
 stats.wedesignerz.com {
-	reverse_proxy umami:3000
 	encode gzip
+	import security_headers
+	reverse_proxy umami:3000
 }

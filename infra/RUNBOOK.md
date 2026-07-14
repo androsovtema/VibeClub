@@ -371,8 +371,10 @@ export const UMAMI_WEBSITE_ID = '<id сайта из self-host Umami>';
 ```
 
 `UMAMI_WEBSITE_ID` self-host — зайти на `https://stats.wedesignerz.com`,
-логин `admin` / пароль по умолчанию `umami` (сменить сразу в настройках),
-добавить сайт `wedesignerz.com`, скопировать его id.
+логин `admin`, пароль — тот, что задан при аудите безопасности (лежит в
+менеджере паролей Тёмы, НЕ дефолтный `umami`: он сменён сразу после подъёма,
+см. `docs/15-security-hardening.md`), добавить сайт `wedesignerz.com`,
+скопировать его id.
 
 ```bash
 git add js/config.js
