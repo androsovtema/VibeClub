@@ -9,15 +9,24 @@
 # Крон (см. RUNBOOK.md, шаг 9):
 #   0 3 * * * /root/vibeclub/scripts/backup.sh >> /var/log/vibeclub-backup.log 2>&1
 #
-# Нужен: aws CLI на хосте (apt install awscli ИЛИ pip install awscli),
-# infra/.env с BACKUP_S3_*.
+# Нужен: aws CLI v2 на хосте (в Ubuntu 24.04 apt-пакета awscli больше нет;
+# ставится официальным бинарём:
+#   curl -sfSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+#   cd /tmp && unzip -q awscliv2.zip && ./aws/install
+# ), infra/.env с BACKUP_S3_*.
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."   # -> infra/
-set -a
-source .env
-set +a
+
+# Не source: в .env есть значения с пробелами (темы писем) — bash на них
+# падает. Читаем только нужные переменные.
+env_get() { grep "^$1=" .env | head -1 | cut -d= -f2-; }
+BACKUP_S3_ENDPOINT=$(env_get BACKUP_S3_ENDPOINT)
+BACKUP_S3_BUCKET=$(env_get BACKUP_S3_BUCKET)
+BACKUP_S3_ACCESS_KEY=$(env_get BACKUP_S3_ACCESS_KEY)
+BACKUP_S3_SECRET_KEY=$(env_get BACKUP_S3_SECRET_KEY)
+BACKUP_S3_REGION=$(env_get BACKUP_S3_REGION)
 
 export AWS_ACCESS_KEY_ID="$BACKUP_S3_ACCESS_KEY"
 export AWS_SECRET_ACCESS_KEY="$BACKUP_S3_SECRET_KEY"
