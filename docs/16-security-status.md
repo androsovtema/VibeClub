@@ -81,7 +81,7 @@ leaked-password (см. Важные факты, п.3).
 |---|---|---|
 | SEC-05 | `feedback_insert_anyone` пускала `anon` — спам прямым REST в обход JS-honeypot | Политика заменена на `feedback_insert_auth` (`to authenticated`, `user_id = auth.uid()`). Применено к **обеим** базам (cloud `apply_migration` + self-hosted psql), проверено: аноним → 401. Миграция: `supabase/migrations/2026-07-14-sec-05-feedback-authenticated.sql`. Фронт: модалка гостю показывает «войди» + кнопку входа (`js/ui/feedbackModal.js`), `security-check.mjs` — атака 6 |
 | SEC-07 (регресс) | **Вендорный bundle с `dd1db44` был нерабочим**: esm.sh-сборка импортирует `/node/process.mjs`, `/node/buffer.mjs` — на нашем хосте 404, все Supabase-фичи на живом сайте падали | Bundle пересобран **esbuild'ом** в самодостаточный ESM (без внешних импортов), проверен в браузере живым запросом к cloud-базе. **Обновление версии — только esbuild-сборкой, esm.sh не годится** (кладёт абсолютные импорты полифиллов) |
-| SEC-10 (частично) | Turnstile 110200 на github.io (Public Suffix List) | Клуб переехал на `wedesignerz.com` (custom domain переставлен wdcom → VibeClub, DNS не менялся, 301 со старого адреса). Токен Turnstile на живом домене **получается**. Остался переключатель в Supabase — Тёма |
+| SEC-10 (частично) | Turnstile 110200 на github.io (Public Suffix List) | Клуб переехал на `wedesignerz.com` (custom domain переставлен wdcom → VibeClub, DNS не менялся, 301 со старого адреса). Токен Turnstile на живом домене **получается**. Переключатель включён Тёмой в тот же день, принуждение проверено с обеих сторон — **SEC-10 закрыт** |
 
 ### SEC-01 — GitHub-токен (был P0)
 
@@ -96,19 +96,12 @@ Remote переведён на чистый `https://github.com/androsovtema/Vib
 
 ### 🟡 Приоритет 2
 
-- **SEC-10 — капча: остался ТОЛЬКО переключатель (Тёма).** Домен переехал,
-  блокер 110200 снят: получение Turnstile-токена **проверено живьём на
-  `wedesignerz.com`** (токен выдаётся, 816 символов). Код давно задеплоен
-  (`js/captcha.js`, site key `0x4AAAAAAD1s8mvl49yX42qW`, `interaction-only`),
-  подключён к signup / signin / magic-link / reset в `js/auth.js`.
-  Осталось Тёме: Supabase Dashboard → Auth → Attack Protection → включить
-  CAPTCHA (Turnstile, secret из Cloudflare). После включения проверить вход
-  на живом сайте.
-- **⚠️ После переезда домена Тёме также нужно:** Supabase Dashboard → Auth →
-  URL Configuration: Site URL → `https://wedesignerz.com`, в Redirect URLs
-  добавить `https://wedesignerz.com/*` (старый `androsovtema.github.io` можно
-  оставить на переходный период). Пока этого нет, письма (magic-link,
-  подтверждение) могут редиректить на старый адрес.
+- **SEC-10 — ЗАКРЫТ (2026-07-14).** Тёма включил переключатель CAPTCHA и
+  обновил Auth URL Configuration. Проверено живьём на `wedesignerz.com`:
+  логин с токеном → `invalid_credentials` (запрос дошёл до GoTrue), прямой
+  REST без токена → `captcha_failed` (капча реально принуждается).
+  ⚠️ Следствие: `security-check.mjs` больше не может логиниться паролем —
+  передавать готовый JWT: `WDZ_TEST_JWT=<access_token> node scripts/security-check.mjs`.
 
 ### 🟢 Приоритет 3
 

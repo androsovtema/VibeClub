@@ -38,7 +38,7 @@ if (!URL || !ANON) {
 const email = process.argv[2] || process.env.WDZ_TEST_EMAIL;
 const password = process.argv[3] || process.env.WDZ_TEST_PASSWORD;
 
-if (!email || !password) {
+if (!process.env.WDZ_TEST_JWT && (!email || !password)) {
   console.error('Использование: node scripts/security-check.mjs <email> <пароль>');
   console.error('Учётка — обычная (member), НЕ админская. Заведи тестовую через сайт.');
   process.exit(2);
@@ -51,18 +51,36 @@ const ok = (m) => { console.log(`  ✓ ${m}`); pass++; };
 const bad = (m) => { console.log(`  ✗ ${m}`); fail++; };
 
 // --- 1. логин, получаем JWT ---
-const authRes = await fetch(`${URL}/auth/v1/token?grant_type=password`, {
-  method: 'POST', headers: base, body: JSON.stringify({ email, password })
-});
-const auth = await authRes.json();
-if (!authRes.ok || !auth.access_token) {
-  console.error('✗ Логин не удался:', auth.error_description || auth.msg || authRes.status);
-  console.error('  Проверь email/пароль и что почта подтверждена.');
-  process.exit(2);
+// SEC-10: в проде включена капча Turnstile — парольный логин из скрипта отбивается
+// кодом captcha_failed. Обход для проверки: передать готовый JWT сессии через env
+// WDZ_TEST_JWT (взять в браузере: залогиниться тестовой учёткой →
+// localStorage['sb-<ref>-auth-token'] → поле access_token).
+let uid;
+let accessToken = process.env.WDZ_TEST_JWT;
+if (accessToken) {
+  const payload = JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64url').toString());
+  uid = payload.sub;
+  console.log('\nИспользую JWT из WDZ_TEST_JWT');
+} else {
+  const authRes = await fetch(`${URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST', headers: base, body: JSON.stringify({ email, password })
+  });
+  const auth = await authRes.json();
+  if (auth.error_code === 'captcha_failed') {
+    console.error('✗ Логин отбит капчей (SEC-10 включён) — это норма для прода.');
+    console.error('  Передай готовый JWT сессии: WDZ_TEST_JWT=<access_token> node scripts/security-check.mjs');
+    process.exit(2);
+  }
+  if (!authRes.ok || !auth.access_token) {
+    console.error('✗ Логин не удался:', auth.error_description || auth.msg || authRes.status);
+    console.error('  Проверь email/пароль и что почта подтверждена.');
+    process.exit(2);
+  }
+  uid = auth.user.id;
+  accessToken = auth.access_token;
 }
-const uid = auth.user.id;
-const authed = { ...base, Authorization: `Bearer ${auth.access_token}` };
-console.log(`\nВошёл как ${email} (uid ${uid.slice(0, 8)}…)\n`);
+const authed = { ...base, Authorization: `Bearer ${accessToken}` };
+console.log(`\nВошёл как ${email || 'JWT-учётка'} (uid ${uid.slice(0, 8)}…)\n`);
 
 // проверим, что учётка НЕ админская — иначе тест невалиден
 const meRes = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}&select=role`, { headers: authed });
