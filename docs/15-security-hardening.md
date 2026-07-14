@@ -13,6 +13,14 @@
 > пользователь с паролем сразу окажется под брутфорсом.
 > Статус и план исправления — `16-security-status.md` (SEC-09).
 > **Проверять только через `sshd -T`, а не чтением конфигов.**
+>
+> ✅ **ИСПРАВЛЕНО 2026-07-14 (вечерняя сессия).** Добавлен
+> `/etc/ssh/sshd_config.d/00-hardening.conf` (сортируется раньше
+> `50-cloud-init.conf`, поэтому его значения выигрывают): `PasswordAuthentication no`,
+> `PermitRootLogin prohibit-password`, `KbdInteractiveAuthentication no`.
+> Проверено через `sshd -T` → `passwordauthentication no`; новая сессия по ключу
+> работает. Установлен и запущен **fail2ban** (jail `sshd`, backend systemd,
+> 5 попыток / 10 мин → бан на час) — первый IP забанен в первые же минуты.
 
 ## Критичное — исправлено сразу
 

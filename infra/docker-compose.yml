@@ -24,7 +24,7 @@ services:
 
   db:
     container_name: vibeclub-db
-    image: supabase/postgres:17.6.1.136
+    image: supabase/postgres:17.6.1.144@sha256:446705834e4366ec908d424f017b3cc0b201547d8c7085235838c76a10c5baf5
     restart: unless-stopped
     volumes:
       # Роли и JWT-настройки — минимальный набор init-скриптов официального
@@ -61,7 +61,7 @@ services:
 
   kong:
     container_name: vibeclub-kong
-    image: kong/kong:3.9.1
+    image: kong/kong:3.9.3@sha256:9a2ae6699a2ce0d60592eb176555d3594a22782c20cc6557a61ff3a7e8b559a3
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "kong", "health"]
@@ -89,7 +89,7 @@ services:
 
   auth:
     container_name: vibeclub-auth
-    image: supabase/gotrue:v2.189.0
+    image: supabase/gotrue:v2.193.0@sha256:ac6d4b1e961ae5a1a24d283967485f8195b767a8476e1044959d7a250c2da3f0
     restart: unless-stopped
     depends_on:
       db:
@@ -182,7 +182,7 @@ services:
     # неймспейса. depends_on не нужен: network_mode: service:auth сам
     # заставляет Compose поднять auth первым.
     container_name: vibeclub-mail-bridge
-    image: node:22.17.0-alpine
+    image: node:22.23.1-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
     restart: unless-stopped
     network_mode: "service:auth"
     command: ["node", "/app/server.mjs"]
@@ -213,7 +213,7 @@ services:
 
   rest:
     container_name: vibeclub-rest
-    image: postgrest/postgrest:v14.12
+    image: postgrest/postgrest:v14.15@sha256:2f8e7b656f09db697a8875177694b417b35cb76c21370de07fc54e711e902326
     restart: unless-stopped
     depends_on:
       db:
@@ -240,7 +240,7 @@ services:
 
   storage:
     container_name: vibeclub-storage
-    image: supabase/storage-api:v1.60.4
+    image: supabase/storage-api:v1.66.2@sha256:795b5b493fe4d57809165d50346f271182fb288f7ea9279e9f16aab1b81a8c59
     restart: unless-stopped
     depends_on:
       db:
@@ -278,7 +278,7 @@ services:
 
   imgproxy:
     container_name: vibeclub-imgproxy
-    image: darthsim/imgproxy:v3.30.1
+    image: darthsim/imgproxy:v3.31.4@sha256:73c5dda13199745b0d2d00e4149d4a589c5b2e205dbf335ca05eca8276b54712
     restart: unless-stopped
     volumes:
       - ./volumes/storage:/var/lib/storage:z
@@ -298,7 +298,7 @@ services:
     # Не проксируется через kong/Caddy — только для будущего локального Studio
     # за ssh-туннелем (docker compose exec / port-forward, не публичный доступ).
     container_name: vibeclub-meta
-    image: supabase/postgres-meta:v0.96.6
+    image: supabase/postgres-meta:v0.96.6@sha256:a84cc713585eea7b401e4a2561ec4a1e48c87083d1c7ecb4502f204bb4391300
     restart: unless-stopped
     depends_on:
       db:
@@ -316,7 +316,7 @@ services:
     container_name: vibeclub-umami
     # Тег обязательно postgresql-* (вариант под Postgres); v3 у Umami нет,
     # актуальная ветка — 2.x (проверено по ghcr.io/v2/.../tags/list).
-    image: ghcr.io/umami-software/umami:postgresql-v2.20.2
+    image: ghcr.io/umami-software/umami:postgresql-v2.20.2@sha256:950133e4158949061b84fa29ce1a87f734655dca5a49a08e727eb23c4e3582cd
     restart: unless-stopped
     depends_on:
       db:
@@ -339,7 +339,7 @@ services:
     # Единственный сервис с портами наружу — TLS-терминация + reverse proxy.
     # Сертификаты Let's Encrypt получает и обновляет сам (ACME HTTP-01).
     container_name: vibeclub-caddy
-    image: caddy:2.10.0-alpine
+    image: caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
     restart: unless-stopped
     depends_on:
       kong:
