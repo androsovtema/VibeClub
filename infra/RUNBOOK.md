@@ -4,10 +4,10 @@
 что делать при ошибке. Идёшь сверху вниз, не пропуская чекбоксы.
 
 **Пререквизиты (должны быть готовы ДО начала):**
-- [ ] VPS куплен (Timeweb Cloud, Ubuntu 22.04+, ≥4 ГБ RAM / 2 vCPU / ≥50 ГБ NVMe)
-- [ ] A-записи в DNS: `api.wedesignerz.com` → IP VPS, `stats.wedesignerz.com` → IP VPS
-- [ ] Аккаунт Unisender Go заведён, SMTP-креды под рукой
-- [ ] Бакет S3-совместимого хранилища Timeweb создан, ключи доступа получены
+- [x] VPS куплен (Timeweb Cloud, Ubuntu 22.04+, ≥4 ГБ RAM / 2 vCPU / ≥50 ГБ NVMe)
+- [x] A-записи в DNS: `api.wedesignerz.com` → IP VPS, `stats.wedesignerz.com` → IP VPS
+- [x] Аккаунт Unisender Go на платном тарифе заведён, Web API работает
+- [x] Бакет S3-совместимого хранилища Timeweb создан, ключи доступа получены
 
 Не переключай прод (шаг 8), пока шаг 7 не пройден целиком и зелёным.
 
@@ -34,10 +34,13 @@ node scripts/gen-keys.mjs --update-env
 ### 1.2 Дозаполнить `.env` руками
 
 Открой `infra/.env`, впиши:
-- `SMTP_USER` / `SMTP_PASS` — из кабинета Unisender Go
+- `UNISENDER_API_KEY` — из кабинета Unisender Go; это рабочий путь отправки
+  через `mail-bridge` (шаг 6);
+- `SMTP_USER` / `SMTP_PASS` — можно сохранить как fallback-конфиг GoTrue, но
+  при включённом send-email hook он не используется;
 - `BACKUP_S3_BUCKET` / `BACKUP_S3_ACCESS_KEY` / `BACKUP_S3_SECRET_KEY` — из кабинета Timeweb
-- Сверь `SMTP_HOST`/`SMTP_PORT` в кабинете Unisender Go (дефолт в файле —
-  `smtp.unisender.com:587`, но перепроверь, могло измениться)
+- `CAPTCHA_SECRET` — Turnstile secret из Cloudflare (добавляется в
+  T-CUTOVER-01; никогда не вставлять его в репозиторий).
 
 ### 1.3 Подключиться к VPS и поставить Docker
 
@@ -202,9 +205,81 @@ storage.buckets ...`) — второй раз ничего создавать н
 
 ---
 
+## Шаг 3.5 — prod-конфиг self-hosted (T-CUTOVER, до переноса данных)
+
+Добавлен по внешнему аудиту 2026-07-14 (задача **T-CUTOVER** в
+`docs/04-tasks-sonnet.md`). Без этого шага cutover ломает прод.
+
+**Статус 2026-07-14: выполнено на VPS.** Compose валиден, `auth` и
+`mail-bridge` healthy, `SITE_URL` корректен, Turnstile принуждается, пароль
+минимум 12. Локальный CSP подготовлен, но ещё не задеплоен.
+
+1. **`infra/.env` на сервере:**
+   - `SITE_URL=https://wedesignerz.com` (не доверять локальной копии `.env`:
+     проверить фактическое значение на VPS, иначе ссылки в письмах поведут не туда);
+   - добавить `CAPTCHA_SECRET=<Turnstile secret key>` из Cloudflare Turnstile.
+2. **`docker-compose.yml`** (правится в репо, копируется на VPS): в сервис
+   auth — серверная капча и минимальная длина пароля:
+   ```yaml
+   GOTRUE_SECURITY_CAPTCHA_ENABLED: "true"
+   GOTRUE_SECURITY_CAPTCHA_PROVIDER: turnstile
+   GOTRUE_SECURITY_CAPTCHA_SECRET: ${CAPTCHA_SECRET}
+   GOTRUE_PASSWORD_MIN_LENGTH: "12"
+   ```
+   Затем `docker compose up -d auth` (пересоздать контейнер).
+3. **CSP на всех 18 HTML** (коммит в репо, деплой ДО cutover — безопасно,
+   CSP допускает несколько источников): в `connect-src` добавить
+   `https://api.wedesignerz.com wss://api.wedesignerz.com
+   https://stats.wedesignerz.com`; в `script-src` —
+   `https://stats.wedesignerz.com`. Старый cloud-хост убрать отдельным
+   коммитом только ПОСЛЕ успешного шага 8.
+4. **Шаблоны писем**: проверить тексты и ссылки во всех
+   `infra/mail-templates/*.html`; в проде не должно остаться TODO и тестовых
+   адресов.
+
+Проверка: Kong требует `apikey`, поэтому голый health закономерно отдаёт 401;
+с заголовком `apikey: <ANON_KEY>` URL
+`https://api.wedesignerz.com/auth/v1/health` отдаёт 200. После пересоздания
+auth signup без captcha-токена напрямую в REST отбивается `captcha_failed`.
+
+---
+
 ## Шаг 4 — перенос данных
 
-### 4.1 Дамп схемы `public` + `auth` из Cloud
+**Freeze-окно.** Между дампом (4.1) и переключением фронта (шаг 8) любые записи
+в cloud-базу потеряются. Поэтому шаги 4 → 8 выполнять **одним заходом**
+(данных мало — реально уложиться в 30–60 минут), в тихое время (ночь), и на
+время окна включить заморозку записи:
+
+- Cloud Dashboard → Authentication → Sign In / Up → **Disable new sign ups**
+  (блокирует новые регистрации);
+- заранее попросить трёх текущих участников не пользоваться сайтом в течение
+  окна. **Disable new sign ups не блокирует записи действующих сессий** — это
+  координационная пауза, а не строгий read-only;
+- до дампа записать контрольные количества строк и максимальные `created_at`
+  для `auth.users`, `projects`, `comments`, `project_upvotes`, `feedback` и
+  `storage.objects`. После переключения они сверяются в шаге 8.1;
+- если окно сорвалось или в cloud появились новые строки — не продолжать со
+  старым дампом: вернуть sign ups и повторить шаг 4 в следующее окно.
+
+> **Состояние 2026-07-14 (сверка Fable, независимо повторена Codex по обеим живым базам): шаги 4–5 УЖЕ
+> выполнены** — self-host содержит те же данные, что cloud (3 юзера / 3 профиля /
+> 3 проекта / 1 коммент / 3 апвоута / 2 фидбека), замена хоста чистая
+> (0 строк с `supabase.co`). Расхождение только в storage: cloud 19 объектов,
+> self-host 18 — недостающий `…/e96f43f1-….png` (2026-07-07) — сирота, не
+> используется ни в `avatar_url`, ни в `cover_url`, ни в `images`; на шаге 8.1
+> сверять как 19 = 18 + 1 сирота (или удалить сироту в cloud до сверки).
+>
+> Поэтому в freeze-окне шаги 4.1–4.3 НЕ повторять слепо. **Повторный полный
+> импорт дампа в непустую базу опасен:** `pg_dump --data-only` грузит через
+> `COPY`, и при `duplicate key` абортируется ВЕСЬ COPY таблицы — старые строки
+> останутся, а новые из дампа молча не доедут. В окне вместо этого:
+> 1. Сверить counts + `max(created_at)` по шести наборам cloud ↔ self-host.
+> 2. Совпало (как сейчас) — данные уже на месте, сразу к шагу 7.
+> 3. Есть дельта — перенести её адресно (единичные строки INSERT'ами +
+>    докопировать новые storage-файлы `copy-storage.mjs`), либо, если дельта
+>    большая, очистить данные self-host (`truncate` затронутых таблиц public +
+>    auth.users cascade) и повторить полный импорт 4.1–4.3 с нуля.
 
 На локальной машине (нужен `psql`/`pg_dump`, `brew install postgresql` на Mac,
 или `supabase` CLI):
@@ -424,12 +499,16 @@ curl на мост изнутри VPS (`docker compose exec auth wget -qO- --hea
    - [ ] Публикация в админке (нужен свой `role='admin'`:
      `docker compose exec db psql -U postgres -d postgres -c "update public.profiles set role='admin' where id='<uuid>';"`)
    - [ ] Комментарий под опубликованным проектом
-4. Security-check:
+4. Security-check. При включённой CAPTCHA вход паролем из CLI не работает;
+   скопируй `access_token` обычного участника из живой браузерной сессии и
+   передай его только через переменную окружения:
    ```bash
-   node scripts/security-check.mjs <тестовый-email> <пароль>
+   WDZ_TEST_JWT='<access_token>' node scripts/security-check.mjs
    ```
    Ожидаем: `✓ ВСЁ ЧИСТО`.
-5. `git checkout js/config.js` — откатить временную правку, она не коммитится.
+5. `git restore js/config.js` — откатить только временную правку. Перед этим
+   убедись через `git diff -- js/config.js`, что в файле не было других своих
+   незакоммиченных изменений.
 
 Все пункты зелёные → переходи к шагу 8. Если что-то красное — не переключай
 прод, чини на self-host и повтори шаг 7 с начала.
@@ -455,6 +534,11 @@ export const UMAMI_WEBSITE_ID = '<id сайта из self-host Umami>';
 см. `docs/15-security-hardening.md`), добавить сайт `wedesignerz.com`,
 скопировать его id.
 
+**Статус 2026-07-14:** сайт `wedesignerz.com` уже создан в self-host Umami,
+`/api/send` принимает tracking-запрос (HTTP 200). ID не дублируется в
+документации; перед cutover взять его из Umami или безопасным read-only
+запросом к таблице `website`.
+
 ```bash
 git add js/config.js
 git commit -m "feat(T-LOC): переключение фронта на self-hosted бэкенд"
@@ -462,32 +546,89 @@ git push
 ```
 
 Деплой пройдёт по Actions автоматически. После деплоя — живая проверка с
-прода: регистрация/вход/сабмит на реальном `wedesignerz.com` (или текущем
-Pages-адресе, если домен ещё не подключён).
+прода: регистрация/вход/сабмит на реальном `wedesignerz.com`.
+
+### Шаг 8.1 — сверка, приёмка и граница отката
+
+Пока этот шаг не зелёный, не открывать регистрации, не снимать `robots.txt`
+и не приглашать пользователей обратно.
+
+- [ ] Сверить с контрольным листом из шага 4 количества и последние даты во
+      всех шести наборах данных. Проверить, что в новой БД нет URL старого
+      `*.supabase.co` в `avatar_url`, `cover_url` и `images`.
+- [ ] Открыть несколько перенесённых обложек и аватаров с прода.
+- [ ] Пройти полный сценарий: регистрация + Turnstile → письмо → подтверждение
+      → вход → восстановление пароля → проект с обложкой → модерация →
+      комментарий → feedback → событие в self-host Umami.
+- [ ] Запустить `WDZ_TEST_JWT='<access_token>' npm run security-check` обычным
+      участником и `npm run check`.
+- [ ] Проверить логи `auth`, `rest`, `storage`, `mail-bridge`, `umami` и `caddy`:
+      новых повторяющихся 4xx/5xx и рестартов нет.
+
+**Если cloud изменился после дампа:** cutover не принят. Пока в новой базе нет
+новых пользовательских записей, безопасный откат — вернуть старые значения
+`js/config.js`, задеплоить и повторить миграцию в новое окно. Если записи уже
+появились в self-hosted БД, простого отката нет: не переключать вслепую,
+сначала составить план слияния двух дельт и сделать новые резервные копии обеих
+баз.
 
 ---
 
-## Шаг 9 — после переезда
+## Шаг 9 — стабилизация до анонса
+
+**Предварительная проверка 2026-07-14:** cron уже установлен; ручной backup
+загрузил три артефакта в S3; дампы основной БД и Umami восстановлены в отдельные
+временные БД, Storage-архив прочитан. После шага 8 тест обязательно повторить
+на финальных данных; алерты всё ещё не проверены.
 
 - [ ] Cloud-проект **не удалять**. Через месяц стабильной работы self-host —
   `pause_project` в Supabase Dashboard. Ещё через месяц — удалить совсем.
-- [ ] Включить крон бэкапа:
+- [ ] **До возвращения пользователей** включить крон бэкапа:
   ```bash
   crontab -e
   # добавить строку:
   0 3 * * * /root/vibeclub/scripts/backup.sh >> /var/log/vibeclub-backup.log 2>&1
   ```
   Проверка: выполни `bash /root/vibeclub/scripts/backup.sh` руками разово и
-  убедись, что в бакете Timeweb появились `db/db_*.dump` и
+  убедись, что в бакете Timeweb появились `db/db_*.dump`,
+  `db/umami_*.dump` и
   `storage/storage_*.tar.gz`. `backup.sh` ищет `.env` и вызывает
   `docker compose exec`, поэтому сам скрипт должен лежать и запускаться из
   `/root/vibeclub/scripts/` (там же, где `docker-compose.yml`) — так и есть
   после шага 1.5.
-- [ ] Обновить `docs/14-ru-compliance.md`: дата локализации, статус —
-  «выполнено».
-- [ ] **Напомнить Тёме подать уведомление РКН** (`docs/14-ru-compliance.md`,
-  раздел «Как подавать» — теперь схема простая: один ЦОД, российский,
-  уведомление о трансграничной передаче больше не нужно).
+- [ ] Проверить восстановимость, не трогая прод-БД:
+  сначала скачать из S3 три файла одного свежего запуска в `/tmp` и подставить
+  их реальные пути вместо `/path/to/...` ниже.
+  ```bash
+  # Подставить самый свежий db_*.dump, создать отдельную временную БД.
+  docker compose exec -T db createdb -U postgres wdz_restore_test
+  docker compose exec -T db pg_restore -U postgres -d wdz_restore_test \
+    --clean --if-exists --no-owner --no-privileges \
+    < /path/to/db_YYYY-MM-DD_HH-MM.dump
+  docker compose exec -T db psql -U postgres -d wdz_restore_test \
+    -c "select count(*) from public.projects;"
+  docker compose exec -T db dropdb -U postgres wdz_restore_test
+  docker compose exec -T db createdb -U postgres wdz_umami_restore_test
+  docker compose exec -T db pg_restore -U postgres -d wdz_umami_restore_test \
+    --clean --if-exists --no-owner --no-privileges \
+    < /path/to/umami_YYYY-MM-DD_HH-MM.dump
+  docker compose exec -T db psql -U postgres -d wdz_umami_restore_test \
+    -c "select count(*) from website;"
+  docker compose exec -T db dropdb -U postgres wdz_umami_restore_test
+  tar -tzf /path/to/storage_YYYY-MM-DD_HH-MM.tar.gz >/dev/null
+  ```
+  Результат и дату restore-теста записать в закрытый операционный журнал.
+- [ ] Поставить внешний uptime-монитор минимум на
+      `https://api.wedesignerz.com/auth/v1/health` и
+      `https://stats.wedesignerz.com/api/heartbeat`, а также алерт на диск VPS
+      и отсутствие свежего бэкапа более 26 часов.
+- [ ] Обновить `docs/14-ru-compliance.md`: дата локализации и фактические
+      провайдеры. Подать уведомление РКН об обработке ПДн. Не утверждать, что
+      трансграничная передача исчезла: до T-FRONT-VPS отдельно учитывать
+      GitHub Pages/Fastly, а по финальной схеме — Google Fonts и Cloudflare
+      Turnstile.
+- [ ] Только после backup + restore-test + мониторинга вернуть sign ups и
+      открыть сайт участникам. Cloud-проект оставить с выключенными sign ups.
 
 ---
 
@@ -507,10 +648,10 @@ Pages-адресе, если домен ещё не подключён).
 
 ## Что осталось руками Тёмы
 
-- Покупка VPS, DNS-записи, аккаунт Unisender Go, бакет Timeweb S3 — до старта.
-- Исполнение этого ранбука на VPS (шаги 1–9) — ассистент код не выполняет за
-  пределами репозитория.
-- Реальные тексты писем в `infra/mail-templates/*.html` — сейчас там рабочие
-  заглушки, TODO-пометки внутри файлов.
-- После переезда — подать уведомление РКН об обработке ПДн с российским ЦОД
-  (`docs/14-ru-compliance.md`, шаг 9 выше).
+- Получить/проверить Turnstile secret, S3-креды, тариф и домен отправки
+  Unisender; секреты держать только в `.env` на VPS и менеджере паролей.
+- Назначить тихое окно, предупредить трёх участников, проверить дельту без
+  повторного импорта и выполнить шаги 7–9.
+- Вручную пройти живые письма, CAPTCHA и полный e2e из шага 8.1.
+- После подтверждённого переезда подать уведомление РКН по фактической схеме
+  (`docs/14-ru-compliance.md`).

@@ -110,6 +110,10 @@ services:
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
       GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
+      GOTRUE_SECURITY_CAPTCHA_ENABLED: "true"
+      GOTRUE_SECURITY_CAPTCHA_PROVIDER: turnstile
+      GOTRUE_SECURITY_CAPTCHA_SECRET: ${CAPTCHA_SECRET}
+      GOTRUE_PASSWORD_MIN_LENGTH: "12"
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
@@ -136,8 +140,7 @@ services:
       GOTRUE_MAILER_URLPATHS_RECOVERY: ${MAILER_URLPATHS_RECOVERY}
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${MAILER_URLPATHS_EMAIL_CHANGE}
 
-      # Кастомные шаблоны писем (T21 в Cloud) — тексты в ./mail-templates,
-      # см. TODO там же, если Тёма ещё не прислал оригиналы из Dashboard.
+      # Кастомные шаблоны писем (T21 в Cloud) — тексты в ./mail-templates.
       # GoTrue умеет забирать шаблоны ТОЛЬКО по HTTP(S) (файловый путь молча
       # игнорируется с откатом на дефолтный английский шаблон), поэтому их
       # раздаёт Caddy: /mail-templates/* → ./mail-templates (см. Caddyfile).

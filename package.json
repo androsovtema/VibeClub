@@ -11,7 +11,8 @@
     "lint:css:fix": "stylelint '**/*.css' --fix",
     "lint": "npm run lint:js && npm run lint:css",
     "security-check": "node scripts/security-check.mjs",
-    "check": "npm run lint && echo '\\n✓ Линтеры чисты. Отдельно: npm run security-check <email> <пароль> (после миграций RLS).'"
+    "check:csp": "node scripts/check-csp.mjs",
+    "check": "npm run lint && npm run check:csp && echo '\\n✓ Линтеры и CSP чисты. Отдельно: WDZ_TEST_JWT=<access_token> npm run security-check (после миграций RLS и при включённой CAPTCHA).'"
   },
   "devDependencies": {
     "eslint": "^9.0.0",

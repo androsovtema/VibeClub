@@ -21,6 +21,7 @@ import { track } from '../analytics.js';
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const WELCOME_KEY = 'wdz-welcome-shown';
 const RESEND_COOLDOWN_S = 60;
+const MIN_PASSWORD_LENGTH = 12;
 
 let overlay = null;
 let modal = null;
@@ -75,7 +76,7 @@ function buildMarkup() {
           </div>
           <div class="field">
             <label for="auth-signup-password">${t('auth.field.password')}</label>
-            <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
+            <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
           </div>
           <div class="auth-modal-consent">
             <label>
@@ -121,11 +122,11 @@ function buildMarkup() {
         <form class="auth-modal-form" data-form="reset-password" novalidate>
           <div class="field">
             <label for="auth-reset-password">${t('auth.reset.field.password')}</label>
-            <input id="auth-reset-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
+            <input id="auth-reset-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
           </div>
           <div class="field">
             <label for="auth-reset-password-confirm">${t('auth.reset.field.password_confirm')}</label>
-            <input id="auth-reset-password-confirm" type="password" name="passwordConfirm" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" required />
+            <input id="auth-reset-password-confirm" type="password" name="passwordConfirm" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
           </div>
           <p class="auth-modal-error" data-error hidden></p>
           <button type="submit" class="btn-primary auth-modal-submit">${t('auth.reset.submit')}</button>
@@ -390,6 +391,7 @@ function attachEvents() {
     if (!name) return showError(form, t('auth.error.required_name'));
     if (!email) return showError(form, t('auth.error.required_email'));
     if (!password) return showError(form, t('auth.error.required_password'));
+    if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
 
     setLoading(form, true);
     const { data, error } = await signUpEmailPassword(email, password, name);
@@ -449,6 +451,7 @@ function attachEvents() {
     const passwordConfirm = form.passwordConfirm.value;
     showError(form, '');
     if (!password) return showError(form, t('auth.error.required_password'));
+    if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
     if (password !== passwordConfirm) return showError(form, t('auth.error.password_mismatch'));
 
     setLoading(form, true);
