@@ -14,7 +14,8 @@
 
 ## Подтверждённое исходное состояние
 
-- T-CUTOVER-01 выполнен: CSP подготовлен на 18 HTML, Auth на VPS проверяет
+- T-CUTOVER-01 выполнен и задеплоен commit `4a21ce6`: CSP работает на 18 HTML,
+  текущий cloud-прод и живая auth-сессия проверены. Auth на VPS проверяет
   Turnstile, `SITE_URL` корректен, cloud и self-host требуют пароль минимум 12.
 - Шаги 4–5 **уже выполнены 2026-07-14**. Cloud и self-host совпадают по данным:
   3 auth users / 3 profiles / 3 projects / 1 comment / 3 upvotes / 2 feedback.
@@ -41,8 +42,8 @@
 
 1. Проверь `git status`, текущий diff и `npm run check` + `git diff --check`.
 2. Убедись, что `js/config.js` всё ещё указывает на cloud Supabase и cloud Umami.
-3. Если пакет T-CUTOVER-01 ещё не задеплоен — закоммить согласованный пакет,
-   push в `main`, дождись зелёного GitHub Actions deploy.
+3. Убедись, что deploy commit `4a21ce6` или более нового `main` зелёный. Не
+   создавай повторный prep-коммит без новых изменений.
 4. На живом `https://wedesignerz.com` до freeze проверь:
    - сайт открывается, Supabase-запросы идут в cloud;
    - вход существующего пользователя работает;
