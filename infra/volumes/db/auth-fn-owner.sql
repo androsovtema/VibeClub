@@ -15,3 +15,8 @@ alter function auth.email() owner to supabase_auth_admin;
 -- "password authentication failed for user supabase_storage_admin".
 \set pgpass `echo "$POSTGRES_PASSWORD"`
 alter user supabase_storage_admin with password :'pgpass';
+
+-- И membership'ы той же роли (пойманы там же): без них storage-api не может
+-- set_config('role', 'service_role'/...) — любой запрос к Storage API отвечает
+-- 403 Unauthorized с текстом про set_config.
+grant anon, authenticated, service_role to supabase_storage_admin;

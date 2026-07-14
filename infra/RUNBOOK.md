@@ -167,10 +167,18 @@ for f in supabase/migrations/*.sql; do
   docker compose exec -T db psql -U postgres -d postgres < "$f"
 done
 # ВАЖНО: glob сортирует по алфавиту, а не по дате применения — из-за этого
-# `...hardening-FIX.sql` прогоняется РАНЬШЕ базовой `...hardening.sql`
-# (дефис < точки), и в базе остаётся старая (багованная) версия функции
-# protect_privileged_columns. Перекатываем фикс поверх ещё раз:
+# «поздние» миграции с суффиксом в имени прогоняются РАНЬШЕ базовых с той же
+# датой (дефис < точки), и в базе остаётся устаревшее состояние. Ловили два
+# случая: protect_privileged_columns остаётся багованной (hardening-fix до
+# hardening) и projects_images_max остаётся 3 вместо 9 (images-nine до
+# images) — из-за второго импорт данных на шаге 4 падает с
+# «violates check constraint projects_images_max». Перекатываем оба поверх:
 docker compose exec -T db psql -U postgres -d postgres < supabase/migrations/2026-07-06-rls-privilege-hardening-fix.sql
+docker compose exec -T db psql -U postgres -d postgres < supabase/migrations/2026-07-08-project-images-nine.sql
+
+# PostgREST стартовал раньше, чем появились таблицы — его кэш схемы пуст
+# (REST отвечает PGRST205 "Could not find the table"). Перезагрузить кэш:
+docker compose exec -T db psql -U postgres -d postgres -c "NOTIFY pgrst, 'reload schema';"
 ```
 
 (`supabase/` должен уже лежать в `/root/vibeclub/supabase` — скопирован на
