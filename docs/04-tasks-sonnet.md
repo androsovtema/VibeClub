@@ -10,7 +10,8 @@
 - UI-строки — в `js/i18n/ru.js` (объект-словарь), не хардкодить вразнобой в HTML.
 - Supabase-ключи (anon) — в `js/config.js`. `service_role` нигде не использовать.
 - Безопасность данных = RLS. Любая таблица без включённого RLS = баг.
-- Все запросы к Supabase — через `@supabase/supabase-js` (CDN ESM).
+- Все запросы к Supabase — через `@supabase/supabase-js`, вендоренный локально
+  в `js/vendor/` (CDN-импорт убран, см. `16-security-status.md`, SEC-07).
 
 ---
 
@@ -32,7 +33,7 @@
 ## T1 — Подключение Supabase к фронту
 **Выход:**
 - `js/config.js` — `SUPABASE_URL`, `SUPABASE_ANON_KEY`.
-- `js/supabase.js` — инициализация клиента (CDN ESM import).
+- `js/supabase.js` — инициализация клиента (импорт из локального `js/vendor/`).
 - `js/auth.js` — `signUpEmailPassword(email, pass)`, `signInEmailPassword(email, pass)`,
   `signInMagicLink(email)`, `signOut()`, `getCurrentUser()`, подписка на изменение сессии.
   (Google не делаем — заблокирован в РФ; Telegram-логин — бэклог, см. `01-architecture.md`.)
