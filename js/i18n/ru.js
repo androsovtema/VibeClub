@@ -354,7 +354,9 @@ export const ru = {
   'feedback.action.again': 'Написать ещё',
   'feedback.error.required_message': 'Расскажи, что случилось — минимум пара слов.',
   'feedback.error.generic': 'Не получилось отправить. Попробуй ещё раз.',
-  'feedback.cooldown': 'Отправить снова через {s} с'
+  'feedback.cooldown': 'Отправить снова через {s} с',
+  'feedback.guest.text': 'Чтобы написать нам, войди в аккаунт — так мы отсеиваем ботов и сможем ответить.',
+  'feedback.action.signin': 'Войти'
 };
 
 export function t(key) {

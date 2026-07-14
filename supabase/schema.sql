@@ -461,12 +461,13 @@ create policy upvotes_delete_self on public.project_upvotes
 -- RLS — ПОЛИТИКИ: feedback
 -- =============================================================================
 -- Отправить может кто угодно (гость или залогиненный), но за себя: либо
--- user_id = null (аноним), либо свой собственный auth.uid() — чужой uid
--- подставить нельзя.
+-- SEC-05: только авторизованные и только со своим auth.uid() — honeypot и
+-- cooldown в JS обходятся прямым REST, анонимный insert был открыт для спама.
 drop policy if exists feedback_insert_anyone on public.feedback;
-create policy feedback_insert_anyone on public.feedback
-  for insert to anon, authenticated
-  with check (user_id is null or user_id = auth.uid());
+drop policy if exists feedback_insert_auth on public.feedback;
+create policy feedback_insert_auth on public.feedback
+  for insert to authenticated
+  with check (user_id = auth.uid());
 
 -- Читать и разбирать список может только админ.
 drop policy if exists feedback_select_admin on public.feedback;

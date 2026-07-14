@@ -7,6 +7,7 @@
  *   3) накрутить projects.upvotes прямым PATCH (SEC-02)
  *   4) подменить projects.created_at (SEC-11)
  *   5) анонимно получить листинг bucket covers (SEC-18)
+ *   6) анонимно вставить запись в feedback (SEC-05)
  * Все должны отбиться. Если проходят — миграция не применена или сломана.
  *
  * Запуск:
@@ -171,6 +172,33 @@ if (listRes.ok && Array.isArray(listBody) && listBody.length > 0) {
   ok(`листинг вернул пусто (HTTP ${listRes.status}) — SELECT-политика закрыта`);
 } else {
   ok(`отбито (HTTP ${listRes.status})`);
+}
+
+// --- Атака 6: анонимный insert в feedback (SEC-05) ---
+console.log('\nАтака 6 — анонимный insert в feedback:');
+const fb = await fetch(`${URL}/rest/v1/feedback`, {
+  method: 'POST', headers: { ...base, Prefer: 'return=representation' },
+  body: JSON.stringify({ page: '/security-check', message: 'security-check: анонимный спам-тест' })
+});
+const fbBody = await fb.json().catch(() => null);
+if (fb.ok) {
+  bad(`ДЫРА: аноним вставил feedback (HTTP ${fb.status}). Политика feedback_insert_auth не применена!`);
+} else {
+  ok(`отбито (HTTP ${fb.status}: ${fbBody?.message || 'ошибка'})`);
+}
+
+// авторизованный insert должен работать (контроль для SEC-05)
+console.log('\nКонтроль — feedback от залогиненного должен работать:');
+const fbAuth = await fetch(`${URL}/rest/v1/feedback`, {
+  method: 'POST', headers: { ...authed, Prefer: 'return=representation' },
+  body: JSON.stringify({ user_id: uid, page: '/security-check', message: 'security-check: легитимный тест feedback' })
+});
+const fbAuthBody = await fbAuth.json().catch(() => null);
+if (fbAuth.ok) {
+  ok(`insert прошёл (HTTP ${fbAuth.status}) — легитимный feedback не сломан`);
+  // почистить не можем (delete-политики нет намеренно) — Тёма увидит тестовую запись в админке
+} else {
+  bad(`insert НЕ прошёл (HTTP ${fbAuth.status}): ${fbAuthBody?.message || JSON.stringify(fbAuthBody)}`);
 }
 
 // --- Контроль: обычное редактирование профиля должно РАБОТАТЬ ---

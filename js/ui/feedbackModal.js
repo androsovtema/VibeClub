@@ -1,12 +1,14 @@
 /**
  * We Designerz — модалка «Нашли проблему?» (T22).
- * Инжектится в body при первом открытии, доступна гостю (без логина) и
- * залогиненному — единственный канал репорта помимо личного чата с Тёмой.
+ * Инжектится в body при первом открытии. Отправка — только залогиненному
+ * (SEC-05: RLS-политика feedback_insert_auth не пускает anon), гостю модалка
+ * предлагает войти. Единственный канал репорта помимо личного чата с Тёмой.
  * Стили и паттерн (overlay/focus-trap/lockScroll) — те же, что у auth-модалки
  * (см. authModal.js), классы переиспользуются напрямую.
  */
 import { supabase } from '../supabase.js';
 import { getCurrentUser } from '../auth.js';
+import { openAuthModal } from './authModal.js';
 import { t } from '../i18n/ru.js';
 import { lockScroll, unlockScroll } from '../util.js';
 
@@ -60,6 +62,11 @@ function buildMarkup() {
         <p class="auth-modal-subtitle">${t('feedback.success.text')}</p>
         <button type="button" class="btn-primary auth-modal-submit" data-feedback-again></button>
       </div>
+
+      <div class="auth-confirm" data-feedback-guest-view hidden>
+        <p class="auth-modal-subtitle">${t('feedback.guest.text')}</p>
+        <button type="button" class="btn-primary auth-modal-submit" data-feedback-signin>${t('feedback.action.signin')}</button>
+      </div>
     </div>
   `;
   return el;
@@ -80,6 +87,7 @@ function setLoading(isLoading) {
 function showFormView() {
   modal.querySelector('[data-feedback-view]').hidden = false;
   modal.querySelector('[data-feedback-success-view]').hidden = true;
+  modal.querySelector('[data-feedback-guest-view]').hidden = true;
   showError('');
   modal.querySelector('#feedback-message').focus();
 }
@@ -87,7 +95,15 @@ function showFormView() {
 function showSuccessView() {
   modal.querySelector('[data-feedback-view]').hidden = true;
   modal.querySelector('[data-feedback-success-view]').hidden = false;
+  modal.querySelector('[data-feedback-guest-view]').hidden = true;
   modal.querySelector('[data-feedback-again]').focus();
+}
+
+function showGuestView() {
+  modal.querySelector('[data-feedback-view]').hidden = true;
+  modal.querySelector('[data-feedback-success-view]').hidden = true;
+  modal.querySelector('[data-feedback-guest-view]').hidden = false;
+  modal.querySelector('[data-feedback-signin]').focus();
 }
 
 function startCooldown() {
@@ -155,7 +171,7 @@ async function handleSubmit(event) {
 
   setLoading(true);
   const { error } = await supabase.from('feedback').insert({
-    user_id: currentUser?.id ?? null,
+    user_id: currentUser.id,
     page: window.location.pathname + window.location.search,
     message,
     contact: contact || null
@@ -184,6 +200,11 @@ function attachEvents() {
     if (inCooldown) return;
     showFormView();
   });
+
+  modal.querySelector('[data-feedback-signin]').addEventListener('click', () => {
+    closeFeedbackModal();
+    openAuthModal('signin');
+  });
 }
 
 function ensureModal() {
@@ -201,7 +222,9 @@ export async function openFeedbackModal() {
   overlay.hidden = false;
   document.body.classList.add('auth-modal-open');
   lockScroll();
-  if (inCooldown) {
+  if (!currentUser) {
+    showGuestView();
+  } else if (inCooldown) {
     showSuccessView();
   } else {
     showFormView();
