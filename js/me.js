@@ -66,6 +66,8 @@ function applyStaticText() {
   form.querySelector('[data-label-name]').textContent = t('me.field.name');
   form.querySelector('[data-label-bio]').textContent = t('me.field.bio');
   form.querySelector('#me-bio').placeholder = t('me.field.bio.placeholder');
+  form.querySelector('[data-consent-heading]').textContent = t('me.consent.heading');
+  form.querySelector('[data-consent-intro]').textContent = t('me.consent.intro');
   form.querySelector('[data-contacts-heading]').textContent = t('me.field.contacts.heading');
   form.querySelector('[data-contacts-warning]').textContent = t('me.field.contacts.warning');
   form.querySelector('[data-label-consent-full-name]').textContent = t('me.consent.full_name.label');
@@ -477,12 +479,15 @@ form.addEventListener('submit', async (event) => {
   if (disseminationConsent.checked &&
       (!hasDisseminationConsent || consentFullName !== consentedFullName)) {
     const { error: consentError } = await supabase.rpc('grant_profile_dissemination', {
-      subject_full_name: consentFullName
+      subject_full_name: consentFullName,
+      submitted_policy_version: PRIVACY_POLICY_VERSION
     });
     if (consentError) {
       setBusy(false);
       if (consentError.message?.includes('consent_subject_full_name_invalid')) {
         showFieldError('consent_full_name', t('me.consent.full_name.required'));
+      } else if (consentError.message?.includes('consent_policy_version_invalid')) {
+        showFieldError('dissemination', t('me.consent.dissemination.version_invalid'));
       } else {
         showFieldError('dissemination', t('me.consent.dissemination.grant_error'));
       }

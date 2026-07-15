@@ -22,12 +22,21 @@
   импорта, self-host e2e, live cutover, backup/restore и мониторинг; выполнено
   и принято 2026-07-15. Итог: `docs/reports/T-CUTOVER-02-freeze-report.md`.
 
-Готово к запуску после ревью:
+Repo-prep выполнен и принят:
 
 - `T-CONSENT-01-repo-prep.md` — журнал согласий, server-side защита публичных
-  контактов, UI и тесты; только подготовка репозитория без live migration,
-  VPS, commit/push/deploy.
+  контактов, UI и тесты. На repo-review считалось, что production migration не
+  применялась; последующая read-only сверка подтвердила уже работающий live v2.
 
-Следующая кодовая операция — **T-CONSENT**. После неё: уведомление РКН →
+`T-CONSENT-UX` и `T-CONSENT-AUTH` выполнены и приняты 2026-07-16. Тёма
+подтвердил юридические формулировки, реквизиты и v4; в новой сессии Terra это
+подтверждение всё равно нужно повторить как входной гейт. Следующая операция —
+`T-CONSENT-02-live-apply.md`. Read-only сверка выявила уже работающий live
+baseline v2, поэтому промпт уточнён как апгрейд v2 → v4 с сохранением журнала
+и отдельным inventory legacy-аккаунтов без backfill. Перед live обязателен
+`T-CONSENT-VERSION-GATE`: новая upgrade-migration и version-gated grant RPC.
+Задача выполнена и принята 2026-07-16
+(`docs/prompts/T-CONSENT-VERSION-GATE-sonnet.md`). Следом — `T-CONSENT-02`,
+затем legacy-account inventory → уведомление РКН →
 T-FRONT-VPS → контент-гейт → снять `robots.txt` → анонс. T-IMG можно вести
 параллельно в отдельной ветке/worktree.

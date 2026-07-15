@@ -90,16 +90,16 @@
           <p class="field-error" data-error="bio" hidden></p>
         </div>
 
-        <div class="me-contacts">
-          <h2 data-contacts-heading></h2>
-          <p class="field-hint" data-contacts-warning></p>
+        <div class="me-consent-block">
+          <h2 data-consent-heading></h2>
+          <p class="field-hint" data-consent-intro></p>
 
           <div class="me-contact-consent">
             <div class="field me-consent-identity">
               <label for="me-consent-full-name" data-label-consent-full-name></label>
               <input id="me-consent-full-name" type="text" name="consentFullName"
-                maxlength="200" autocomplete="name" disabled />
-              <p class="field-hint" data-hint-consent-full-name></p>
+                maxlength="200" autocomplete="name" aria-describedby="me-consent-full-name-hint" disabled />
+              <p class="field-hint" id="me-consent-full-name-hint" data-hint-consent-full-name></p>
               <p class="field-error" data-error="consent_full_name" hidden></p>
             </div>
             <label for="me-dissemination-consent">
@@ -111,6 +111,11 @@
               data-dissemination-consent-link></a>
             <p class="field-error" data-error="dissemination" hidden></p>
           </div>
+        </div>
+
+        <div class="me-contacts">
+          <h2 data-contacts-heading></h2>
+          <p class="field-hint" data-contacts-warning></p>
 
           <div class="field">
             <label for="me-telegram" data-label-telegram></label>

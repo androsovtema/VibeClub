@@ -3656,6 +3656,9 @@ body.menu-open {
 }
 
 .auth-modal-consent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
   margin-bottom: var(--space-2xs);
 }
 
@@ -4782,18 +4785,25 @@ a.comment-author:hover {
   margin-top: var(--space-2xs);
 }
 
+/* Блок «Публикация контактов» (T-CONSENT-UX) — самостоятельное объяснение до «Контактов» */
+.me-consent-block {
+  margin-bottom: var(--space-sm);
+}
+
 /* Блок «Контакты» (T23) — заголовок + тихое предупреждение над полями */
-.me-contacts h2 {
+.me-contacts h2,
+.me-consent-block h2 {
   font-size: var(--text-xl);
   margin-bottom: var(--space-3xs);
 }
 
-.me-contacts > .field-hint {
+.me-contacts > .field-hint,
+.me-consent-block > .field-hint {
   margin-bottom: var(--space-xs);
 }
 
 .me-contact-consent {
-  margin-bottom: var(--space-sm);
+  margin-bottom: 0;
   padding: var(--space-xs);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);

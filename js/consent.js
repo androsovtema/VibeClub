@@ -2,7 +2,7 @@
  * Версия политики, которую сервер принимает при регистрации и для публикации
  * контактов. Синхронизацию с SQL проверяет scripts/check-consent-version.mjs.
  */
-export const PRIVACY_POLICY_VERSION = 'privacy-2026-07-15-v2';
+export const PRIVACY_POLICY_VERSION = 'privacy-2026-07-16-v4';
 
 export const PROFILE_CONTACT_FIELDS = Object.freeze([
   'telegram',

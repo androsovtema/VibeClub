@@ -79,9 +79,13 @@ function buildMarkup() {
             <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
           </div>
           <div class="auth-modal-consent">
-            <label>
-              <input type="checkbox" name="consent" data-consent required />
-              <span>${t('auth.consent.label')}</span>
+            <label for="auth-signup-consent-processing">
+              <input type="checkbox" id="auth-signup-consent-processing" name="consentProcessing" data-processing-consent required />
+              <span>${t('auth.consent.processing.label')}</span>
+            </label>
+            <label for="auth-signup-consent-rules">
+              <input type="checkbox" id="auth-signup-consent-rules" name="consentRules" data-rules-consent required />
+              <span>${t('auth.consent.rules.label')}</span>
             </label>
           </div>
           <p class="auth-modal-error" data-error hidden></p>
@@ -153,6 +157,12 @@ function buildMarkup() {
     </div>
   `;
   return el;
+}
+
+function updateSignupSubmitState(form) {
+  const processing = form.querySelector('[data-processing-consent]').checked;
+  const rules = form.querySelector('[data-rules-consent]').checked;
+  form.querySelector('[data-signup-submit]').disabled = !(processing && rules);
 }
 
 function setLoading(form, isLoading) {
@@ -339,9 +349,9 @@ function attachEvents() {
   });
   modal.querySelector('[data-forgot-back]').addEventListener('click', () => switchTab('signin'));
 
-  modal.querySelector('[data-consent]').addEventListener('change', (event) => {
-    modal.querySelector('[data-signup-submit]').disabled = !event.target.checked;
-  });
+  const signupForm = modal.querySelector('[data-form="signup"]');
+  signupForm.querySelector('[data-processing-consent]').addEventListener('change', () => updateSignupSubmitState(signupForm));
+  signupForm.querySelector('[data-rules-consent]').addEventListener('change', () => updateSignupSubmitState(signupForm));
 
   modal.querySelector('[data-confirm-resend]').addEventListener('click', async () => {
     if (!confirmContext) return;
@@ -392,11 +402,13 @@ function attachEvents() {
     if (!email) return showError(form, t('auth.error.required_email'));
     if (!password) return showError(form, t('auth.error.required_password'));
     if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
+    if (!form.querySelector('[data-processing-consent]').checked) return showError(form, t('auth.error.required_consent_processing'));
+    if (!form.querySelector('[data-rules-consent]').checked) return showError(form, t('auth.error.required_consent_rules'));
 
     setLoading(form, true);
     const { data, error } = await signUpEmailPassword(email, password, name);
     setLoading(form, false);
-    form.querySelector('[data-signup-submit]').disabled = !form.querySelector('[data-consent]').checked;
+    updateSignupSubmitState(form);
     if (error) return showError(form, mapAuthError(error));
 
     if (data?.session) {

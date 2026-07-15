@@ -114,7 +114,9 @@
 
 1. ~~**T-CUTOVER + финальный backup/restore/monitoring**~~ — закрыто
    2026-07-15.
-2. **T-CONSENT** — repo-prep, ревью, отдельное live-применение.
+2. **T-CONSENT** — repo-prep, `T-CONSENT-UX`, `T-CONSENT-AUTH` и
+   `T-CONSENT-VERSION-GATE` закрыты; далее отдельное live-применение
+   `T-CONSENT-02` и legacy-account inventory без backfill.
 3. Подать уведомление РКН по фактической схеме.
 4. **T-FRONT-VPS** — перенести статический origin с Pages на RU-VPS.
 5. Собрать 5–7 проектов разных авторов и Telegram-ядро.

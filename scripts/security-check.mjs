@@ -200,7 +200,25 @@ async function runConsentChecks() {
     else ok(`контакт без active dissemination отбит (HTTP ${blockedContact.status})`);
 
     const consentFullName = 'Security Check Member';
-    const grantBody = JSON.stringify({ subject_full_name: consentFullName });
+    const staleGrantBody = JSON.stringify({
+      subject_full_name: consentFullName,
+      submitted_policy_version: 'privacy-2026-07-15-v2'
+    });
+    const staleGrant = await fetch(`${URL}/rest/v1/rpc/grant_profile_dissemination`, {
+      method: 'POST', headers: authed, body: staleGrantBody
+    });
+    const activeAfterStaleGrant = await activeDisseminationRows();
+    const activeAfterStaleRows = Array.isArray(activeAfterStaleGrant.rows) ? activeAfterStaleGrant.rows : [];
+    if (!staleGrant.ok && activeAfterStaleRows.length === 0) {
+      ok(`grant RPC со старой/подменённой версией отбит (HTTP ${staleGrant.status}), consent row не создан`);
+    } else {
+      bad(`ДЫРА: grant RPC принял чужую версию политики (HTTP ${staleGrant.status}, active=${activeAfterStaleRows.length})`);
+    }
+
+    const grantBody = JSON.stringify({
+      subject_full_name: consentFullName,
+      submitted_policy_version: PRIVACY_POLICY_VERSION
+    });
     const grant = await fetch(`${URL}/rest/v1/rpc/grant_profile_dissemination`, {
       method: 'POST', headers: authed, body: grantBody
     });

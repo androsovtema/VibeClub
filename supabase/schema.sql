@@ -33,7 +33,7 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select 'privacy-2026-07-15-v2'::text
+  select 'privacy-2026-07-16-v4'::text
 $$;
 
 revoke execute on function public.current_privacy_policy_version()
@@ -259,7 +259,11 @@ create trigger on_auth_user_created
 
 -- ---------- RPC: выдать/отозвать dissemination-consent ----------
 drop function if exists public.grant_profile_dissemination();
-create or replace function public.grant_profile_dissemination(subject_full_name text)
+drop function if exists public.grant_profile_dissemination(text);
+create or replace function public.grant_profile_dissemination(
+  subject_full_name text,
+  submitted_policy_version text
+)
 returns uuid
 language plpgsql
 security definer
@@ -277,6 +281,14 @@ begin
     raise exception using
       errcode = '28000',
       message = 'consent_auth_required';
+  end if;
+
+  -- Reject before any change if the browser's text version drifted from the
+  -- server's current version (stale cache after a policy upgrade).
+  if submitted_policy_version is distinct from public.current_privacy_policy_version() then
+    raise exception using
+      errcode = 'P0001',
+      message = 'consent_policy_version_invalid';
   end if;
 
   if nullif(normalized_full_name, '') is null
@@ -351,9 +363,9 @@ begin
 end;
 $$;
 
-revoke execute on function public.grant_profile_dissemination(text)
+revoke execute on function public.grant_profile_dissemination(text, text)
   from public, anon;
-grant execute on function public.grant_profile_dissemination(text)
+grant execute on function public.grant_profile_dissemination(text, text)
   to authenticated;
 
 create or replace function public.revoke_profile_dissemination()
