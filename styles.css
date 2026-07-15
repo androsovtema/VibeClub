@@ -2647,6 +2647,38 @@ textarea {
   color: var(--color-text-tertiary);
 }
 
+/* Обёртка password-инпута с кнопкой «показать/скрыть» */
+.field-password {
+  position: relative;
+}
+
+.field-password input {
+  width: 100%;
+  padding-right: 68px;
+}
+
+.field-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  padding: 6px 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.field-password-toggle:hover,
+.field-password-toggle:focus-visible {
+  color: var(--color-text-primary);
+}
+
 .field-error {
   font-size: var(--text-xs);
   color: var(--color-error);
@@ -5314,11 +5346,14 @@ a.comment-author:hover {
 /* Виджет работает в режиме interaction-only: пока Cloudflare доверяет посетителю,
    iframe имеет нулевой размер и человек ничего не видит. Если челлендж всё же
    нужен — контейнер должен всплыть по центру поверх модалки авторизации
-   (самый высокий z-index в проекте — 2000 у тоста), а не уехать в конец body. */
+   (auth-modal-overlay — 3000, самый высокий z-index в проекте), а не уехать
+   в конец body или спрятаться позади модалки (был баг: челлендж рендерился
+   за модалкой и не мог получить клик, что вело к 30-секундному таймауту и
+   CAPTCHA-ошибке после долгой загрузки). */
 .captcha-host {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2100;
+  z-index: 3100;
 }

@@ -63,6 +63,13 @@ export function isValidGithubHandle(value) {
   return GITHUB_HANDLE_RE.test(value);
 }
 
+const ASCII_RE = /^[\x20-\x7E]*$/;
+
+/** Политика Auth: email и пароль — только печатаемая латиница/ASCII, без кириллицы. */
+export function isAsciiOnly(value) {
+  return ASCII_RE.test(String(value));
+}
+
 /**
  * Textarea растёт под текст до max-height из CSS (60vh), дальше — внутренний
  * скролл (overflow-y: auto в CSS). Вызывать на input и сразу после программной

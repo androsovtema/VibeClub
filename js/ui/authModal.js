@@ -15,7 +15,7 @@ import {
   updatePassword
 } from '../auth.js';
 import { t, mapAuthError } from '../i18n/ru.js';
-import { lockScroll, unlockScroll } from '../util.js';
+import { lockScroll, unlockScroll, isAsciiOnly } from '../util.js';
 import { track } from '../analytics.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -28,6 +28,16 @@ let modal = null;
 let lastFocused = null;
 let confirmContext = null;
 let cooldownTimer = null;
+
+// Обёртка с кнопкой «показать/скрыть» — вместо голого <input> во всех password-полях.
+function passwordFieldHtml({ id, name, autocomplete, minlength }) {
+  const minlengthAttr = minlength ? ` minlength="${minlength}"` : '';
+  return `
+      <div class="field-password">
+        <input id="${id}" type="password" name="${name}" autocomplete="${autocomplete}" placeholder="${t('auth.field.password.placeholder')}"${minlengthAttr} required />
+        <button type="button" class="field-password-toggle" data-password-toggle aria-pressed="false" aria-label="${t('auth.action.password_show.aria')}">${t('auth.action.password_show')}</button>
+      </div>`;
+}
 
 function buildMarkup() {
   const el = document.createElement('div');
@@ -56,8 +66,7 @@ function buildMarkup() {
             <input id="auth-signin-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
           </div>
           <div class="field">
-            <label for="auth-signin-password">${t('auth.field.password')}</label>
-            <input id="auth-signin-password" type="password" name="password" autocomplete="current-password" placeholder="${t('auth.field.password.placeholder')}" required />
+            <label for="auth-signin-password">${t('auth.field.password')}</label>${passwordFieldHtml({ id: 'auth-signin-password', name: 'password', autocomplete: 'current-password' })}
           </div>
           <p class="auth-modal-error" data-error hidden></p>
           <button type="submit" class="btn-primary auth-modal-submit">${t('auth.action.signin')}</button>
@@ -75,8 +84,7 @@ function buildMarkup() {
             <input id="auth-signup-email" type="email" name="email" autocomplete="email" placeholder="${t('auth.field.email.placeholder')}" required />
           </div>
           <div class="field">
-            <label for="auth-signup-password">${t('auth.field.password')}</label>
-            <input id="auth-signup-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
+            <label for="auth-signup-password">${t('auth.field.password')}</label>${passwordFieldHtml({ id: 'auth-signup-password', name: 'password', autocomplete: 'new-password', minlength: MIN_PASSWORD_LENGTH })}
           </div>
           <div class="auth-modal-consent">
             <label for="auth-signup-consent-processing">
@@ -125,12 +133,10 @@ function buildMarkup() {
         <p class="auth-modal-subtitle">${t('auth.reset.text')}</p>
         <form class="auth-modal-form" data-form="reset-password" novalidate>
           <div class="field">
-            <label for="auth-reset-password">${t('auth.reset.field.password')}</label>
-            <input id="auth-reset-password" type="password" name="password" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
+            <label for="auth-reset-password">${t('auth.reset.field.password')}</label>${passwordFieldHtml({ id: 'auth-reset-password', name: 'password', autocomplete: 'new-password', minlength: MIN_PASSWORD_LENGTH })}
           </div>
           <div class="field">
-            <label for="auth-reset-password-confirm">${t('auth.reset.field.password_confirm')}</label>
-            <input id="auth-reset-password-confirm" type="password" name="passwordConfirm" autocomplete="new-password" placeholder="${t('auth.field.password.placeholder')}" minlength="${MIN_PASSWORD_LENGTH}" required />
+            <label for="auth-reset-password-confirm">${t('auth.reset.field.password_confirm')}</label>${passwordFieldHtml({ id: 'auth-reset-password-confirm', name: 'passwordConfirm', autocomplete: 'new-password', minlength: MIN_PASSWORD_LENGTH })}
           </div>
           <p class="auth-modal-error" data-error hidden></p>
           <button type="submit" class="btn-primary auth-modal-submit">${t('auth.reset.submit')}</button>
@@ -328,8 +334,23 @@ function trapFocus(event) {
   }
 }
 
+function wirePasswordToggles() {
+  modal.querySelectorAll('[data-password-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const input = btn.previousElementSibling;
+      const reveal = input.type === 'password';
+      input.type = reveal ? 'text' : 'password';
+      btn.textContent = t(reveal ? 'auth.action.password_hide' : 'auth.action.password_show');
+      btn.setAttribute('aria-label', t(reveal ? 'auth.action.password_hide.aria' : 'auth.action.password_show.aria'));
+      btn.setAttribute('aria-pressed', String(reveal));
+      input.focus();
+    });
+  });
+}
+
 function attachEvents() {
   overlay.querySelector('[data-auth-close]').addEventListener('click', closeAuthModal);
+  wirePasswordToggles();
   overlay.addEventListener('click', (event) => {
     if (event.target === overlay) closeAuthModal();
   });
@@ -358,15 +379,21 @@ function attachEvents() {
     const btn = modal.querySelector('[data-confirm-resend]');
     const errorEl = modal.querySelector('[data-confirm-error]');
     btn.disabled = true;
-    const { error } = await confirmContext.resendFn();
-    if (error) {
-      errorEl.textContent = mapAuthError(error);
+    try {
+      const { error } = await confirmContext.resendFn();
+      if (error) {
+        errorEl.textContent = mapAuthError(error);
+        errorEl.hidden = false;
+        btn.disabled = false;
+        return;
+      }
+      errorEl.hidden = true;
+      startResendCooldown();
+    } catch {
+      errorEl.textContent = t('auth.error.network');
       errorEl.hidden = false;
       btn.disabled = false;
-      return;
     }
-    errorEl.hidden = true;
-    startResendCooldown();
   });
 
   modal.querySelector('[data-confirm-back]').addEventListener('click', () => {
@@ -380,15 +407,22 @@ function attachEvents() {
     const password = form.password.value;
     showError(form, '');
     if (!email) return showError(form, t('auth.error.required_email'));
+    if (!isAsciiOnly(email)) return showError(form, t('auth.error.invalid_ascii_email'));
     if (!password) return showError(form, t('auth.error.required_password'));
+    if (!isAsciiOnly(password)) return showError(form, t('auth.error.invalid_ascii_password'));
 
     setLoading(form, true);
-    const { error } = await signInEmailPassword(email, password);
-    setLoading(form, false);
-    if (error) return showError(form, mapAuthError(error));
+    try {
+      const { error } = await signInEmailPassword(email, password);
+      if (error) return showError(form, mapAuthError(error));
 
-    track('auth_success', { kind: 'login' });
-    onAuthSuccess(t('auth.success.signin'));
+      track('auth_success', { kind: 'login' });
+      onAuthSuccess(t('auth.success.signin'));
+    } catch {
+      showError(form, t('auth.error.network'));
+    } finally {
+      setLoading(form, false);
+    }
   });
 
   modal.querySelector('[data-form="signup"]').addEventListener('submit', async (event) => {
@@ -400,28 +434,35 @@ function attachEvents() {
     showError(form, '');
     if (!name) return showError(form, t('auth.error.required_name'));
     if (!email) return showError(form, t('auth.error.required_email'));
+    if (!isAsciiOnly(email)) return showError(form, t('auth.error.invalid_ascii_email'));
     if (!password) return showError(form, t('auth.error.required_password'));
+    if (!isAsciiOnly(password)) return showError(form, t('auth.error.invalid_ascii_password'));
     if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
     if (!form.querySelector('[data-processing-consent]').checked) return showError(form, t('auth.error.required_consent_processing'));
     if (!form.querySelector('[data-rules-consent]').checked) return showError(form, t('auth.error.required_consent_rules'));
 
     setLoading(form, true);
-    const { data, error } = await signUpEmailPassword(email, password, name);
-    setLoading(form, false);
-    updateSignupSubmitState(form);
-    if (error) return showError(form, mapAuthError(error));
+    try {
+      const { data, error } = await signUpEmailPassword(email, password, name);
+      if (error) return showError(form, mapAuthError(error));
 
-    if (data?.session) {
-      track('auth_success', { kind: 'signup' });
-      onAuthSuccess(t('auth.success.signup'));
-    } else if (isExistingUser(data)) {
-      switchTab('signin');
-      const signinForm = modal.querySelector('[data-form="signin"]');
-      signinForm.email.value = email;
-      showError(signinForm, t('auth.error.user_exists_signin'));
-      signinForm.password.focus();
-    } else {
-      showConfirmView({ type: 'signup', email, resendFn: () => resendSignupEmail(email) });
+      if (data?.session) {
+        track('auth_success', { kind: 'signup' });
+        onAuthSuccess(t('auth.success.signup'));
+      } else if (isExistingUser(data)) {
+        switchTab('signin');
+        const signinForm = modal.querySelector('[data-form="signin"]');
+        signinForm.email.value = email;
+        showError(signinForm, t('auth.error.user_exists_signin'));
+        signinForm.password.focus();
+      } else {
+        showConfirmView({ type: 'signup', email, resendFn: () => resendSignupEmail(email) });
+      }
+    } catch {
+      showError(form, t('auth.error.network'));
+    } finally {
+      setLoading(form, false);
+      updateSignupSubmitState(form);
     }
   });
 
@@ -432,13 +473,19 @@ function attachEvents() {
     showError(form, '');
     showSuccess(form, '');
     if (!email) return showError(form, t('auth.error.required_email'));
+    if (!isAsciiOnly(email)) return showError(form, t('auth.error.invalid_ascii_email'));
 
     setLoading(form, true);
-    const { error } = await signInMagicLink(email);
-    setLoading(form, false);
-    if (error) return showError(form, mapAuthError(error));
+    try {
+      const { error } = await signInMagicLink(email);
+      if (error) return showError(form, mapAuthError(error));
 
-    showSuccess(form, t('auth.success.magiclink'));
+      showSuccess(form, t('auth.success.magiclink'));
+    } catch {
+      showError(form, t('auth.error.network'));
+    } finally {
+      setLoading(form, false);
+    }
   });
 
   modal.querySelector('[data-form="forgot"]').addEventListener('submit', async (event) => {
@@ -447,13 +494,19 @@ function attachEvents() {
     const email = form.email.value.trim();
     showError(form, '');
     if (!email) return showError(form, t('auth.error.required_email'));
+    if (!isAsciiOnly(email)) return showError(form, t('auth.error.invalid_ascii_email'));
 
     setLoading(form, true);
-    const { error } = await resetPasswordForEmail(email);
-    setLoading(form, false);
-    if (error) return showError(form, mapAuthError(error));
+    try {
+      const { error } = await resetPasswordForEmail(email);
+      if (error) return showError(form, mapAuthError(error));
 
-    showConfirmView({ type: 'reset', email, resendFn: () => resetPasswordForEmail(email) });
+      showConfirmView({ type: 'reset', email, resendFn: () => resetPasswordForEmail(email) });
+    } catch {
+      showError(form, t('auth.error.network'));
+    } finally {
+      setLoading(form, false);
+    }
   });
 
   modal.querySelector('[data-form="reset-password"]').addEventListener('submit', async (event) => {
@@ -463,16 +516,23 @@ function attachEvents() {
     const passwordConfirm = form.passwordConfirm.value;
     showError(form, '');
     if (!password) return showError(form, t('auth.error.required_password'));
+    if (!isAsciiOnly(password)) return showError(form, t('auth.error.invalid_ascii_password'));
+    if (!isAsciiOnly(passwordConfirm)) return showError(form, t('auth.error.invalid_ascii_password'));
     if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
     if (password !== passwordConfirm) return showError(form, t('auth.error.password_mismatch'));
 
     setLoading(form, true);
-    const { error } = await updatePassword(password);
-    setLoading(form, false);
-    if (error) return showError(form, mapAuthError(error));
+    try {
+      const { error } = await updatePassword(password);
+      if (error) return showError(form, mapAuthError(error));
 
-    closeAuthModal();
-    onSuccessCallback?.(t('auth.success.password_updated'));
+      closeAuthModal();
+      onSuccessCallback?.(t('auth.success.password_updated'));
+    } catch {
+      showError(form, t('auth.error.network'));
+    } finally {
+      setLoading(form, false);
+    }
   });
 }
 
