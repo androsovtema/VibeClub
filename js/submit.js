@@ -57,6 +57,7 @@ if (gate && formWrap && form) {
   const selectedLooking = new Set();
   let selectedStage = null; // одна стадия или null
   let coverFile = null;
+  let coverPreviewObjectUrl = null;
   let currentUser = null;
   let submitting = false;
   let editLoaded = false; // проект для редактирования уже подтянут
@@ -376,7 +377,7 @@ if (gate && formWrap && form) {
     }
     coverFile = file;
     coverFilenameEl.textContent = file.name;
-    coverPreviewImg.src = URL.createObjectURL(file);
+    setCoverPreview(file);
     coverPreview.hidden = false;
   });
 
@@ -391,10 +392,32 @@ if (gate && formWrap && form) {
     coverInput.value = '';
     coverFilenameEl.textContent = t('submit.field.cover.filename_empty');
     coverPreview.hidden = true;
-    if (coverPreviewImg.src) {
-      URL.revokeObjectURL(coverPreviewImg.src);
-      coverPreviewImg.src = '';
-    }
+    if (coverPreviewObjectUrl) URL.revokeObjectURL(coverPreviewObjectUrl);
+    coverPreviewObjectUrl = null;
+    coverPreviewImg.removeAttribute('src');
+    coverPreviewImg.onerror = null;
+  }
+
+  function setCoverPreview(file) {
+    if (coverPreviewObjectUrl) URL.revokeObjectURL(coverPreviewObjectUrl);
+
+    const objectUrl = URL.createObjectURL(file);
+    coverPreviewObjectUrl = objectUrl;
+    coverPreviewImg.onerror = () => {
+      // В некоторых браузерных конфигурациях blob:-URL может не отрисоваться,
+      // хотя выбранный файл валиден. Показываем тот же файл без повторной загрузки.
+      if (coverPreviewObjectUrl !== objectUrl) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (coverPreviewObjectUrl !== objectUrl) return;
+        URL.revokeObjectURL(objectUrl);
+        coverPreviewObjectUrl = null;
+        coverPreviewImg.onerror = null;
+        coverPreviewImg.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    coverPreviewImg.src = objectUrl;
   }
 
   imagesInput.addEventListener('change', async () => {

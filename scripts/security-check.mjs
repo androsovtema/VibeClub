@@ -208,7 +208,9 @@ if (fb.ok) {
 // авторизованный insert должен работать (контроль для SEC-05)
 console.log('\nКонтроль — feedback от залогиненного должен работать:');
 const fbAuth = await fetch(`${URL}/rest/v1/feedback`, {
-  method: 'POST', headers: { ...authed, Prefer: 'return=representation' },
+  // Участник может создать обращение, но не имеет SELECT к списку feedback.
+  // Поэтому не просим PostgREST вернуть созданную строку: UI работает так же.
+  method: 'POST', headers: authed,
   body: JSON.stringify({ user_id: uid, page: '/security-check', message: 'security-check: легитимный тест feedback' })
 });
 const fbAuthBody = await fbAuth.json().catch(() => null);

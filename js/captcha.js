@@ -16,7 +16,8 @@ const TIMEOUT_MS = 30000;
 
 let scriptPromise = null;
 let widgetId = null;
-let pending = null;
+let widgetHost = null;
+let activeChallenge = null;
 
 function loadScript() {
   if (scriptPromise) return scriptPromise;
@@ -35,27 +36,54 @@ function loadScript() {
   return scriptPromise;
 }
 
-function settle(fn, value) {
-  const p = pending;
-  pending = null;
-  if (p) p[fn](value);
+function removeWidget() {
+  if (widgetId !== null && window.turnstile?.remove) window.turnstile.remove(widgetId);
+  widgetId = null;
+  widgetHost?.remove();
+  widgetHost = null;
 }
 
-async function ensureWidget() {
+async function requestToken() {
   await loadScript();
-  if (widgetId !== null) return;
 
-  const host = document.createElement('div');
-  host.className = 'captcha-host';
-  document.body.appendChild(host);
+  // Turnstile-токены одноразовые. Новый виджет на каждую Auth-операцию
+  // надёжнее reset уже использованного экземпляра и не оставляет iframe в DOM.
+  removeWidget();
+  widgetHost = document.createElement('div');
+  widgetHost.className = 'captcha-host';
+  document.body.appendChild(widgetHost);
 
-  widgetId = window.turnstile.render(host, {
-    sitekey: SITE_KEY,
-    execution: 'execute',
-    appearance: 'interaction-only',
-    callback: (token) => settle('resolve', token),
-    'error-callback': () => settle('reject', new Error('captcha_error')),
-    'timeout-callback': () => settle('reject', new Error('captcha_timeout'))
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let timer = null;
+
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      removeWidget();
+      fn(value);
+    };
+
+    widgetId = window.turnstile.render(widgetHost, {
+      sitekey: SITE_KEY,
+      execution: 'execute',
+      appearance: 'interaction-only',
+      callback: (token) => finish(resolve, token),
+      'error-callback': () => {
+        finish(reject, new Error('captcha_error'));
+        return true;
+      },
+      'expired-callback': () => finish(reject, new Error('captcha_expired')),
+      'timeout-callback': () => finish(reject, new Error('captcha_timeout'))
+    });
+
+    timer = setTimeout(() => finish(reject, new Error('captcha_timeout')), TIMEOUT_MS);
+    try {
+      window.turnstile.execute(widgetId);
+    } catch (error) {
+      finish(reject, error);
+    }
   });
 }
 
@@ -65,14 +93,10 @@ async function ensureWidget() {
  * показывает человеку понятное сообщение.
  */
 export async function getCaptchaToken() {
-  await ensureWidget();
-
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => settle('reject', new Error('captcha_timeout')), TIMEOUT_MS);
-    const done = (fn) => (value) => { clearTimeout(timer); fn(value); };
-    pending = { resolve: done(resolve), reject: done(reject) };
-
-    window.turnstile.reset(widgetId);
-    window.turnstile.execute(widgetId);
-  });
+  if (!activeChallenge) {
+    activeChallenge = requestToken().finally(() => {
+      activeChallenge = null;
+    });
+  }
+  return activeChallenge;
 }
