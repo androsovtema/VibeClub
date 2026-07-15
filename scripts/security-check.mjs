@@ -8,6 +8,7 @@
  *   4) подменить projects.created_at (SEC-11)
  *   5) анонимно получить листинг bucket covers (SEC-18)
  *   6) анонимно вставить запись в feedback (SEC-05)
+ *   7) проверить приватность журнала, grant/revoke и DB-гейт контактов
  * Все должны отбиться. Если проходят — миграция не применена или сломана.
  *
  * Запуск:
@@ -22,6 +23,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import {
+  PRIVACY_POLICY_VERSION,
+  PROFILE_CONTACT_FIELDS,
+  DISSEMINATION_SCOPE_PURPOSE
+} from '../js/consent.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -49,6 +55,7 @@ let pass = 0;
 let fail = 0;
 const ok = (m) => { console.log(`  ✓ ${m}`); pass++; };
 const bad = (m) => { console.log(`  ✗ ${m}`); fail++; };
+const json = async (response) => response.json().catch(() => null);
 
 // --- 1. логин, получаем JWT ---
 // SEC-10: в проде включена капча Turnstile — парольный логин из скрипта отбивается
@@ -90,6 +97,198 @@ if (me?.role === 'admin') {
   process.exit(2);
 }
 console.log(`Роль учётки: ${me?.role ?? '?'} (ожидается member)\n`);
+
+const profileSelect = ['bio', ...PROFILE_CONTACT_FIELDS].join(',');
+const originalProfileRes = await fetch(
+  `${URL}/rest/v1/profiles?id=eq.${uid}&select=${profileSelect}`,
+  { headers: authed }
+);
+const originalProfile = (await json(originalProfileRes))?.[0];
+if (!originalProfileRes.ok || !originalProfile) {
+  console.error('✗ Не удалось сохранить исходное состояние тестового профиля. Проверка остановлена до изменений.');
+  process.exit(2);
+}
+
+async function activeDisseminationRows() {
+  const response = await fetch(
+    `${URL}/rest/v1/user_consents?consent_type=eq.dissemination&revoked_at=is.null&select=id,user_id,policy_version,granted_at,scope,subject_full_name,subject_contact`,
+    { headers: authed }
+  );
+  return { response, rows: await json(response) };
+}
+
+function hasExpectedScope(scope) {
+  return scope?.purpose === DISSEMINATION_SCOPE_PURPOSE &&
+    Array.isArray(scope.fields) &&
+    scope.fields.length === PROFILE_CONTACT_FIELDS.length &&
+    PROFILE_CONTACT_FIELDS.every((field, index) => scope.fields[index] === field);
+}
+
+async function runConsentChecks() {
+  console.log('\nT-CONSENT — журнал, RPC и контакты:');
+
+  const initialActiveResult = await activeDisseminationRows();
+  if (!initialActiveResult.response.ok || !Array.isArray(initialActiveResult.rows)) {
+    bad(`не удалось прочитать собственное исходное согласие (HTTP ${initialActiveResult.response.status})`);
+    return;
+  }
+
+  // Не отзываем реальное действующее согласие и не заменяем его новой датой:
+  // security-check запускается на отдельной member-учётке без active consent.
+  if (initialActiveResult.rows.length > 0) {
+    bad('у тестовой учётки уже есть active dissemination; используй отдельную member-учётку без действующего согласия');
+    return;
+  }
+
+  const originalHasContacts = PROFILE_CONTACT_FIELDS.some((field) => Boolean(originalProfile[field]));
+  if (originalHasContacts) {
+    bad('у тестовой учётки заполнены контакты; destructive consent-check остановлен до изменений');
+    return;
+  }
+
+  let cleanupError = null;
+  try {
+    const anonRead = await fetch(`${URL}/rest/v1/user_consents?select=id&limit=1`, { headers: base });
+    if (anonRead.ok) bad(`аноним прочитал user_consents (HTTP ${anonRead.status})`);
+    else ok(`anon не читает user_consents (HTTP ${anonRead.status})`);
+
+    const ownRead = await fetch(`${URL}/rest/v1/user_consents?select=id,user_id`, { headers: authed });
+    const ownRows = await json(ownRead);
+    if (ownRead.ok && Array.isArray(ownRows) && ownRows.every((row) => row.user_id === uid)) {
+      ok(`участник читает только свои consent rows (${ownRows.length})`);
+    } else {
+      bad(`select журнала нарушен (HTTP ${ownRead.status})`);
+    }
+
+    const directInsert = await fetch(`${URL}/rest/v1/user_consents`, {
+      method: 'POST',
+      headers: { ...authed, Prefer: 'return=representation' },
+      body: JSON.stringify({
+        user_id: uid,
+        consent_type: 'dissemination',
+        policy_version: PRIVACY_POLICY_VERSION,
+        scope: {}
+      })
+    });
+    if (directInsert.ok) bad('прямой INSERT user_consents прошёл');
+    else ok(`прямой INSERT user_consents отбит (HTTP ${directInsert.status})`);
+
+    const ownConsentId = ownRows?.[0]?.id || '00000000-0000-0000-0000-000000000000';
+    const directUpdate = await fetch(`${URL}/rest/v1/user_consents?id=eq.${ownConsentId}`, {
+      method: 'PATCH', headers: authed, body: JSON.stringify({ revoked_at: new Date().toISOString() })
+    });
+    if (directUpdate.ok) bad('прямой UPDATE user_consents прошёл');
+    else ok(`прямой UPDATE user_consents отбит (HTTP ${directUpdate.status})`);
+
+    const directDelete = await fetch(`${URL}/rest/v1/user_consents?id=eq.${ownConsentId}`, {
+      method: 'DELETE', headers: authed
+    });
+    if (directDelete.ok) bad('прямой DELETE user_consents прошёл');
+    else ok(`прямой DELETE user_consents отбит (HTTP ${directDelete.status})`);
+
+    const revokeBeforePatch = await fetch(`${URL}/rest/v1/rpc/revoke_profile_dissemination`, {
+      method: 'POST', headers: authed, body: '{}'
+    });
+    if (!revokeBeforePatch.ok) throw new Error(`prepare revoke HTTP ${revokeBeforePatch.status}`);
+
+    const blockedContact = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
+      method: 'PATCH',
+      headers: { ...authed, Prefer: 'return=representation' },
+      body: JSON.stringify({ telegram: 'security_check_without_consent' })
+    });
+    if (blockedContact.ok) bad('контакт сохранился без active dissemination');
+    else ok(`контакт без active dissemination отбит (HTTP ${blockedContact.status})`);
+
+    const consentFullName = 'Security Check Member';
+    const grantBody = JSON.stringify({ subject_full_name: consentFullName });
+    const grant = await fetch(`${URL}/rest/v1/rpc/grant_profile_dissemination`, {
+      method: 'POST', headers: authed, body: grantBody
+    });
+    const firstConsentId = await json(grant);
+    const grantAgain = await fetch(`${URL}/rest/v1/rpc/grant_profile_dissemination`, {
+      method: 'POST', headers: authed, body: grantBody
+    });
+    const secondConsentId = await json(grantAgain);
+    const activeAfterGrant = await activeDisseminationRows();
+    const activeRows = Array.isArray(activeAfterGrant.rows) ? activeAfterGrant.rows : [];
+    const active = activeRows[0];
+    const grantedAt = Date.parse(active?.granted_at || '');
+    const serverDated = Number.isFinite(grantedAt) && Math.abs(Date.now() - grantedAt) < 5 * 60 * 1000;
+    if (grant.ok && grantAgain.ok && firstConsentId === secondConsentId && activeRows.length === 1 &&
+        active?.user_id === uid && active?.policy_version === PRIVACY_POLICY_VERSION &&
+        active?.subject_full_name === consentFullName && Boolean(active?.subject_contact) &&
+        hasExpectedScope(active?.scope) && serverDated) {
+      ok('grant RPC создал одну идемпотентную серверно датированную запись текущей версии');
+    } else {
+      bad(`grant RPC нарушен (HTTP ${grant.status}/${grantAgain.status}, active=${activeRows.length})`);
+    }
+
+    const contactValue = `security_check_${uid.slice(0, 8)}`;
+    const saveContact = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
+      method: 'PATCH', headers: { ...authed, Prefer: 'return=representation' },
+      body: JSON.stringify({ telegram: contactValue })
+    });
+    const savedContact = (await json(saveContact))?.[0]?.telegram;
+    if (saveContact.ok && savedContact === contactValue) ok('после grant контакт сохраняется');
+    else bad(`после grant контакт не сохранился (HTTP ${saveContact.status})`);
+
+    const revoke = await fetch(`${URL}/rest/v1/rpc/revoke_profile_dissemination`, {
+      method: 'POST', headers: authed, body: '{}'
+    });
+    const contactAfterRevokeRes = await fetch(
+      `${URL}/rest/v1/profiles?id=eq.${uid}&select=${PROFILE_CONTACT_FIELDS.join(',')}`,
+      { headers: authed }
+    );
+    const contactAfterRevoke = (await json(contactAfterRevokeRes))?.[0];
+    const rowsAfterRevoke = await activeDisseminationRows();
+    const cleared = contactAfterRevoke && PROFILE_CONTACT_FIELDS.every((field) => contactAfterRevoke[field] === null);
+    if (revoke.ok && cleared && rowsAfterRevoke.rows?.length === 0) {
+      ok('revoke закрыл consent и очистил семь контактов');
+    } else {
+      bad(`revoke не закрыл consent/контакты (HTTP ${revoke.status})`);
+    }
+
+    const revokeAgain = await fetch(`${URL}/rest/v1/rpc/revoke_profile_dissemination`, {
+      method: 'POST', headers: authed, body: '{}'
+    });
+    if (revokeAgain.ok) ok('повторный revoke безопасен');
+    else bad(`повторный revoke упал (HTTP ${revokeAgain.status})`);
+
+    for (const functionName of [
+      'current_privacy_policy_version',
+      'handle_new_user',
+      'protect_profile_contacts'
+    ]) {
+      const internalCall = await fetch(`${URL}/rest/v1/rpc/${functionName}`, {
+        method: 'POST', headers: authed, body: '{}'
+      });
+      if (internalCall.ok) bad(`внутренняя функция ${functionName} доступна через RPC`);
+      else ok(`внутренняя функция ${functionName} закрыта (HTTP ${internalCall.status})`);
+    }
+  } catch (error) {
+    bad(`T-CONSENT проверка прервана: ${error.message}`);
+  } finally {
+    try {
+      const restoreConsent = await fetch(`${URL}/rest/v1/rpc/revoke_profile_dissemination`, {
+        method: 'POST', headers: authed, body: '{}'
+      });
+      if (!restoreConsent.ok) throw new Error(`revoke_profile_dissemination HTTP ${restoreConsent.status}`);
+
+      const restoreProfile = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
+        method: 'PATCH', headers: authed, body: JSON.stringify(originalProfile)
+      });
+      if (!restoreProfile.ok) throw new Error(`profile PATCH HTTP ${restoreProfile.status}`);
+      ok('исходное состояние тестового профиля восстановлено');
+    } catch (error) {
+      cleanupError = error;
+      bad(`НЕ УДАЛОСЬ восстановить тестовый профиль: ${error.message}`);
+    }
+  }
+
+  if (cleanupError) process.exitCode = 1;
+}
+
+await runConsentChecks();
 
 // --- Атака 1: эскалация role → admin ---
 console.log('Атака 1 — эскалация role → admin:');
@@ -230,10 +429,11 @@ const bio = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
 const bioBody = await bio.json().catch(() => null);
 if (bio.ok) {
   ok(`bio обновился (HTTP ${bio.status}) — легитимный доступ не сломан`);
-  // почистим тестовую пометку
-  await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
-    method: 'PATCH', headers: authed, body: JSON.stringify({ bio: null })
+  // восстанавливаем исходное значение, а не обнуляем пользовательские данные
+  const restoreBio = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}`, {
+    method: 'PATCH', headers: authed, body: JSON.stringify({ bio: originalProfile.bio })
   });
+  if (!restoreBio.ok) bad(`НЕ УДАЛОСЬ восстановить исходное bio (HTTP ${restoreBio.status})`);
 } else {
   const msg = bioBody?.message || bioBody?.hint || JSON.stringify(bioBody);
   bad(`bio НЕ обновился (HTTP ${bio.status}): ${msg}`);

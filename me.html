@@ -94,6 +94,24 @@
           <h2 data-contacts-heading></h2>
           <p class="field-hint" data-contacts-warning></p>
 
+          <div class="me-contact-consent">
+            <div class="field me-consent-identity">
+              <label for="me-consent-full-name" data-label-consent-full-name></label>
+              <input id="me-consent-full-name" type="text" name="consentFullName"
+                maxlength="200" autocomplete="name" disabled />
+              <p class="field-hint" data-hint-consent-full-name></p>
+              <p class="field-error" data-error="consent_full_name" hidden></p>
+            </div>
+            <label for="me-dissemination-consent">
+              <input id="me-dissemination-consent" type="checkbox"
+                name="disseminationConsent" data-dissemination-consent disabled />
+              <span data-dissemination-consent-label></span>
+            </label>
+            <a href="privacy.html#dissemination" target="_blank" rel="noopener noreferrer"
+              data-dissemination-consent-link></a>
+            <p class="field-error" data-error="dissemination" hidden></p>
+          </div>
+
           <div class="field">
             <label for="me-telegram" data-label-telegram></label>
             <input id="me-telegram" type="text" name="telegram" maxlength="100" />

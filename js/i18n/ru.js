@@ -20,7 +20,7 @@ export const ru = {
   'auth.field.password.placeholder': 'Минимум 12 символов',
   'auth.action.signin': 'Войти',
   'auth.action.signup': 'Вступить в клуб',
-  'auth.consent.label': 'Принимаю <a href="privacy.html" target="_blank" rel="noopener noreferrer">правила клуба и политику данных</a>',
+  'auth.consent.label': 'Даю согласие на обработку моих персональных данных согласно <a href="privacy.html" target="_blank" rel="noopener noreferrer">политике конфиденциальности</a> и принимаю <a href="privacy.html#rules" target="_blank" rel="noopener noreferrer">правила клуба</a>.',
   'auth.action.magiclink': 'Войти по ссылке на почту',
   'auth.action.magiclink.submit': 'Отправить ссылку',
   'auth.action.forgot': 'Забыл пароль?',
@@ -67,6 +67,9 @@ export const ru = {
   'auth.error.weak_password': 'Пароль слишком короткий — минимум 12 символов.',
   'auth.error.password_too_short': 'Пароль должен быть не короче 12 символов.',
   'auth.error.captcha_failed': 'Не удалось пройти проверку «я не робот». Обнови страницу и попробуй ещё раз. Если не помогает — отключи блокировщик рекламы.',
+  'auth.error.magiclink_unknown': 'Эта почта ещё не в клубе — сначала зарегистрируйся.',
+  'auth.error.otp_disabled': 'Вход по ссылке сейчас недоступен. Войди с паролем или попробуй позже.',
+  'auth.error.policy_version': 'Политика данных обновилась. Перезагрузи страницу и подтверди её актуальную версию.',
   'auth.error.invalid_email': 'Проверь адрес почты — что-то не так с форматом.',
   'auth.error.email_not_confirmed': 'Почта ещё не подтверждена — проверь письмо со ссылкой.',
   'auth.error.rate_limit': 'Слишком часто. Подожди пару минут и попробуй снова.',
@@ -251,7 +254,18 @@ export const ru = {
   'me.field.bio.placeholder': 'Пара слов о том, что делаешь',
 
   'me.field.contacts.heading': 'Контакты',
-  'me.field.contacts.warning': 'Контакты видны всем на твоей публичной странице.',
+  'me.field.contacts.warning': 'Заполненные контакты видны всем на твоей публичной странице.',
+  'me.consent.full_name.label': 'ФИО для согласия',
+  'me.consent.full_name.placeholder': 'Фамилия Имя Отчество (если есть)',
+  'me.consent.full_name.hint': 'Нужно только для оформления и подтверждения согласия на публикацию контактов. Сохраняем в закрытом журнале и не показываем в публичном профиле.',
+  'me.consent.full_name.required': 'Укажи фамилию и имя. Отчество добавь, если оно есть.',
+  'me.consent.dissemination.label': 'Разрешаю публиковать Telegram, сайт, GitHub, телефон, публичную почту, название и адрес своей ссылки на странице профиля.',
+  'me.consent.dissemination.link': 'Подробнее о публикации контактов',
+  'me.consent.dissemination.load_error': 'Не получилось проверить согласие на публикацию контактов. Попробуй сохранить ещё раз или обнови страницу.',
+  'me.consent.dissemination.required': 'Чтобы сохранить заполненные контакты, отдельно разреши их публикацию.',
+  'me.consent.dissemination.grant_error': 'Не получилось сохранить согласие на публикацию контактов. Попробуй ещё раз.',
+  'me.consent.dissemination.revoke_error': 'Не получилось отозвать согласие и убрать контакты. Попробуй ещё раз.',
+  'me.consent.dissemination.revoked': 'Согласие отозвано, контакты убраны ✦',
   'me.field.telegram': 'Telegram',
   'me.field.telegram.placeholder': '@ник',
   'me.field.website': 'Сайт',
@@ -373,7 +387,9 @@ const CODE_MAP = {
   same_password: 'auth.error.same_password',
   over_email_send_rate_limit: 'auth.error.rate_limit',
   over_request_rate_limit: 'auth.error.rate_limit',
-  captcha_failed: 'auth.error.captcha_failed'
+  captcha_failed: 'auth.error.captcha_failed',
+  otp_disabled: 'auth.error.otp_disabled',
+  processing_consent_version_invalid: 'auth.error.policy_version'
 };
 
 const MESSAGE_MAP = [
@@ -383,11 +399,16 @@ const MESSAGE_MAP = [
   [/unable to validate email address/i, 'auth.error.invalid_email'],
   [/email not confirmed/i, 'auth.error.email_not_confirmed'],
   [/different from the old password/i, 'auth.error.same_password'],
-  [/rate limit|after \d+ seconds/i, 'auth.error.rate_limit']
+  [/rate limit|after \d+ seconds/i, 'auth.error.rate_limit'],
+  [/processing_consent_version_invalid/i, 'auth.error.policy_version']
 ];
 
 export function mapAuthError(error) {
   if (!error) return t('auth.error.generic');
+  if (error.code === 'otp_disabled'
+      && /signups not allowed for otp/i.test(error.message || '')) {
+    return t('auth.error.magiclink_unknown');
+  }
   if (error.code && CODE_MAP[error.code]) return t(CODE_MAP[error.code]);
   const message = error.message || '';
   const found = MESSAGE_MAP.find(([re]) => re.test(message));

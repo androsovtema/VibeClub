@@ -7,6 +7,11 @@
 import { supabase } from './supabase.js';
 import { getCurrentUser, onAuthChange } from './auth.js';
 import { t } from './i18n/ru.js';
+import {
+  PRIVACY_POLICY_VERSION,
+  PROFILE_CONTACT_FIELDS,
+  DISSEMINATION_SCOPE_PURPOSE
+} from './consent.js';
 import { fetchOwnProjects, renderProjectCard } from './projects.js';
 import { OPEN_TO_KEYS, openToLabel, validOpenTo } from './vocab.js';
 import {
@@ -18,6 +23,7 @@ import {
 const MAX_SKILLS = 10;
 const MAX_SKILL_LEN = 24;
 const MAX_BIO_LEN = 500;
+const MAX_CONSENT_FULL_NAME_LEN = 200;
 
 const loadingEl = document.querySelector('[data-me-loading]');
 const gateEl = document.querySelector('[data-me-gate]');
@@ -30,6 +36,8 @@ const skillsAddBtn = form.querySelector('[data-skills-add]');
 const openToGroup = form.querySelector('[data-open-to-group]');
 const meError = form.querySelector('[data-me-error]');
 const saveBtn = form.querySelector('[data-me-save]');
+const disseminationConsent = form.querySelector('[data-dissemination-consent]');
+const consentFullNameInput = form.elements.consentFullName;
 
 const projectsGrid = document.querySelector('[data-me-projects-grid]');
 const projectsEmpty = document.querySelector('[data-me-projects-empty]');
@@ -42,6 +50,9 @@ let loadedUserId = null;
 let skills = [];
 const selectedOpenTo = new Set();
 let saving = false;
+let consentMutating = false;
+let hasDisseminationConsent = false;
+let consentedFullName = '';
 
 applyStaticText();
 buildOpenToChips();
@@ -57,6 +68,11 @@ function applyStaticText() {
   form.querySelector('#me-bio').placeholder = t('me.field.bio.placeholder');
   form.querySelector('[data-contacts-heading]').textContent = t('me.field.contacts.heading');
   form.querySelector('[data-contacts-warning]').textContent = t('me.field.contacts.warning');
+  form.querySelector('[data-label-consent-full-name]').textContent = t('me.consent.full_name.label');
+  consentFullNameInput.placeholder = t('me.consent.full_name.placeholder');
+  form.querySelector('[data-hint-consent-full-name]').textContent = t('me.consent.full_name.hint');
+  form.querySelector('[data-dissemination-consent-label]').textContent = t('me.consent.dissemination.label');
+  form.querySelector('[data-dissemination-consent-link]').textContent = t('me.consent.dissemination.link');
   form.querySelector('[data-label-telegram]').textContent = t('me.field.telegram');
   form.querySelector('#me-telegram').placeholder = t('me.field.telegram.placeholder');
   form.querySelector('[data-label-website]').textContent = t('me.field.website');
@@ -105,6 +121,40 @@ function clearErrors() {
   });
   meError.textContent = '';
   meError.hidden = true;
+}
+
+function hasCurrentDisseminationScope(scope) {
+  return scope?.purpose === DISSEMINATION_SCOPE_PURPOSE &&
+    Array.isArray(scope.fields) &&
+    scope.fields.length === PROFILE_CONTACT_FIELDS.length &&
+    PROFILE_CONTACT_FIELDS.every((field, index) => scope.fields[index] === field);
+}
+
+function normalizeConsentFullName(value) {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+function isValidConsentFullName(value) {
+  const parts = value.split(' ').filter(Boolean);
+  return value.length >= 3 && value.length <= MAX_CONSENT_FULL_NAME_LEN && parts.length >= 2;
+}
+
+function clearContactInputs() {
+  form.telegram.value = '';
+  form.website.value = '';
+  form.github.value = '';
+  form.phone.value = '';
+  form.emailPublic.value = '';
+  form.customLinkLabel.value = '';
+  form.customLinkUrl.value = '';
+}
+
+function setBusy(isBusy) {
+  saving = isBusy;
+  saveBtn.disabled = isBusy;
+  disseminationConsent.disabled = isBusy || consentMutating;
+  consentFullNameInput.disabled = isBusy || consentMutating;
+  saveBtn.textContent = t(isBusy ? 'me.action.saving' : 'me.action.save');
 }
 
 function renderSkillChips() {
@@ -218,6 +268,43 @@ form.github.addEventListener('blur', () => {
 });
 
 form.bio.addEventListener('input', () => autoGrowTextarea(form.bio));
+consentFullNameInput.addEventListener('input', () => {
+  showFieldError('consent_full_name', '');
+});
+
+disseminationConsent.addEventListener('change', async () => {
+  showFieldError('dissemination', '');
+
+  if (disseminationConsent.checked || !hasDisseminationConsent) return;
+  if (saving || consentMutating) {
+    disseminationConsent.checked = true;
+    return;
+  }
+
+  consentMutating = true;
+  disseminationConsent.disabled = true;
+  consentFullNameInput.disabled = true;
+  saveBtn.disabled = true;
+
+  const { error } = await supabase.rpc('revoke_profile_dissemination');
+
+  consentMutating = false;
+  disseminationConsent.disabled = false;
+  consentFullNameInput.disabled = false;
+  saveBtn.disabled = false;
+
+  if (error) {
+    disseminationConsent.checked = true;
+    showFieldError('dissemination', t('me.consent.dissemination.revoke_error'));
+    return;
+  }
+
+  hasDisseminationConsent = false;
+  consentedFullName = '';
+  consentFullNameInput.value = '';
+  clearContactInputs();
+  showToast(t('me.consent.dissemination.revoked'));
+});
 
 function showToast(message, isError = false) {
   if (!toastEl) return;
@@ -230,11 +317,40 @@ function showToast(message, isError = false) {
 }
 
 async function loadProfile(user) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('display_name, bio, telegram, website, github, phone, email_public, custom_link_label, custom_link_url, skills, open_to')
-    .eq('id', user.id)
-    .single();
+  disseminationConsent.disabled = true;
+  consentFullNameInput.disabled = true;
+  const [profileResult, consentResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('display_name, bio, telegram, website, github, phone, email_public, custom_link_label, custom_link_url, skills, open_to')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('user_consents')
+      .select('policy_version, scope, subject_full_name')
+      .eq('consent_type', 'dissemination')
+      .eq('policy_version', PRIVACY_POLICY_VERSION)
+      .is('revoked_at', null)
+      .limit(1)
+      .maybeSingle()
+  ]);
+
+  const { data, error } = profileResult;
+  const { data: consentData, error: consentError } = consentResult;
+
+  hasDisseminationConsent = !consentError &&
+    hasCurrentDisseminationScope(consentData?.scope) &&
+    isValidConsentFullName(normalizeConsentFullName(consentData?.subject_full_name || ''));
+  consentedFullName = hasDisseminationConsent
+    ? normalizeConsentFullName(consentData.subject_full_name)
+    : '';
+  consentFullNameInput.value = consentedFullName;
+  disseminationConsent.checked = hasDisseminationConsent;
+  disseminationConsent.disabled = false;
+  consentFullNameInput.disabled = false;
+  if (consentError) {
+    showFieldError('dissemination', t('me.consent.dissemination.load_error'));
+  }
 
   form.displayName.value = (error || !data) ? (user.user_metadata?.display_name || '') : (data.display_name || '');
   if (error || !data) return;
@@ -329,33 +445,74 @@ form.addEventListener('submit', async (event) => {
 
   const customLinkLabel = form.customLinkLabel.value.trim();
 
-  saving = true;
-  saveBtn.disabled = true;
-  saveBtn.textContent = t('me.action.saving');
-
-  const payload = {
-    display_name: form.displayName.value.trim() || null,
-    bio: bio || null,
+  const contactPayload = {
     telegram: form.telegram.value.trim() || null,
     website: website || null,
     github: github || null,
     phone: phone || null,
     email_public: emailPublic || null,
     custom_link_label: customLinkLabel || null,
-    custom_link_url: customLinkUrl || null,
+    custom_link_url: customLinkUrl || null
+  };
+  const hasContacts = Object.values(contactPayload).some(Boolean);
+  const consentFullName = normalizeConsentFullName(consentFullNameInput.value);
+  if (consentFullName !== consentFullNameInput.value) {
+    consentFullNameInput.value = consentFullName;
+  }
+
+  if (disseminationConsent.checked && !isValidConsentFullName(consentFullName)) {
+    showFieldError('consent_full_name', t('me.consent.full_name.required'));
+    consentFullNameInput.focus();
+    return;
+  }
+
+  if (hasContacts && !disseminationConsent.checked) {
+    showFieldError('dissemination', t('me.consent.dissemination.required'));
+    disseminationConsent.focus();
+    return;
+  }
+
+  setBusy(true);
+
+  if (disseminationConsent.checked &&
+      (!hasDisseminationConsent || consentFullName !== consentedFullName)) {
+    const { error: consentError } = await supabase.rpc('grant_profile_dissemination', {
+      subject_full_name: consentFullName
+    });
+    if (consentError) {
+      setBusy(false);
+      if (consentError.message?.includes('consent_subject_full_name_invalid')) {
+        showFieldError('consent_full_name', t('me.consent.full_name.required'));
+      } else {
+        showFieldError('dissemination', t('me.consent.dissemination.grant_error'));
+      }
+      return;
+    }
+    hasDisseminationConsent = true;
+    consentedFullName = consentFullName;
+  }
+
+  const payload = {
+    display_name: form.displayName.value.trim() || null,
+    bio: bio || null,
+    ...contactPayload,
     skills,
     open_to: Array.from(selectedOpenTo)
   };
 
   const { error } = await supabase.from('profiles').update(payload).eq('id', currentUser.id);
 
-  saving = false;
-  saveBtn.disabled = false;
-  saveBtn.textContent = t('me.action.save');
+  setBusy(false);
 
   if (error) {
-    meError.textContent = t('me.save.error');
-    meError.hidden = false;
+    if (error.message?.includes('dissemination_consent_required')) {
+      hasDisseminationConsent = false;
+      disseminationConsent.checked = false;
+      showFieldError('dissemination', t('me.consent.dissemination.required'));
+    } else {
+      meError.textContent = t('me.save.error');
+      meError.hidden = false;
+    }
     return;
   }
 
@@ -368,6 +525,12 @@ function applyAuthState(user) {
 
   if (!user) {
     loadedUserId = null;
+    hasDisseminationConsent = false;
+    consentedFullName = '';
+    consentFullNameInput.value = '';
+    disseminationConsent.checked = false;
+    disseminationConsent.disabled = true;
+    consentFullNameInput.disabled = true;
     gateEl.hidden = false;
     cabinetEls.forEach((el) => { el.hidden = true; });
     return;

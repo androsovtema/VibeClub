@@ -4,6 +4,7 @@
  */
 import { supabase } from './supabase.js';
 import { getCaptchaToken } from './captcha.js';
+import { PRIVACY_POLICY_VERSION } from './consent.js';
 
 // Turnstile может не отдать токен (блокировщик, offline, отказ челленджа).
 // Возвращаем ошибку в форме Supabase ({ data, error }), а не кидаем исключение:
@@ -23,7 +24,10 @@ export async function signUpEmailPassword(email, password, displayName) {
     email,
     password,
     options: {
-      data: { display_name: displayName },
+      data: {
+        display_name: displayName,
+        privacy_policy_version: PRIVACY_POLICY_VERSION
+      },
       emailRedirectTo: window.location.origin + window.location.pathname,
       captchaToken
     }
@@ -74,6 +78,7 @@ export async function signInMagicLink(email) {
   return supabase.auth.signInWithOtp({
     email,
     options: {
+      shouldCreateUser: false,
       emailRedirectTo: window.location.origin + window.location.pathname,
       captchaToken
     }
