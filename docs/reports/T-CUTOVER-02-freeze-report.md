@@ -22,6 +22,7 @@ Freeze завершён. Публичный фронт переключён на
 - Preflight: `4a21ce6`.
 - Стабилизация e2e/CAPTCHA и cover-preview: `1a54e93`.
 - Cutover на self-host: `7b22190`.
+- Backup freshness watchdog и итоговый freeze-отчёт: `8f08652`.
 - GitHub Pages deploy после cutover зелёный.
 
 ## Сверка данных
