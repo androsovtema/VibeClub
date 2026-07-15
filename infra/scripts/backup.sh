@@ -39,6 +39,8 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 DUMP_FILE="$TMP_DIR/db_${STAMP}.dump"
 UMAMI_DUMP_FILE="$TMP_DIR/umami_${STAMP}.dump"
 STORAGE_ARCHIVE="$TMP_DIR/storage_${STAMP}.tar.gz"
+BACKUP_HEALTH_DIR="./volumes/backup-health"
+BACKUP_HEALTH_MARKER="$BACKUP_HEALTH_DIR/backup-ok.txt"
 
 echo "[backup] pg_dump postgres..."
 docker compose exec -T db pg_dump -U postgres -Fc -d postgres > "$DUMP_FILE"
@@ -66,5 +68,9 @@ for prefix in db storage; do
     fi
   done
 done
+
+mkdir -p "$BACKUP_HEALTH_DIR"
+printf 'ok\n' > "${BACKUP_HEALTH_MARKER}.tmp"
+mv "${BACKUP_HEALTH_MARKER}.tmp" "$BACKUP_HEALTH_MARKER"
 
 echo "[backup] готово: ${STAMP}"

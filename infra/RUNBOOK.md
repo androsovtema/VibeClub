@@ -589,6 +589,7 @@ git push
   crontab -e
   # добавить строку:
   0 3 * * * /root/vibeclub/scripts/backup.sh >> /var/log/vibeclub-backup.log 2>&1
+  17 * * * * /root/vibeclub/scripts/backup-watchdog.sh >> /var/log/vibeclub-backup-watchdog.log 2>&1
   ```
   Проверка: выполни `bash /root/vibeclub/scripts/backup.sh` руками разово и
   убедись, что в бакете Timeweb появились `db/db_*.dump`,
@@ -621,8 +622,12 @@ git push
   Результат и дату restore-теста записать в закрытый операционный журнал.
 - [ ] Поставить внешний uptime-монитор минимум на
       `https://api.wedesignerz.com/auth/v1/health` и
-      `https://stats.wedesignerz.com/api/heartbeat`, а также алерт на диск VPS
-      и отсутствие свежего бэкапа более 26 часов.
+      `https://stats.wedesignerz.com/api/heartbeat`, а также
+      `https://api.wedesignerz.com/health/backup`. Последний endpoint отдаёт
+      `200` только пока backup-watchdog видит успешный backup не старше 26
+      часов; после этого он намеренно отдаёт `404`, чтобы внешний монитор
+      создал инцидент. Отдельно включить email-алерты Timeweb на заполнение
+      диска VPS 90% и 100%.
 - [ ] Обновить `docs/14-ru-compliance.md`: дата локализации и фактические
       провайдеры. Подать уведомление РКН об обработке ПДн. Не утверждать, что
       трансграничная передача исчезла: до T-FRONT-VPS отдельно учитывать

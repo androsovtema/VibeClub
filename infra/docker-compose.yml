@@ -354,6 +354,7 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./mail-templates:/srv/mail-templates:ro
+      - ./volumes/backup-health:/srv/backup-health:ro
       - caddy-data:/data
       - caddy-config:/config
 

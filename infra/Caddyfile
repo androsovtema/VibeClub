@@ -35,6 +35,16 @@ api.wedesignerz.com {
 		file_server
 	}
 
+	# Этот marker появляется только после успешной выгрузки backup в S3.
+	# backup-watchdog удаляет его, если backup старше 26 часов; тогда
+	# внешний монитор получит 404 и создаст инцидент.
+	@backup_health path /health/backup
+	handle @backup_health {
+		root * /srv/backup-health
+		try_files /backup-ok.txt =404
+		file_server
+	}
+
 	handle {
 		reverse_proxy kong:8000
 	}
