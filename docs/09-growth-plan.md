@@ -43,7 +43,7 @@
 | Кнопка «Нашли проблему?»: форма репорта → таблица `feedback` → админка (прогон 2026-07-12) | Sonnet | **T22** (сделана) |
 | ~~Безопасный cutover на RU-VPS~~ ✅ закрыт 2026-07-15 | Terra + Тёма | **T-CUTOVER**, freeze-report |
 | ~~Backup + restore + uptime/disk/backup-мониторинг~~ ✅ операционная часть закрыта | **Тёма** по ранбуку | шаг 9 `infra/RUNBOOK.md` |
-| Доказуемое согласие и отдельное согласие на публичные контакты | Terra + Тёма | **T-CONSENT** |
+| Доказуемое согласие и отдельное согласие на публичные контакты | Terra + Тёма | **T-CONSENT**; legal blocker — **T-CONSENT-RECONSENT** |
 | Уведомление РКН по фактической схеме после cutover | **Тёма** | `14-ru-compliance.md` |
 | Статический фронт на RU-VPS, response headers, атомарный deploy и rollback | Terra + Тёма | **T-FRONT-VPS** |
 | Операционный ритуал первых двух недель после сидинга | **Тёма** (+ команда) | `05-launch.md` |
@@ -114,10 +114,11 @@
 
 1. ~~**T-CUTOVER + финальный backup/restore/monitoring**~~ — закрыто
    2026-07-15.
-2. **T-CONSENT** — `T-CONSENT-02` технически применён на self-host 2026-07-16;
-   до закрытия legal gate нужны member JWT security-check, CAPTCHA новой
-   регистрации, ручная 375 px и legacy-account inventory без backfill.
-3. Подать уведомление РКН по фактической схеме.
+2. **T-CONSENT-RECONSENT** — `T-CONSENT-02` технически принят: member JWT,
+   CAPTCHA+письмо, 375 px и inventory завершены. Один реальный legacy admin
+   остаётся без active processing v4; нужен только явный re-consent, без
+   backfill/удаления.
+3. После него подать уведомление РКН по фактической схеме.
 4. **T-FRONT-VPS** — перенести статический origin с Pages на RU-VPS.
 5. Собрать 5–7 проектов разных авторов и Telegram-ядро.
 6. Финальный launch-check → `robots.txt`/sitemap → анонс.
