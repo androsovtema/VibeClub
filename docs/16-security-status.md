@@ -130,7 +130,12 @@ SEC-13 (бэкапы в S3 без клиентского шифрования), 
 SEC-15 (actions не закреплены по SHA), SEC-19 (внешний `avatar_url` → tracking pixel;
 `js/profile.js:70`, `members.js:30`, `project.js:444` пишут его прямо в `img.src` —
 ограничение сломает текущие аватары, нужен продуктовый разбор), SEC-20 (perf RLS),
-SEC-21 (eslint 9 vs eslint-config-standard, `ERESOLVE`), SEC-22 (публичность контактов).
+SEC-21 (eslint 9 vs eslint-config-standard, `ERESOLVE`), SEC-22 (публичность
+контактов), SEC-23 (Pages run `29402539008` зелёный, но GitHub пометил Node 20
+в `actions/checkout@v4`, `configure-pages@v5`, `deploy-pages@v4` и
+`upload-artifact@v4` как deprecated и пока принудительно запускает их на Node
+24; это не текущая поломка, обновить actions после выхода совместимых версий и
+проверить deploy).
 
 ---
 
