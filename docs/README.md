@@ -47,7 +47,8 @@
 Кодовая часть минимума (T0–T8, T10–T15, T-UX1…7, T18–T23) — **сделана**.
 **T-LOC/T-CUTOVER закрыты 2026-07-15:** прод использует self-host Supabase и
 Umami, финальный backup восстановлен в отдельные БД, мониторинг включён.
-Следом: **T-CONSENT-02** → legacy-account gate → уведомление РКН
+Следом: завершить приёмку **T-CONSENT-02** (member JWT, CAPTCHA, 375 px) →
+legacy-account gate → уведомление РКН
 (`14-ru-compliance.md`) →
 **T-FRONT-VPS** → 5–7 проектов разных авторов + Telegram-ядро → снять
 `robots.txt` → анонс. **T-IMG** можно вести параллельно в отдельной

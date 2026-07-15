@@ -1551,6 +1551,20 @@ Live остался на v2. В production ACL стандартно включа
 `service_role`; среди браузерных ролей `anon` закрыт, `authenticated` разрешён.
 Следом — `T-CONSENT-02` по уточнённому промпту Terra.
 
+**T-CONSENT-02 — production применён 2026-07-16 (техническая часть):** commit
+`f76053c` опубликован, GitHub Pages deploy `29439169617` успешен. На self-host
+сделаны свежий backup DB+Storage, контролируемый `v2 → v4` upgrade и schema
+reload; backup подтвердил актуальность, а `DISABLE_SIGNUP` после окна возвращён
+в `false` и auth снова healthy. До/после не изменились historical v2 digest
+`bd994f7988faf2530ef6b1e7a8e14913` и пустой digest публичных контактов
+`c3c60eebfcf2e7ff7640da84c72133c6`. Проверены RLS/ACL/RPC: anon не читает
+журнал, старые/stale вызовы grant отбиваются, v4 grant/revoke с реальной
+auth-сессией публикует контакт только при активном согласии и после отзыва
+очищает его. Не закрыты как legal acceptance: `security-check` с JWT обычного
+member (токен не был передан), ручной CAPTCHA-прогон новой регистрации, мобильная
+визуальная проверка 375 px (инструмент не применил viewport) и классификация
+legacy-аккаунтов без backfill.
+
 ## T-CONSENT-UX — Понятное объяснение отдельного согласия (P0-legal UX; фидбэк Тёмы 2026-07-15)
 
 **Проблема:** в `/me` непубличное ФИО вложено внутрь блока «Контакты» сразу
@@ -1761,8 +1775,8 @@ Sonnet добавил сверх задачи «свою ссылку» (custom_
 1. ~~T-CUTOVER-01/02: repo-prep, freeze, live cutover и стабилизация.~~
    Выполнено 2026-07-15.
 2. ~~T-CONSENT-UX + T-CONSENT-AUTH~~ — выполнены и приняты 2026-07-16.
-   **Следующий шаг:** подтверждение текста Тёмой/юристом → `T-CONSENT-02` →
-   уведомление РКН по фактической схеме.
+   `T-CONSENT-02` технически применён; до уведомления РКН завершить member JWT
+   security-check, CAPTCHA новой регистрации, 375 px и legacy inventory.
 3. T-FRONT-VPS: перенести статический сайт с Pages на RU-VPS и проверить
    deploy/rollback/headers.
 4. Контент-гейт: 5–7 проектов разных авторов + Telegram-ядро.

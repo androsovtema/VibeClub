@@ -114,9 +114,9 @@
 
 1. ~~**T-CUTOVER + финальный backup/restore/monitoring**~~ — закрыто
    2026-07-15.
-2. **T-CONSENT** — repo-prep, `T-CONSENT-UX`, `T-CONSENT-AUTH` и
-   `T-CONSENT-VERSION-GATE` закрыты; далее отдельное live-применение
-   `T-CONSENT-02` и legacy-account inventory без backfill.
+2. **T-CONSENT** — `T-CONSENT-02` технически применён на self-host 2026-07-16;
+   до закрытия legal gate нужны member JWT security-check, CAPTCHA новой
+   регистрации, ручная 375 px и legacy-account inventory без backfill.
 3. Подать уведомление РКН по фактической схеме.
 4. **T-FRONT-VPS** — перенести статический origin с Pages на RU-VPS.
 5. Собрать 5–7 проектов разных авторов и Telegram-ядро.
