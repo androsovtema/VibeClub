@@ -22,8 +22,9 @@ Freeze завершён. Публичный фронт переключён на
 - Preflight: `4a21ce6`.
 - Стабилизация e2e/CAPTCHA и cover-preview: `1a54e93`.
 - Cutover на self-host: `7b22190`.
-- Backup freshness watchdog и итоговый freeze-отчёт: `8f08652`.
-- GitHub Pages deploy после cutover зелёный.
+- Backup freshness watchdog: `8f08652`.
+- Финализация freeze-отчёта: `a4a245a`.
+- GitHub Pages deploy после cutover зелёный (run `29399726857`).
 
 ## Сверка данных
 
@@ -62,7 +63,8 @@ Counts, максимальные даты создания и нормализо
 - Финальный backup `2026-07-15_07-23` загружен в S3: PostgreSQL, Umami и
   Storage-архив. После внедрения watchdog выполнен ещё один успешный backup
   `2026-07-15_08-01`, который создал health-marker.
-- Restore-test в отдельных временных БД прошёл: 3 проекта и 1 Umami website;
+- Финальный backup `2026-07-15_08-01` независимо восстановлен в отдельных
+  временных БД: baseline основной БД совпал, в Umami — 1 website;
   Storage-архив успешно прочитан.
 - Cron ночного backup включён.
 - Внешние Timeweb-мониторы работают для Auth health, Umami heartbeat и
@@ -72,6 +74,18 @@ Counts, максимальные даты создания и нормализо
 - Backup-watchdog публикует `/health/backup` только пока успешный backup
   не старше 26 часов; внешний монитор этого endpoint создаёт инцидент при
   просрочке.
+- Намеренный просроченный marker/ответ `404` и доставка incident-уведомления не
+  моделировались; подтверждены зелёное состояние трёх мониторов и настроенные
+  каналы уведомлений.
+
+## Стабилизационные follow-up
+
+- После согласованного стабилизационного окна удалить старый cloud Supabase
+  host из CSP и требования `check:csp`.
+- Перенести публичный anon key Auth-монитора из query string в HTTP header
+  `apikey`.
+- Провести отдельный synthetic failure drill backup freshness и проверить
+  доставку incident-алерта.
 
 ## Операционное правило
 

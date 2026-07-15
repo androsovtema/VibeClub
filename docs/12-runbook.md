@@ -28,21 +28,33 @@
 3. Если задача трогала БД/RLS (T12, T14, T-SEC1…) — после применения миграции
    ещё и `npm run security-check`.
 
-## Момент 2 — Применил SQL-миграцию в Supabase
+## Момент 2 — Применяю SQL-миграцию к self-host production
 
 Порядок для любой миграции:
-1. Supabase → SQL Editor → New query → вставить весь файл миграции → Run.
-   «Success. No rows returned» = применилось (миграции меняют схему, строк не
-   возвращают — это норма, не ошибка).
-2. Прогнать проверку из «шапки» файла миграции (в каждом файле внизу есть блок
+1. Сначала ревью SQL и backup, если migration очищает или переписывает данные.
+   Никогда не накатывать весь `schema.sql` поверх production и не применять
+   migration к старому cloud автоматически.
+2. Скопировать одобренный файл в
+   `/root/vibeclub/supabase/migrations/` на VPS и выполнить из
+   `/root/vibeclub`:
+   ```bash
+   docker compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d postgres \
+     < supabase/migrations/<migration-file>.sql
+   docker compose exec -T db psql -U postgres -d postgres \
+     -c "NOTIFY pgrst, 'reload schema';"
+   ```
+   `ON_ERROR_STOP=1` обязателен: при первой SQL-ошибке команда должна завершиться
+   неуспешно, а не продолжать файл.
+3. Прогнать проверку из «шапки» файла migration (в каждом файле внизу есть блок
    «Проверка»). Для миграций безопасности это делает `npm run security-check` —
    не надо лезть в консоль браузера руками.
 
-Применённые миграции на сегодня:
-- `2026-07-03-stage-ask-profile.sql` — стадии/looking_for/skills (под T12–T14).
-- `2026-07-06-rls-privilege-hardening.sql` — защита role/is_core (T-SEC1). ✅ применена.
-- `2026-07-06-rls-privilege-hardening-fix.sql` — фикс функции (первая версия
-  ломала легитимный edit из-за non-short-circuit AND). ✅ применена, security-check зелёный.
+На момент T-CUTOVER 2026-07-15 все файлы, уже лежавшие в
+`supabase/migrations/` (включая security-аудит 2026-07-14), отражены в
+self-host production; `security-check` был зелёным. Следующая новая migration —
+T-CONSENT — сначала проходит repo-review и отдельный live-гейт. Фактическое
+состояние подтверждать SQL-проверкой из migration, а не этим историческим
+абзацем.
 
 ## Момент 3 — Готовлюсь к анонсу
 

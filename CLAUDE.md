@@ -86,7 +86,10 @@ python3 -m http.server 8080
 
 ## RU-VPS (T-LOC)
 
-Бэкенд переезжает на self-hosted Supabase (`infra/`, миграция — `infra/RUNBOOK.md`).
+Бэкенд переехал на self-hosted Supabase 2026-07-15 (`infra/`, операции —
+`infra/RUNBOOK.md`). Production API — `https://api.wedesignerz.com`; старый
+cloud не является готовым rollback и не получает новые миграции автоматически.
 Доступ к серверу: **`ssh vibeclub`** (алиас в `~/.ssh/config` этой машины,
 ключевая аутентификация, пароль не нужен). Рабочая папка на сервере —
-`/root/vibeclub`. Секреты — только в `infra/.env` на сервере (в репо не коммитить).
+`/root/vibeclub`. Секреты — только в `/root/vibeclub/.env` на сервере;
+`infra/.env` — локальный исходник до копирования. Оба файла не коммитить.
