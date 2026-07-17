@@ -6,10 +6,10 @@
 # НЕ включены (не используются): realtime, edge functions, logflare/analytics,
 # vector, supavisor (pooler — прямое подключение к db, нагрузка мизерная).
 #
-# Studio (админ-UI Supabase) НЕ поднят намеренно — экономия RAM и меньше
-# поверхность атаки. `meta` оставлен для будущего локального Studio за
-# ssh-туннелем (docker compose -f docker-compose.yml -f docker-compose.studio.yml,
-# см. RUNBOOK.md, если понадобится), но не проксируется через kong/Caddy.
+# Studio (админ-UI Supabase) не входит в постоянный стек — экономия RAM и меньше
+# поверхность атаки. Он запускается только по требованию через
+# docker-compose.studio.yml и SSH-туннель (см. RUNBOOK.md), не проксируется
+# через kong/Caddy и после закрытия туннеля останавливается.
 #
 # Наружу торчит только Caddy (80/443). kong и umami видны друг другу и Caddy
 # только по внутренней docker-сети — портов на хост не публикуют.
