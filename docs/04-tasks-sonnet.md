@@ -1636,6 +1636,23 @@ PII/идентификаторы не выводились. Legal closure ост
 свежего backup, применения migration, member security-check и явного действия
 сохраняемого admin.
 
+**Live apply (2026-07-17, техническая часть):** Тёма подтвердил точный
+re-consent текст. Перед изменением создан свежий закрытый backup
+`2026-07-17_05-26` (DB, Umami, Storage). Применены только атомарные migrations
+`20260717044548_t_consent_reconsent.sql` и
+`20260717052824_t_consent_reconsent_acl_fix.sql`; вторая закрыла обнаруженный
+на live стандартный default grant для `service_role`, не переписывая первую.
+PostgREST schema cache перезагружен.
+
+Live-проверки: одна точная RPC принадлежит `postgres`, имеет
+`SECURITY DEFINER`, `search_path=""`, возвращает `uuid`; `EXECUTE` есть только
+у `authenticated` и owner, anon HTTP получает 401. NULL auth, NULL/v2/tampered
+version и synthetic caller без profile безопасно отклонены; RLS не раскрыл
+чужие rows. До/после неизменны consent digest, 5 users / 5 profiles, ноль
+контактов и все consent-агрегаты. Auth/backup health — 200. Технический live
+apply принят; legal closure всё ещё ждёт member JWT-check и явное согласие
+сохраняемого admin через UI, без backfill.
+
 ## T-CONSENT-UX — Понятное объяснение отдельного согласия (P0-legal UX; фидбэк Тёмы 2026-07-15)
 
 **Проблема:** в `/me` непубличное ФИО вложено внутрь блока «Контакты» сразу
