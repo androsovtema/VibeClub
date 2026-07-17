@@ -11,6 +11,11 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const versionPattern = /privacy-\d{4}-\d{2}-\d{2}-v\d+/g;
 const historicalSha256 = '53d46e399b9bac769086f5f3d933ede47c0c0db618060f924315b294cdbb0d36';
+const v4UpgradeSha256 = 'a6b4ef80e581708b40dc73ce256e0f009831822319cc2734cfa62b38720a1629';
+
+function contentsOf(file) {
+  return readFileSync(join(root, file), 'utf8');
+}
 
 function versionsOf(file) {
   const matches = readFileSync(join(root, file), 'utf8').match(versionPattern) || [];
@@ -50,9 +55,18 @@ if (upgradeNames.length !== 1) {
   process.exit(1);
 }
 
+const upgradeFile = `supabase/migrations/${upgradeNames[0]}`;
+const actualUpgradeSha256 = createHash('sha256').update(contentsOf(upgradeFile)).digest('hex');
+if (actualUpgradeSha256 !== v4UpgradeSha256) {
+  console.error(`✗ ${upgradeFile}: SHA-256 не совпадает с применённой v4 migration из f76053c.`);
+  console.error(`  ожидался: ${v4UpgradeSha256}`);
+  console.error(`  получен:  ${actualUpgradeSha256}`);
+  process.exit(1);
+}
+
 const currentFiles = [
   'js/consent.js',
-  `supabase/migrations/${upgradeNames[0]}`,
+  upgradeFile,
   'supabase/schema.sql'
 ];
 const currentVersions = new Map();
@@ -79,3 +93,61 @@ if (uniqueCurrent[0] === historicalVersions[0]) {
 }
 
 console.log(`✓ Версия согласия синхронизирована: ${uniqueCurrent[0]} (v4 upgrade: ${upgradeNames[0]})`);
+
+const reconsentNames = readdirSync(join(root, 'supabase', 'migrations'))
+  .filter((name) => name.endsWith('_t_consent_reconsent.sql'));
+
+if (reconsentNames.length !== 1) {
+  console.error(`✗ Ожидалась ровно одна re-consent migration, найдено: ${reconsentNames.length}`);
+  process.exit(1);
+}
+
+const reconsentFile = `supabase/migrations/${reconsentNames[0]}`;
+const processingRpcFiles = [reconsentFile, 'supabase/schema.sql'];
+const exactSignature = /create\s+or\s+replace\s+function\s+public\.grant_processing_consent\s*\(\s*submitted_policy_version\s+text\s*\)/gi;
+const anySignature = /create\s+(?:or\s+replace\s+)?function\s+public\.grant_processing_consent\s*\(/gi;
+const revokeAcl = /revoke\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+from\s+public\s*,\s*anon/gi;
+const grantAcl = /grant\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+to\s+authenticated/gi;
+const processingRpcBlock = /create\s+or\s+replace\s+function\s+public\.grant_processing_consent[\s\S]*?grant\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+to\s+authenticated\s*;/i;
+
+for (const file of processingRpcFiles) {
+  const contents = contentsOf(file);
+  const exactMatches = contents.match(exactSignature) || [];
+  const allMatches = contents.match(anySignature) || [];
+  if (exactMatches.length !== 1 || allMatches.length !== 1) {
+    console.error(`✗ ${file}: ожидалась одна точная grant_processing_consent(text), найдено ${exactMatches.length}/${allMatches.length}.`);
+    process.exit(1);
+  }
+  if ((contents.match(revokeAcl) || []).length !== 1 ||
+      (contents.match(grantAcl) || []).length !== 1) {
+    console.error(`✗ ${file}: ACL grant_processing_consent должен закрывать PUBLIC/anon и разрешать authenticated.`);
+    process.exit(1);
+  }
+}
+
+const normalizeSql = (sql) => sql
+  .replace(/--[^\n]*/g, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+const migrationRpcBlock = contentsOf(reconsentFile).match(processingRpcBlock)?.[0];
+const schemaRpcBlock = contentsOf('supabase/schema.sql').match(processingRpcBlock)?.[0];
+if (!migrationRpcBlock || !schemaRpcBlock ||
+    normalizeSql(migrationRpcBlock) !== normalizeSql(schemaRpcBlock)) {
+  console.error('✗ grant_processing_consent в migration и schema.sql рассинхронизирована.');
+  process.exit(1);
+}
+
+const reconsentUi = contentsOf('js/ui/reconsentModal.js');
+const frontendRpc = /rpc\(\s*['"]grant_processing_consent['"]\s*,\s*\{\s*submitted_policy_version:\s*PRIVACY_POLICY_VERSION\s*\}/;
+if (!frontendRpc.test(reconsentUi)) {
+  console.error('✗ js/ui/reconsentModal.js не передаёт PRIVACY_POLICY_VERSION в grant_processing_consent.');
+  process.exit(1);
+}
+
+const appEntry = contentsOf('js/app.js');
+if (/onAuthChange\s*\(\s*async\b/.test(appEntry)) {
+  console.error('✗ onAuthChange не должен быть async: Supabase API внутри callback может зависнуть.');
+  process.exit(1);
+}
+
+console.log(`✓ Re-consent RPC синхронизирована и закрыта ACL: ${reconsentNames[0]}`);

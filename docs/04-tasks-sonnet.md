@@ -1597,11 +1597,33 @@ legal gate и уведомление РКН заблокированы.
 историю v2; повторный вызов идемпотентен; RLS не раскрывает журнал; есть
 browser/mobile и member JWT-проверки без PII.
 
-**Статус:** REPO-PREP НЕ НАЧАТ, блокирует legal closure `T-CONSENT` и следующий
-шаг «уведомление РКН». Архитектурный промпт подготовлен 2026-07-17:
-`docs/prompts/T-CONSENT-RECONSENT-sonnet.md`. Запускать его только отдельным
-пакетом после чистого коммита принятой коррекции `T-AUTH-UX2`; live apply,
-legacy admin и production в repo-prep не затрагивать.
+**Статус (2026-07-17):** REPO-PREP ВЫПОЛНЕН CODEX, ОЖИДАЕТ НЕЗАВИСИМОГО
+РЕВЬЮ. Добавлены version-gated `grant_processing_consent(text)`, синхронный
+schema snapshot, fail-closed UI для authenticated legacy-участника и offline
+security-check. Историческое v2 сохраняется, RPC работает только с caller,
+текущей версией и точным processing scope; повторный вызов идемпотентен.
+
+Локальные проверки: `npm run check`, `git diff --check`, isolated PostgreSQL
+16.13 (v2 → v4 → re-consent migration, ACL/RLS/version/idempotency/history) и
+browser QA на 1280 px и 375×812 пройдены. Гость не блокируется; проверка,
+required-consent и retry-error состояния блокируют account flow; recovery и
+страница политики имеют отдельный безопасный маршрут.
+
+Production schema, legacy admin и live consent не затрагивались. Задача всё ещё
+блокирует legal closure `T-CONSENT` и шаг «уведомление РКН» до независимого
+ревью, отдельного live apply/acceptance и реального явного действия сохраняемого
+admin. Пользовательский текст re-consent перед live требует финального одобрения
+Тёмы; автоматический backfill запрещён.
+
+**Отдельный review-pass (2026-07-17):** найден и исправлен один P1 в auth
+lifecycle: `onAuthStateChange` не должен сам быть `async` и ожидать Supabase API,
+поскольку это может заблокировать последующие вызовы клиента. Callback теперь
+синхронно фиксирует session state, а re-consent workflow запускается в следующий
+tick с generation-защитой; offline-check запрещает возврат async-паттерна.
+Повторно пройдены `npm run check`, syntax/diff checks, browser 375×812 и
+PostgreSQL 16.13, включая два конкурентных RPC-вызова. Других дефектов не
+найдено; repo-prep технически принят для отдельного live-этапа. Production и
+legacy admin по-прежнему не затронуты, legal gate остаётся открытым.
 
 ## T-CONSENT-UX — Понятное объяснение отдельного согласия (P0-legal UX; фидбэк Тёмы 2026-07-15)
 

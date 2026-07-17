@@ -4,6 +4,15 @@
  */
 export const PRIVACY_POLICY_VERSION = 'privacy-2026-07-16-v4';
 
+export const PROCESSING_SCOPE_PURPOSE = 'club_account_and_services';
+
+export function hasCurrentProcessingScope(scope) {
+  return Boolean(scope) &&
+    !Array.isArray(scope) &&
+    scope.purpose === PROCESSING_SCOPE_PURPOSE &&
+    Object.keys(scope).length === 1;
+}
+
 export const PROFILE_CONTACT_FIELDS = Object.freeze([
   'telegram',
   'website',

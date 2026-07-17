@@ -5,6 +5,13 @@
 import { getCurrentUser, onAuthChange, signOut } from './auth.js';
 import { openAuthModal, setAuthSuccessHandler, maybeShowWelcome } from './ui/authModal.js';
 import { openFeedbackModal } from './ui/feedbackModal.js';
+import {
+  checkCurrentProcessingConsent,
+  showProcessingConsentChecking,
+  showProcessingConsentRequired,
+  showProcessingConsentCheckError,
+  hideProcessingConsentGate
+} from './ui/reconsentModal.js';
 import { t } from './i18n/ru.js';
 import { escapeHtml, lockScroll, unlockScroll, wireBackLink } from './util.js';
 import { initAnalytics, track } from './analytics.js';
@@ -15,6 +22,7 @@ initAnalytics();
 // — читаем один раз при загрузке, до того как supabase-js сам подчистит хеш.
 const URL_HASH_PARAMS = new URLSearchParams(window.location.hash.slice(1));
 const URL_AUTH_TYPE = URL_HASH_PARAMS.get('type');
+const IS_PRIVACY_PAGE = /(^|\/)privacy\.html$/.test(window.location.pathname);
 // Протухшая/использованная ссылка из письма: GoTrue редиректит с ошибкой в хеше
 // (#error=access_denied&error_code=otp_expired…) — supabase-js её не трогает,
 // и без обработки человек молча оказывается на главной без объяснений.
@@ -77,6 +85,88 @@ function updateJoinButtons(user) {
 }
 
 let currentUser = null;
+let consentReadyUserId = null;
+let consentCheckUserId = null;
+let consentCheckPromise = null;
+let consentCheckGeneration = 0;
+let recoveryInProgress = URL_AUTH_TYPE === 'recovery';
+let authStateGeneration = 0;
+
+function resetProcessingConsentState() {
+  consentCheckGeneration++;
+  consentReadyUserId = null;
+  consentCheckUserId = null;
+  consentCheckPromise = null;
+  hideProcessingConsentGate();
+}
+
+function gateCallbacks(user, generation) {
+  return {
+    onConfirmed: () => {
+      if (generation !== consentCheckGeneration || currentUser?.id !== user.id) return;
+      consentReadyUserId = user.id;
+      showToast(t('reconsent.success'));
+    },
+    onRetry: () => ensureProcessingConsent(user, { force: true }),
+    onSignout: () => signOut()
+  };
+}
+
+async function runProcessingConsentCheck(user) {
+  const generation = ++consentCheckGeneration;
+  const callbacks = gateCallbacks(user, generation);
+  showProcessingConsentChecking(callbacks);
+
+  const result = await checkCurrentProcessingConsent();
+  if (generation !== consentCheckGeneration || currentUser?.id !== user.id) return false;
+
+  if (result.error) {
+    showProcessingConsentCheckError(callbacks);
+    return false;
+  }
+
+  if (result.hasConsent) {
+    consentReadyUserId = user.id;
+    hideProcessingConsentGate();
+    return true;
+  }
+
+  showProcessingConsentRequired(callbacks);
+  return false;
+}
+
+async function ensureProcessingConsent(user, { force = false } = {}) {
+  if (!user) {
+    resetProcessingConsentState();
+    return false;
+  }
+  if (recoveryInProgress) {
+    hideProcessingConsentGate();
+    return false;
+  }
+  // Пользователь должен иметь возможность прочитать политику в новой вкладке.
+  // Все остальные account-страницы остаются закрыты fail-closed гейтом.
+  if (IS_PRIVACY_PAGE) {
+    hideProcessingConsentGate();
+    return false;
+  }
+  if (!force && consentReadyUserId === user.id) return true;
+  if (!force && consentCheckPromise && consentCheckUserId === user.id) {
+    return consentCheckPromise;
+  }
+
+  consentCheckUserId = user.id;
+  const promise = runProcessingConsentCheck(user);
+  consentCheckPromise = promise;
+  try {
+    return await promise;
+  } finally {
+    if (consentCheckPromise === promise) {
+      consentCheckPromise = null;
+      consentCheckUserId = null;
+    }
+  }
+}
 
 document.addEventListener('click', (event) => {
   const feedbackBtn = event.target.closest('[data-feedback-open]');
@@ -116,20 +206,41 @@ if (URL_AUTH_ERROR) {
   showToast(t('auth.error.link_expired'), true);
 }
 
-setAuthSuccessHandler((message) => showToast(message));
+setAuthSuccessHandler((message) => {
+  showToast(message);
+  if (recoveryInProgress && message === t('auth.success.password_updated')) {
+    recoveryInProgress = false;
+    if (currentUser) ensureProcessingConsent(currentUser, { force: true });
+  }
+});
 
-onAuthChange(async (user, authEvent) => {
-  currentUser = user;
-  renderHeaderAuth(user);
-  updateJoinButtons(user);
-  if (authEvent === 'SIGNED_OUT') showToast(t('auth.success.signout'));
+async function handleAuthChange(user, authEvent, generation) {
+  if (generation !== authStateGeneration) return;
 
-  if (authEvent === 'PASSWORD_RECOVERY') {
-    urlAuthHandled = true;
-    openAuthModal('reset');
+  if (authEvent === 'SIGNED_OUT') {
+    recoveryInProgress = false;
+    resetProcessingConsentState();
+    showToast(t('auth.success.signout'));
+    return;
   }
 
-  if (authEvent === 'SIGNED_IN' && URL_AUTH_TYPE === 'signup' && !urlAuthHandled) {
+  if (!user) {
+    resetProcessingConsentState();
+    return;
+  }
+
+  if (authEvent === 'PASSWORD_RECOVERY') {
+    recoveryInProgress = true;
+    resetProcessingConsentState();
+    urlAuthHandled = true;
+    openAuthModal('reset');
+    return;
+  }
+
+  const consentReady = await ensureProcessingConsent(user);
+  if (generation !== authStateGeneration || currentUser?.id !== user.id) return;
+
+  if (consentReady && authEvent === 'SIGNED_IN' && URL_AUTH_TYPE === 'signup' && !urlAuthHandled) {
     urlAuthHandled = true;
     track('auth_success', { kind: 'signup' });
     const shownWelcome = await maybeShowWelcome();
@@ -140,10 +251,32 @@ onAuthChange(async (user, authEvent) => {
     urlAuthHandled = true;
     track('auth_success', { kind: 'magic' });
   }
-});
+}
 
-getCurrentUser().then((user) => {
+onAuthChange((user, authEvent) => {
+  const generation = ++authStateGeneration;
   currentUser = user;
   renderHeaderAuth(user);
   updateJoinButtons(user);
+
+  // Supabase предупреждает о deadlock, если из onAuthStateChange выполнять
+  // async API-вызовы. Синхронно фиксируем сессию, а сетевой workflow переносим
+  // в следующий tick; generation не даёт устаревшему событию менять новый UI.
+  setTimeout(() => {
+    handleAuthChange(user, authEvent, generation).catch(() => {
+      if (generation !== authStateGeneration || currentUser?.id !== user?.id) return;
+      if (user && consentReadyUserId !== user.id && !recoveryInProgress && !IS_PRIVACY_PAGE) {
+        showProcessingConsentCheckError(gateCallbacks(user, consentCheckGeneration));
+      }
+    });
+  }, 0);
+});
+
+const initialAuthGeneration = authStateGeneration;
+getCurrentUser().then((user) => {
+  if (authStateGeneration !== initialAuthGeneration) return;
+  currentUser = user;
+  renderHeaderAuth(user);
+  updateJoinButtons(user);
+  if (user) ensureProcessingConsent(user);
 });

@@ -257,6 +257,84 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- ---------- RPC: явно подтвердить processing-consent текущей версии ----------
+drop function if exists public.grant_processing_consent();
+create or replace function public.grant_processing_consent(
+  submitted_policy_version text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  caller_id uuid := (select auth.uid());
+  consent_id uuid;
+begin
+  if caller_id is null then
+    raise exception using
+      errcode = '28000',
+      message = 'consent_auth_required';
+  end if;
+
+  if submitted_policy_version is distinct from public.current_privacy_policy_version() then
+    raise exception using
+      errcode = 'P0001',
+      message = 'consent_policy_version_invalid';
+  end if;
+
+  perform 1
+    from public.profiles
+   where id = caller_id
+   for update;
+
+  if not found then
+    raise exception using
+      errcode = 'P0001',
+      message = 'consent_profile_missing';
+  end if;
+
+  select uc.id
+    into consent_id
+    from public.user_consents as uc
+   where uc.user_id = caller_id
+     and uc.consent_type = 'processing'
+     and uc.policy_version = public.current_privacy_policy_version()
+     and uc.revoked_at is null
+     and uc.scope = jsonb_build_object(
+       'purpose', 'club_account_and_services'
+     )
+   for update;
+
+  if consent_id is not null then
+    return consent_id;
+  end if;
+
+  update public.user_consents
+     set revoked_at = now()
+   where user_id = caller_id
+     and consent_type = 'processing'
+     and revoked_at is null;
+
+  insert into public.user_consents (
+    user_id, consent_type, policy_version, scope
+  ) values (
+    caller_id,
+    'processing',
+    public.current_privacy_policy_version(),
+    jsonb_build_object('purpose', 'club_account_and_services')
+  )
+  returning id into consent_id;
+
+  return consent_id;
+end;
+$$;
+
+revoke execute on function public.grant_processing_consent(text)
+  from public, anon;
+grant execute on function public.grant_processing_consent(text)
+  to authenticated;
+
 -- ---------- RPC: выдать/отозвать dissemination-consent ----------
 drop function if exists public.grant_profile_dissemination();
 drop function if exists public.grant_profile_dissemination(text);

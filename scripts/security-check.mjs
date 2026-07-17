@@ -25,6 +25,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
   PRIVACY_POLICY_VERSION,
+  PROCESSING_SCOPE_PURPOSE,
+  hasCurrentProcessingScope,
   PROFILE_CONTACT_FIELDS,
   DISSEMINATION_SCOPE_PURPOSE
 } from '../js/consent.js';
@@ -87,7 +89,7 @@ if (accessToken) {
   accessToken = auth.access_token;
 }
 const authed = { ...base, Authorization: `Bearer ${accessToken}` };
-console.log(`\nВошёл как ${email || 'JWT-учётка'} (uid ${uid.slice(0, 8)}…)\n`);
+console.log('\nAuthenticated member session получена. Идентификаторы не выводятся.\n');
 
 // проверим, что учётка НЕ админская — иначе тест невалиден
 const meRes = await fetch(`${URL}/rest/v1/profiles?id=eq.${uid}&select=role`, { headers: authed });
@@ -115,6 +117,80 @@ async function activeDisseminationRows() {
     { headers: authed }
   );
   return { response, rows: await json(response) };
+}
+
+async function activeProcessingRows() {
+  const response = await fetch(
+    `${URL}/rest/v1/user_consents?consent_type=eq.processing&revoked_at=is.null&select=id,user_id,policy_version,granted_at,scope`,
+    { headers: authed }
+  );
+  return { response, rows: await json(response) };
+}
+
+async function runProcessingConsentChecks() {
+  console.log('\nT-CONSENT-RECONSENT — processing RPC:');
+
+  const initial = await activeProcessingRows();
+  const rows = Array.isArray(initial.rows) ? initial.rows : [];
+  const active = rows[0];
+  if (!initial.response.ok || rows.length !== 1 ||
+      active?.user_id !== uid ||
+      active?.policy_version !== PRIVACY_POLICY_VERSION ||
+      !hasCurrentProcessingScope(active?.scope)) {
+    bad('тестовая member-учётка должна иметь ровно один active processing текущей версии');
+    return;
+  }
+
+  if (active.scope?.purpose !== PROCESSING_SCOPE_PURPOSE) {
+    bad('processing scope не совпадает с frontend-контрактом');
+    return;
+  }
+
+  const anonCall = await fetch(`${URL}/rest/v1/rpc/grant_processing_consent`, {
+    method: 'POST',
+    headers: base,
+    body: JSON.stringify({ submitted_policy_version: PRIVACY_POLICY_VERSION })
+  });
+  if (anonCall.ok) bad('anon исполнил grant_processing_consent');
+  else ok(`anon не исполняет processing RPC (HTTP ${anonCall.status})`);
+
+  for (const submittedPolicyVersion of [
+    null,
+    'privacy-2026-07-15-v2',
+    'privacy-tampered'
+  ]) {
+    const rejected = await fetch(`${URL}/rest/v1/rpc/grant_processing_consent`, {
+      method: 'POST',
+      headers: authed,
+      body: JSON.stringify({ submitted_policy_version: submittedPolicyVersion })
+    });
+    if (rejected.ok) bad('processing RPC приняла отсутствующую/устаревшую/подменённую версию');
+    else ok(`некорректная processing-версия отбита (HTTP ${rejected.status})`);
+  }
+
+  const afterRejected = await activeProcessingRows();
+  const afterRejectedRows = Array.isArray(afterRejected.rows) ? afterRejected.rows : [];
+  const unchanged = afterRejected.response.ok && afterRejectedRows.length === 1 &&
+    afterRejectedRows[0]?.id === active.id &&
+    afterRejectedRows[0]?.granted_at === active.granted_at &&
+    hasCurrentProcessingScope(afterRejectedRows[0]?.scope);
+  if (unchanged) ok('отклонённые версии не изменили active processing row');
+  else bad('отклонённые версии изменили processing history');
+
+  const current = await fetch(`${URL}/rest/v1/rpc/grant_processing_consent`, {
+    method: 'POST',
+    headers: authed,
+    body: JSON.stringify({ submitted_policy_version: PRIVACY_POLICY_VERSION })
+  });
+  const returnedId = await json(current);
+  const afterCurrent = await activeProcessingRows();
+  const afterCurrentRows = Array.isArray(afterCurrent.rows) ? afterCurrent.rows : [];
+  const idempotent = current.ok && returnedId === active.id &&
+    afterCurrent.response.ok && afterCurrentRows.length === 1 &&
+    afterCurrentRows[0]?.id === active.id &&
+    afterCurrentRows[0]?.granted_at === active.granted_at;
+  if (idempotent) ok('current processing RPC идемпотентна и сохраняет server timestamp');
+  else bad(`current processing RPC нарушила идемпотентность (HTTP ${current.status})`);
 }
 
 function hasExpectedScope(scope) {
@@ -306,6 +382,7 @@ async function runConsentChecks() {
   if (cleanupError) process.exitCode = 1;
 }
 
+await runProcessingConsentChecks();
 await runConsentChecks();
 
 // --- Атака 1: эскалация role → admin ---
