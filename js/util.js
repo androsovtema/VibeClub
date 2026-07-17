@@ -65,7 +65,12 @@ export function isValidGithubHandle(value) {
 
 const ASCII_RE = /^[\x20-\x7E]*$/;
 
-/** Политика Auth: email и пароль — только печатаемая латиница/ASCII, без кириллицы. */
+/**
+ * Ранняя клиентская проверка email (только печатаемый ASCII, без кириллицы) —
+ * чтобы не гонять её в CAPTCHA/Auth за невнятной серверной ошибкой. Пароль эта
+ * функция намеренно не проверяет: Unicode-пароль (в т.ч. существующий у старого
+ * пользователя) должен доходить до Auth без клиентского гейта.
+ */
 export function isAsciiOnly(value) {
   return ASCII_RE.test(String(value));
 }

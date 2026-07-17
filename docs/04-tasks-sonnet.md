@@ -1752,6 +1752,35 @@ DOM-события); `npm run check` и `git diff --check` зелёные.
 Supabase Auth + Cloudflare Turnstile (сценарий «неверный пароль» дошёл до
 настоящей серверной ошибки, не до тайм-аута CAPTCHA).
 
+**Correction note (Sonnet, 2026-07-17, ревью-фикс, промпт
+`docs/prompts/T-AUTH-UX2-review-fix-sonnet.md`):** ревью отклонило часть
+изменений `18e4209` — клиентский ASCII-гейт применялся и к паролю, а не только
+к email. Это нарушало ранее принятый контракт
+`docs/prompts/terra/T-CUTOVER-01-repo-prep.md` («старый пользователь должен
+иметь возможность попытаться войти старым паролем», клиентская парольная
+политика не должна ограничивать обычный вход). Исправлено:
+- `isAsciiOnly(password)`/`isAsciiOnly(passwordConfirm)` убраны из signin,
+  signup и reset — Unicode-пароль (кириллица, emoji, пробелы, диакритика)
+  теперь без изменений уходит в `signInEmailPassword()`/`signUpEmailPassword()`/
+  `updatePassword()`, без `.trim()`/нормализации/смены регистра;
+- `auth.error.invalid_ascii_password` удалён из `js/i18n/ru.js`, в JS больше не
+  используется;
+- `isAsciiOnly(email)` сохранён во всех четырёх формах (signin, signup,
+  magiclink, forgot/reset-email) — email ASCII-check не тронут;
+- текст `auth.error.invalid_ascii_email` уточнён (email использует `@ . + _ -`,
+  не только буквы/цифры);
+- password toggle, `.captcha-host` z-index 3100 и `try/catch/finally` во всех
+  submit-хендлерах — не регрессировали (diff их не касался).
+**Статус:** КОРРЕКЦИЯ ВЫПОЛНЕНА SONNET И ПОВТОРНОЕ РЕВЬЮ ПРИНЯТО
+2026-07-17. Независимо подтверждены разрешённый diff из четырёх файлов,
+неизменённые `HEAD`/`main`/`origin/main` = `d1feb9c`, отсутствие password
+ASCII-гейтов и сохранность четырёх email-гейтов; `npm run check`, три
+`node --check`, utility-кейсы и `git diff --check` зелёные. Локальная browser
+QA на 1280 px и реальном viewport 375×812 подтвердила Unicode/emoji/пробелы/
+диакритику без изменения значения, отсутствие `minlength` у signin, минимум 12
+у signup/reset, четыре toggle, mobile без overflow и чистую консоль. Реальные
+Auth/Turnstile submit, commit, push, deploy и production не выполнялись.
+
 ## T-FRONT-VPS — Перенос статического фронта с GitHub Pages на RU-VPS (P0 до анонса)
 
 **Зачем:** в принятом порядке Claude Fable после локализации БД и уведомления

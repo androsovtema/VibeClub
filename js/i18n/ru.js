@@ -86,8 +86,7 @@ export const ru = {
   'auth.error.required_name': 'Укажи имя.',
   'auth.error.required_consent_processing': 'Подтверди согласие на обработку персональных данных.',
   'auth.error.required_consent_rules': 'Прими правила клуба, чтобы вступить.',
-  'auth.error.invalid_ascii_email': 'Почта — только латиница и цифры, без кириллицы.',
-  'auth.error.invalid_ascii_password': 'Пароль — только латиница, цифры и символы ASCII, без кириллицы.',
+  'auth.error.invalid_ascii_email': 'В адресе почты используй английские буквы, цифры и обычные символы адреса — без кириллицы.',
   'auth.error.network': 'Нет связи с сервером. Проверь интернет и попробуй ещё раз.',
 
   'showcase.empty': 'Тут пока тихо. Зайди первым — твой проект откроет ленту.',

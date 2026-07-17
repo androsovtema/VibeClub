@@ -409,7 +409,6 @@ function attachEvents() {
     if (!email) return showError(form, t('auth.error.required_email'));
     if (!isAsciiOnly(email)) return showError(form, t('auth.error.invalid_ascii_email'));
     if (!password) return showError(form, t('auth.error.required_password'));
-    if (!isAsciiOnly(password)) return showError(form, t('auth.error.invalid_ascii_password'));
 
     setLoading(form, true);
     try {
@@ -436,7 +435,6 @@ function attachEvents() {
     if (!email) return showError(form, t('auth.error.required_email'));
     if (!isAsciiOnly(email)) return showError(form, t('auth.error.invalid_ascii_email'));
     if (!password) return showError(form, t('auth.error.required_password'));
-    if (!isAsciiOnly(password)) return showError(form, t('auth.error.invalid_ascii_password'));
     if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
     if (!form.querySelector('[data-processing-consent]').checked) return showError(form, t('auth.error.required_consent_processing'));
     if (!form.querySelector('[data-rules-consent]').checked) return showError(form, t('auth.error.required_consent_rules'));
@@ -516,8 +514,6 @@ function attachEvents() {
     const passwordConfirm = form.passwordConfirm.value;
     showError(form, '');
     if (!password) return showError(form, t('auth.error.required_password'));
-    if (!isAsciiOnly(password)) return showError(form, t('auth.error.invalid_ascii_password'));
-    if (!isAsciiOnly(passwordConfirm)) return showError(form, t('auth.error.invalid_ascii_password'));
     if (password.length < MIN_PASSWORD_LENGTH) return showError(form, t('auth.error.password_too_short'));
     if (password !== passwordConfirm) return showError(form, t('auth.error.password_mismatch'));
 
