@@ -20,6 +20,43 @@ let retryCallback = null;
 let signoutCallback = null;
 let busy = false;
 
+// Невидимый pending-guard на время DB-проверки: страница видна сразу, но
+// account UI фейл-клоузно заблокирован до результата. Отдельно от overlay,
+// чтобы не показывать backdrop/dialog, пока consent ещё не проверен.
+let shield = null;
+let shieldActive = false;
+let savedBodyInert = false;
+let savedAriaBusy = null;
+
+function ensureShield() {
+  if (shield) return;
+  shield = document.createElement('div');
+  shield.className = 'reconsent-pending-shield';
+  shield.setAttribute('data-reconsent-pending-shield', '');
+  shield.hidden = true;
+  document.body.appendChild(shield);
+}
+
+function showPendingShield() {
+  ensureShield();
+  if (shieldActive) return;
+  shieldActive = true;
+  shield.hidden = false;
+  savedBodyInert = document.body.inert;
+  savedAriaBusy = document.body.getAttribute('aria-busy');
+  document.body.inert = true;
+  document.body.setAttribute('aria-busy', 'true');
+}
+
+function hidePendingShield() {
+  if (shield) shield.hidden = true;
+  if (!shieldActive) return;
+  shieldActive = false;
+  document.body.inert = savedBodyInert;
+  if (savedAriaBusy === null) document.body.removeAttribute('aria-busy');
+  else document.body.setAttribute('aria-busy', savedAriaBusy);
+}
+
 function buildMarkup() {
   const el = document.createElement('div');
   el.className = 'reconsent-overlay';
@@ -30,10 +67,6 @@ function buildMarkup() {
       <div class="reconsent-header">
         <span class="reconsent-glyph" aria-hidden="true">✦</span>
         <h2 id="reconsent-title" class="reconsent-title">${t('reconsent.title')}</h2>
-      </div>
-
-      <div class="reconsent-checking" data-reconsent-checking role="status" hidden>
-        <p class="reconsent-text">${t('reconsent.status.checking')}</p>
       </div>
 
       <form class="reconsent-form" data-reconsent-form hidden novalidate>
@@ -126,7 +159,6 @@ function setBusy(isBusy) {
 }
 
 function setMode(mode) {
-  overlay.querySelector('[data-reconsent-checking]').hidden = mode !== 'checking';
   overlay.querySelector('[data-reconsent-form]').hidden = mode !== 'consent';
   overlay.querySelector('[data-reconsent-check-error]').hidden = mode !== 'error';
 
@@ -135,14 +167,16 @@ function setMode(mode) {
     checkbox.checked = false;
     overlay.querySelector('[data-reconsent-confirm]').disabled = true;
     checkbox.focus();
-  } else if (mode === 'error') {
-    overlay.querySelector('[data-reconsent-retry]').focus();
   } else {
-    overlay.querySelector('[data-reconsent-signout]').focus();
+    overlay.querySelector('[data-reconsent-retry]').focus();
   }
 }
 
 function openGate(mode, callbacks = {}) {
+  // Required/error dialog всегда сменяет silent pending: guard должен быть
+  // снят раньше, чем dialog станет focusable, иначе checkbox/retry получат
+  // фокус на inert-теле.
+  hidePendingShield();
   ensureModal();
   confirmCallback = callbacks.onConfirmed || confirmCallback;
   retryCallback = callbacks.onRetry || retryCallback;
@@ -233,8 +267,10 @@ export async function checkCurrentProcessingConsent() {
   }
 }
 
-export function showProcessingConsentChecking(callbacks) {
-  openGate('checking', callbacks);
+export function showProcessingConsentChecking() {
+  // Имя сохранено для app.js: это больше не dialog-режим, а невидимый
+  // fail-closed guard на время DB-проверки (см. showPendingShield выше).
+  showPendingShield();
 }
 
 export function showProcessingConsentRequired(callbacks) {
@@ -246,6 +282,7 @@ export function showProcessingConsentCheckError(callbacks) {
 }
 
 export function hideProcessingConsentGate() {
+  hidePendingShield();
   if (!overlay || overlay.hidden) return;
   overlay.hidden = true;
   setBusy(false);

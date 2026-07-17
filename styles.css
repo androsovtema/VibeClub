@@ -3798,15 +3798,26 @@ body.menu-open {
 }
 
 .reconsent-form,
-.reconsent-checking,
 .reconsent-check-error {
   display: flex;
   flex-direction: column;
 }
 
 .reconsent-form[hidden],
-.reconsent-checking[hidden],
 .reconsent-check-error[hidden] {
+  display: none;
+}
+
+/* Невидимый pending-guard на время DB-проверки: без backdrop/анимации, только
+   блокирует pointer-interaction поверх account/auth UI (см. reconsentModal.js). */
+.reconsent-pending-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 3040;
+  background: transparent;
+}
+
+.reconsent-pending-shield[hidden] {
   display: none;
 }
 
