@@ -1717,6 +1717,16 @@ required/error-фокуса, fail-closed `Escape`, безусловный hide, 
 
 **Статус:** FLASH REVIEW-FIX ПРИНЯТ, ОЖИДАЕТ DEPLOY И ЖИВОЙ ПРОВЕРКИ.
 
+**Deploy (2026-07-17, Codex):** commit `289d5cd` отправлен в `main`; GitHub
+Pages run `29559328043` завершён успешно. Production assets повторно прочитаны:
+live `js/ui/reconsentModal.js` содержит `.reconsent-pending-shield` /
+`showPendingShield()`, live `styles.css` содержит guard с `z-index: 3040`, а
+старого `openGate('checking')` в live JS нет. Это подтверждает технический
+deploy, но не заменяет живую проверку в уже authenticated admin session.
+
+**Статус:** FLASH REVIEW-FIX DEPLOYED, ОЖИДАЕТ ЖИВОЙ ПРОВЕРКИ ТЁМОЙ;
+`T-CONSENT`/legal closure не открыты.
+
 ## T-CONSENT-UX — Понятное объяснение отдельного согласия (P0-legal UX; фидбэк Тёмы 2026-07-15)
 
 **Проблема:** в `/me` непубличное ФИО вложено внутрь блока «Контакты» сразу
