@@ -36,7 +36,7 @@
 | `14-ru-compliance.md` | **Законы РФ и наш стек**: что нарушаем/соблюдаем, уведомления РКН, план локализации |
 | `15-security-hardening.md` | Аудит RU-VPS (T-LOC): Umami, SSH, Caddy-заголовки. ⚠️ содержит поправку про SSH |
 | `16-security-status.md` | **Статус безопасности: что закрыто, что открыто, что руками Тёмы. Точка входа по теме безопасности.** |
-| `prompts/` | Самодостаточные задания исполнителям. T-CUTOVER-01/02 и T-CONSENT-01/UX/AUTH/VERSION-GATE приняты; T-CONSENT-02 технически принят, следующий legal blocker — T-CONSENT-RECONSENT |
+| `prompts/` | Самодостаточные задания исполнителям. T-CUTOVER-01/02 и T-CONSENT-01/UX/AUTH/VERSION-GATE приняты; admin re-consent и flash-fix приняты, T-CONSENT-RECONSENT ждёт только member JWT-check |
 
 ## Миссия (кратко)
 Самое большое сообщество вайбкодеров в СНГ. Не витрина — **клуб**, членством в
@@ -47,8 +47,8 @@
 Кодовая часть минимума (T0–T8, T10–T15, T-UX1…7, T18–T23) — **сделана**.
 **T-LOC/T-CUTOVER закрыты 2026-07-15:** прод использует self-host Supabase и
 Umami, финальный backup восстановлен в отдельные БД, мониторинг включён.
-Следом: выполнить **T-CONSENT-RECONSENT** для сохраняемого legacy admin без
-active processing v4 → уведомление РКН
+Следом: завершить **T-CONSENT-RECONSENT** повторным security-check с обычным
+member JWT после live migration (admin re-consent и flash-fix уже приняты) → уведомление РКН
 (`14-ru-compliance.md`) →
 **T-FRONT-VPS** → 5–7 проектов разных авторов + Telegram-ядро → снять
 `robots.txt` → анонс. **T-IMG** можно вести параллельно в отдельной

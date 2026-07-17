@@ -9,9 +9,10 @@
 > **T-CONSENT-02 технически принят 2026-07-16:** v4-журнал и отдельное
 > согласие на распространение работают на self-host; member JWT security-check,
 > настоящая Turnstile-регистрация с письмом, 375 px и inventory завершены без
-> backfill. Один реальный legacy admin не имеет active processing v4, поэтому
-> legal gate блокирует отдельная задача `T-CONSENT-RECONSENT`; уведомление РКН
-> пока не подано. Статический origin пока GitHub Pages/Fastly до T-FRONT-VPS;
+> backfill. Реальный legacy admin явно подтвердил v4 2026-07-17; coverage стало
+> `1 current / 0 missing`, исправление visual flash живьём принято. Legal gate
+> `T-CONSENT-RECONSENT` ожидает только повторный member JWT security-check после
+> live migration; уведомление РКН пока не подано. Статический origin пока GitHub Pages/Fastly до T-FRONT-VPS;
 > Google Fonts и Cloudflare Turnstile остаются иностранными зависимостями.
 
 Контекст решения: платформа в первую очередь под российский рынок. Первичный
@@ -24,9 +25,10 @@ Umami больше не production-получатели; cloud-проект вр
 1. Требование локализации первичного сбора закрыто T-LOC/T-CUTOVER; дата
    фактического переключения production — 2026-07-15.
 2. T20 закрывает политику и UI-чекбокс; T-CONSENT-02 добавил доказуемый v4
-   журнал и отдельное согласие. Техническая приёмка зелёная, но final legal
-   acceptance ожидает `T-CONSENT-RECONSENT` одного сохраняемого legacy admin.
-3. После их закрытия подаём уведомление РКН по фактической схеме; вопрос
+   журнал и отдельное согласие. Явный re-consent сохраняемого legacy admin и
+   UX-проверка приняты; final legal acceptance ожидает только повторный member
+   JWT security-check нового RPC после live migration.
+3. После его закрытия подаём уведомление РКН по фактической схеме; вопрос
    трансграничной передачи проверяем отдельно, а не считаем автоматически
    исчезнувшим. Иностранный OAuth не добавляем.
 

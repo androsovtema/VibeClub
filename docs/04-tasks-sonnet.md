@@ -1727,6 +1727,16 @@ deploy, но не заменяет живую проверку в уже authent
 **Статус:** FLASH REVIEW-FIX DEPLOYED, ОЖИДАЕТ ЖИВОЙ ПРОВЕРКИ ТЁМОЙ;
 `T-CONSENT`/legal closure не открыты.
 
+**Живая UX-приёмка (2026-07-17, Тёма): ПРИНЯТО.** В authenticated admin
+session после deploy обычные перезагрузки разных страниц больше не показывают
+re-consent dialog/backdrop: «мелькания нет». Явное admin re-consent, server-dated
+v4 row, deploy и повторная UX-проверка закрыты. Единственный оставшийся критерий
+всего `T-CONSENT-RECONSENT` — повторный `npm run security-check` с обычным
+member JWT после live migration, без вывода/сохранения токена и PII.
+
+**Статус:** FLASH REVIEW-FIX ЗАКРЫТ; ADMIN RE-CONSENT ПРИНЯТ;
+`T-CONSENT-RECONSENT`/legal closure ОЖИДАЕТ ТОЛЬКО MEMBER JWT-CHECK.
+
 ## T-CONSENT-UX — Понятное объяснение отдельного согласия (P0-legal UX; фидбэк Тёмы 2026-07-15)
 
 **Проблема:** в `/me` непубличное ФИО вложено внутрь блока «Контакты» сразу
