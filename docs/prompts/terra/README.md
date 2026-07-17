@@ -28,15 +28,14 @@ Repo-prep выполнен и принят:
   контактов, UI и тесты. На repo-review считалось, что production migration не
   применялась; последующая read-only сверка подтвердила уже работающий live v2.
 
-`T-CONSENT-UX` и `T-CONSENT-AUTH` выполнены и приняты 2026-07-16. Тёма
-подтвердил юридические формулировки, реквизиты и v4; в новой сессии Terra это
-подтверждение всё равно нужно повторить как входной гейт. Следующая операция —
-`T-CONSENT-02-live-apply.md`. Read-only сверка выявила уже работающий live
-baseline v2, поэтому промпт уточнён как апгрейд v2 → v4 с сохранением журнала
-и отдельным inventory legacy-аккаунтов без backfill. Перед live обязателен
-`T-CONSENT-VERSION-GATE`: новая upgrade-migration и version-gated grant RPC.
-Задача выполнена и принята 2026-07-16
-(`docs/prompts/T-CONSENT-VERSION-GATE-sonnet.md`). Следом — `T-CONSENT-02`,
-затем legacy-account inventory → уведомление РКН →
-T-FRONT-VPS → контент-гейт → снять `robots.txt` → анонс. T-IMG можно вести
-параллельно в отдельной ветке/worktree.
+`T-CONSENT-UX`, `T-CONSENT-AUTH`, `T-CONSENT-VERSION-GATE`, live apply и
+legacy re-consent выполнены и приняты. T-CONSENT/T-CONSENT-RECONSENT закрыты
+2026-07-17: финальный member JWT security-check прошёл 29/29, backfill и
+удаление аккаунтов не выполнялись. Consent-промпты ниже остаются историческими
+артефактами и не являются следующей операцией.
+
+Актуальный маршрут: уведомление РКН → отдельный будущий промпт T-FRONT-VPS →
+контент-гейт → финальный launch-check → снять `robots.txt` → анонс. Полная
+дорожная карта: `docs/18-project-roadmap.md`; handoff новой сессии Codex:
+`docs/prompts/NEXT-CODEX-SESSION.md`. T-IMG можно вести параллельно в отдельной
+ветке/worktree.
