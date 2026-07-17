@@ -103,11 +103,21 @@ if (reconsentNames.length !== 1) {
 }
 
 const reconsentFile = `supabase/migrations/${reconsentNames[0]}`;
+const reconsentAclFixNames = readdirSync(join(root, 'supabase', 'migrations'))
+  .filter((name) => name.endsWith('_t_consent_reconsent_acl_fix.sql'));
+
+if (reconsentAclFixNames.length !== 1) {
+  console.error(`✗ Ожидалась ровно одна re-consent ACL-fix migration, найдено: ${reconsentAclFixNames.length}`);
+  process.exit(1);
+}
+
+const reconsentAclFixFile = `supabase/migrations/${reconsentAclFixNames[0]}`;
 const processingRpcFiles = [reconsentFile, 'supabase/schema.sql'];
 const exactSignature = /create\s+or\s+replace\s+function\s+public\.grant_processing_consent\s*\(\s*submitted_policy_version\s+text\s*\)/gi;
 const anySignature = /create\s+(?:or\s+replace\s+)?function\s+public\.grant_processing_consent\s*\(/gi;
 const revokeAcl = /revoke\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+from\s+public\s*,\s*anon/gi;
 const grantAcl = /grant\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+to\s+authenticated/gi;
+const revokeServiceRoleAcl = /revoke\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+from\s+service_role/gi;
 const processingRpcBlock = /create\s+or\s+replace\s+function\s+public\.grant_processing_consent[\s\S]*?grant\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+to\s+authenticated\s*;/i;
 
 for (const file of processingRpcFiles) {
@@ -123,6 +133,15 @@ for (const file of processingRpcFiles) {
     console.error(`✗ ${file}: ACL grant_processing_consent должен закрывать PUBLIC/anon и разрешать authenticated.`);
     process.exit(1);
   }
+}
+
+const aclFixContents = contentsOf(reconsentAclFixFile);
+const aclFixRevoke = /revoke\s+execute\s+on\s+function\s+public\.grant_processing_consent\s*\(\s*text\s*\)\s+from\s+public\s*,\s*anon\s*,\s*service_role/i;
+if (!aclFixRevoke.test(aclFixContents) ||
+    (aclFixContents.match(grantAcl) || []).length !== 1 ||
+    (contentsOf('supabase/schema.sql').match(revokeServiceRoleAcl) || []).length !== 1) {
+  console.error('✗ Re-consent ACL-fix должна закрывать PUBLIC/anon/service_role и сохранять authenticated.');
+  process.exit(1);
 }
 
 const normalizeSql = (sql) => sql
@@ -150,4 +169,4 @@ if (/onAuthChange\s*\(\s*async\b/.test(appEntry)) {
   process.exit(1);
 }
 
-console.log(`✓ Re-consent RPC синхронизирована и закрыта ACL: ${reconsentNames[0]}`);
+console.log(`✓ Re-consent RPC синхронизирована и закрыта ACL: ${reconsentNames[0]} + ${reconsentAclFixNames[0]}`);

@@ -334,6 +334,8 @@ revoke execute on function public.grant_processing_consent(text)
   from public, anon;
 grant execute on function public.grant_processing_consent(text)
   to authenticated;
+revoke execute on function public.grant_processing_consent(text)
+  from service_role;
 
 -- ---------- RPC: выдать/отозвать dissemination-consent ----------
 drop function if exists public.grant_profile_dissemination();
