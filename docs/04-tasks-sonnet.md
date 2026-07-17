@@ -1653,6 +1653,20 @@ version и synthetic caller без profile безопасно отклонены
 apply принят; legal closure всё ещё ждёт member JWT-check и явное согласие
 сохраняемого admin через UI, без backfill.
 
+**Ручной live-result и UX-дефект (2026-07-17):** сохраняемый admin увидел
+обязательный dialog и явно подтвердил утверждённый текст. Aggregate-only
+проверка после действия: active current processing v4 стало 2, admin coverage
+`1 current / 0 missing`, одна новая server-dated запись попала в последние
+30 минут, контактов по-прежнему ноль. PII не выводились.
+
+При последующих загрузках любой страницы обнаружен visual flash: код сначала
+показывает общий re-consent dialog в режиме `checking`, затем закрывает его
+после RLS-проверки уже существующего consent. Root cause подтверждён в
+`showProcessingConsentChecking()` → `openGate('checking')`. Legal gate пока не
+закрывать: подготовлен отдельный handoff
+`docs/prompts/T-CONSENT-RECONSENT-FLASH-sonnet.md`; требуется silent fail-closed
+precheck, независимое ревью, deploy и повторная живая проверка.
+
 ## T-CONSENT-UX — Понятное объяснение отдельного согласия (P0-legal UX; фидбэк Тёмы 2026-07-15)
 
 **Проблема:** в `/me` непубличное ФИО вложено внутрь блока «Контакты» сразу
