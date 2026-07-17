@@ -6,8 +6,10 @@ set -euo pipefail
 
 WDZ_STUDIO_SSH_TARGET="${WDZ_STUDIO_SSH_TARGET:-root@api.wedesignerz.com}"
 WDZ_STUDIO_LOCAL_PORT="${WDZ_STUDIO_LOCAL_PORT:-3000}"
+WDZ_STUDIO_BROWSER="${WDZ_STUDIO_BROWSER:-Google Chrome}"
 WDZ_STUDIO_REMOTE_DIR="/root/vibeclub"
-WDZ_STUDIO_URL="http://127.0.0.1:${WDZ_STUDIO_LOCAL_PORT}"
+WDZ_STUDIO_BASE_URL="http://127.0.0.1:${WDZ_STUDIO_LOCAL_PORT}"
+WDZ_STUDIO_URL="${WDZ_STUDIO_BASE_URL}/project/default"
 WDZ_STUDIO_TUNNEL_PID=""
 WDZ_STUDIO_STARTED=false
 
@@ -88,7 +90,7 @@ ssh \
 WDZ_STUDIO_TUNNEL_PID=$!
 
 for _ in $(seq 1 20); do
-  if curl -fs -o /dev/null "$WDZ_STUDIO_URL/api/platform/profile"; then
+  if curl -fs -o /dev/null "$WDZ_STUDIO_BASE_URL/api/platform/profile"; then
     break
   fi
   if ! kill -0 "$WDZ_STUDIO_TUNNEL_PID" 2>/dev/null; then
@@ -98,18 +100,27 @@ for _ in $(seq 1 20); do
   sleep 0.5
 done
 
-if ! curl -fsS -o /dev/null "$WDZ_STUDIO_URL/api/platform/profile"; then
+if ! curl -fsS -o /dev/null "$WDZ_STUDIO_BASE_URL/api/platform/profile"; then
   printf 'Studio не ответил через SSH-туннель.\n' >&2
   exit 1
 fi
 
 if [[ "$(uname -s)" == Darwin ]]; then
-  open "$WDZ_STUDIO_URL"
+  if [[ "$WDZ_STUDIO_BROWSER" == default ]]; then
+    open "$WDZ_STUDIO_URL"
+  elif [[ -d "/Applications/${WDZ_STUDIO_BROWSER}.app" ]]; then
+    open -a "$WDZ_STUDIO_BROWSER" "$WDZ_STUDIO_URL"
+  else
+    printf 'Браузер %s не найден, открываю системный браузер.\n' \
+      "$WDZ_STUDIO_BROWSER" >&2
+    open "$WDZ_STUDIO_URL"
+  fi
 elif command -v xdg-open >/dev/null 2>&1; then
   xdg-open "$WDZ_STUDIO_URL" >/dev/null 2>&1 || true
 fi
 
 printf '\nSupabase Studio открыт: %s\n' "$WDZ_STUDIO_URL"
+printf 'Первая загрузка новой версии может занять 30–40 секунд; повторная — несколько секунд.\n'
 printf 'Не закрывай это окно терминала, пока работаешь.\n'
 printf 'Когда закончишь, нажми Ctrl+C — Studio и туннель остановятся.\n\n'
 
