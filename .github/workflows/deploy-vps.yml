@@ -1,6 +1,9 @@
 name: Deploy static site to VPS
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       action:
@@ -19,6 +22,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: production-vps
+  cancel-in-progress: false
+
 jobs:
   deploy-vps:
     environment: production
@@ -28,26 +35,26 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         run: npm ci
 
       - name: Verify source
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         run: npm run check
 
       - name: Build site artifact
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         run: npm run build:site
 
       - name: Verify site artifact
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         run: npm run check:site-artifact
 
       - name: Configure SSH
@@ -63,11 +70,11 @@ jobs:
           chmod 644 "$HOME/.ssh/known_hosts"
 
       - name: Validate deploy release id
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         run: printf '%s' "$GITHUB_SHA" | grep -Eq '^[0-9a-f]{40}$'
 
       - name: Copy release to incoming
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -84,7 +91,7 @@ jobs:
           fi
 
       - name: Activate release
-        if: inputs.action == 'deploy'
+        if: github.event_name == 'push' || inputs.action == 'deploy'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}

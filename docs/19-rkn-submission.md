@@ -79,9 +79,12 @@ Opus выдаёт Тёме ссылку, Тёма вносит правки фо
       `avatar_url` у всех текущих пользователей — `null`, UI загрузки
       аватара нет; валидация `avatar_url` на свой Storage остаётся в
       security follow-up (`docs/16-security-status.md`).
-- [ ] **T-FRONT-VPS** — origin с GitHub Pages/Fastly на RU-VPS
-      (план — `18-project-roadmap.md`, этап 2; промпт Terra готовит Opus).
-      Теперь выполняется **до** подачи РКН.
+- [x] **T-FRONT-VPS закрыт 2026-07-18:** authoritative apex A =
+      `109.73.195.2`, `www` CNAME = apex; Caddy получил публичные TLS-cert,
+      отдаёт HTTP/2 + header-CSP/HSTS/anti-frame/Permissions Policy. GitHub
+      Actions deploy/rollback воспроизведены непривилегированным пользователем;
+      внутренние пути возвращают 404. Pages остаётся синхронным rollback-origin
+      на 72 часа, но исключён из авторитетной зоны.
 
 ### Ручные шаги Тёмы
 
@@ -108,10 +111,20 @@ Opus выдаёт Тёме ссылку, Тёма вносит правки фо
 
 ### Финальный гейт перед отправкой
 
-- [ ] Контрольная сетевая инвентаризация на живом production (desktop + 375px,
-      все ключевые страницы + auth-сценарии): в Network нет ни одного запроса
-      к иностранным хостам (Pages/Fastly, Google, Cloudflare, esm.sh, ytimg и
-      пр.). Зафиксировать результат в этом файле.
+- [x] Контрольная live-инвентаризация 2026-07-18: desktop + 375px, главная,
+      витрина, проект, privacy, 404 и Auth. Наблюдаемые origin: только
+      `wedesignerz.com`, self-host `api.wedesignerz.com` /
+      `stats.wedesignerz.com` и Yandex SmartCaptcha
+      (`smartcaptcha.yandexcloud.net`, её assets с `yastatic.net`). Google,
+      Cloudflare, legacy cloud Supabase, `esm.sh`, `ytimg` не наблюдались;
+      console clean. Invisible SmartCaptcha принята bridge до GoTrue;
+      no-token запрос получил `captcha_failed`/400.
+- [ ] Не раньше **2026-07-19 11:15 UTC** (после прежнего TTL `86400`)
+      перепроверить несколько public recursive DNS: ни apex, ни `www` не
+      возвращают GitHub Pages IP/CNAME. На момент cutover Cloudflare и Yandex
+      DNS уже видели VPS, Google и локальный resolver ещё держали старый кеш.
+      Это последняя техническая проверка перед утверждением в форме
+      «трансграничная передача не осуществляется».
 - [ ] Внести правки формы (раздел выше), перепроверить поля по
       preflight-отчёту.
 - [ ] **Отправить** — только Тёма, лично, на портале. После отправки:

@@ -34,8 +34,8 @@
   не изменять, не удалять, не добавлять в commit.
 - Production backend: self-hosted Supabase на `api.wedesignerz.com`.
 - Production analytics: self-hosted Umami на `stats.wedesignerz.com`.
-- Статический origin пока GitHub Pages/Fastly; `robots.txt` закрывает
-  индексацию.
+- Статический authoritative origin с 2026-07-18 — Caddy на RU-VPS; Pages
+  временно хранит тот же rollback-release. `robots.txt` закрывает индексацию.
 - T-LOC/T-CUTOVER, T-CONSENT и T-CONSENT-RECONSENT закрыты. Не повторять
   migration, member JWT-check, re-consent, backfill или live registration без
   новой конкретной причины.
@@ -49,11 +49,10 @@
 T-FRONT-VPS, затем подача РКН. Черновик формы РКН уже заполнен и проверен;
 статус и чек-лист — `docs/19-rkn-submission.md`.
 
-Текущая очередь: промпты Sonnet для **T-RKN-FONTS**, **T-RKN-CAPTCHA**,
-**T-RKN-IMG** (критерии приёмки — в `19-rkn-submission.md`), затем промпт
-Terra **T-FRONT-VPS**. DNS/VPS-cutover не начинать без прямого разрешения
-Тёмы. Ручные шаги Тёмы (справки Timeweb, Yandex Cloud, контур Unisender Go) —
-напоминать, не выполнять за него.
+T-RKN-FONTS/CAPTCHA/IMG и T-FRONT-VPS закрыты 2026-07-18. Текущая очередь:
+не раньше 2026-07-19 11:15 UTC перепроверить public recursive DNS после
+старого TTL, затем помочь Тёме внести перечисленные в `19-rkn-submission.md`
+правки формы. Финальную отправку на портале делает только Тёма.
 
 ## Неприкосновенные правила
 
@@ -132,14 +131,10 @@ Turnstile и внешние аватары. Не превращай технич
 3. Запусти `npm run check` и `git diff --check`; проверь точный diff.
 4. Создай осмысленный docs-коммит и push только из разрешённых файлов, затем
    проверь deploy. Не stage owner-owned prompt.
-5. Подготовь `docs/prompts/terra/T-FRONT-VPS.md`: repo-prep → pre-cutover →
-   DNS-cutover → 72 часа наблюдения → финализация. Обязательны manual-first
-   deploy, непривилегированный пользователь, atomic releases, rollback,
-   allowlist `_site`, response headers, 18 страниц, desktop/375, Auth/Storage/
-   Umami/CAPTCHA/почта, запрет публикации внутренних файлов и неизменённый
-   закрытый `robots.txt`.
-6. Не выполняй сам T-FRONT-VPS, пока Тёма не скажет «Делаем» именно для этого
-   этапа.
+5. Не повторяй T-FRONT-VPS: он закрыт. Проверь только истечение TTL по
+   `19-rkn-submission.md`, health и одинаковый active release VPS/rollback.
+6. После этой проверки помоги Тёме внести правки черновика РКН; не нажимай
+   финальную отправку без отдельного прямого подтверждения владельца.
 
 ## Что можно вести параллельно
 

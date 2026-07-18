@@ -3,14 +3,14 @@
 ## Стек
 
 - **Фронт:** оставляем статический HTML/CSS/JS, без фреймворка и сборки.
-  **Сейчас** хостинг — GitHub Pages, домен `wedesignerz.com`, деплой через
-  `.github/workflows/deploy.yml` (push в `main` → публикация). Workflow собирает
+  **Production с 2026-07-18** — Caddy на RU-VPS, домен `wedesignerz.com`;
+  `.github/workflows/deploy-vps.yml` по push в `main` проверяет и собирает
   `_site/` только из файлов сайта: `docs/`, `audits/`, `supabase/`, `CLAUDE.md` и
   конфиги на публичный сайт **не попадают** (правило от 2026-07-06 — до этого весь
   репозиторий, включая внутренние доки, был публично доступен по прямым URL).
-  **Целевая схема до анонса:** тот же статический фронт отдаёт Caddy на RU-VPS
-  (T-FRONT-VPS), с response headers и атомарным deploy/rollback; GitHub остаётся
-  репозиторием, но не origin.
+  Releases активируются атомарным symlink; rollback воспроизведён. GitHub
+  остаётся репозиторием, а Pages временно сохраняет тот же release только как
+  DNS rollback-origin на 72-часовое окно наблюдения, не как авторитетный origin.
 - **Бэкенд:** self-hosted Supabase на RU-VPS: Postgres + GoTrue + PostgREST +
   Storage за `https://api.wedesignerz.com`. T-CUTOVER закрыт 2026-07-15;
   старый cloud-проект больше не production и имеет выключенные регистрации.

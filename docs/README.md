@@ -11,8 +11,9 @@
   регистрациями только как источник для контролируемого слияния/восстановления.
   Прямой rollback на него запрещён (`infra/RUNBOOK.md`).
 - Аналитика: **self-hosted Umami** на RU-VPS (`stats.wedesignerz.com`).
-- Фронт: статика на GitHub Pages, живёт на **`https://wedesignerz.com`**
-  (с 2026-07-14).
+- Фронт: статика через Caddy на RU-VPS, **`https://wedesignerz.com`**
+  (T-FRONT-VPS закрыт 2026-07-18); GitHub Pages временно хранит синхронный
+  rollback-release на 72 часа.
 - Чат: **Telegram**. Почта: **Unisender Go** (платный тариф).
 - Язык: **RU** на запуск, архитектура **EN-ready**.
 
@@ -53,8 +54,8 @@ Umami, финальный backup восстановлен в отдельные 
 **T-CONSENT/T-CONSENT-RECONSENT закрыты 2026-07-17:** финальный member JWT
 security-check после live migration прошёл 29/29.
 **Порядок пересмотрен 2026-07-18 (путь B по трансграничной передаче):**
-зачистка иностранных зависимостей (T-RKN-FONTS, T-RKN-CAPTCHA, T-RKN-IMG) +
-**T-FRONT-VPS** → подача уведомления РКН (`19-rkn-submission.md`) →
+~~зачистка иностранных зависимостей + T-FRONT-VPS~~ закрыты 2026-07-18 →
+истечение старого DNS TTL + подача уведомления РКН (`19-rkn-submission.md`) →
 5–7 проектов разных авторов + Telegram-ядро → финальный launch-check →
 `robots.txt` → анонс. Видео с рекламой опубликовано 2026-07-18 — регистрации
 уже идут, окно зачистки короткое. **T-IMG** можно вести параллельно в

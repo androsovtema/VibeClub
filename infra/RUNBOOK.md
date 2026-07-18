@@ -43,20 +43,20 @@ stat -c '%U:%G %a %n' /srv/wedesignerz /srv/wedesignerz/incoming /srv/wedesigner
 Ожидание: deploy-user владеет каталогами releases/incoming, helper принадлежит
 `root:root` и имеет режим `755`; root SSH и `sudo` для CI не нужны.
 
-### 2. GitHub Environment и ручной deploy
+### 2. GitHub Environment, deploy и rollback
 
 В репозитории создай Environment `production`, включи требуемое ревью и положи
 туда только `VPS_HOST`, `VPS_USER` (`wedesignerz-deploy`), `VPS_SSH_KEY` и
 `VPS_KNOWN_HOSTS`. Значение known_hosts снять из проверенного fingerprint VPS,
-не использовать `StrictHostKeyChecking=no`. Затем вручную запускается только
-workflow **Deploy static site to VPS** с `action=deploy`.
+не использовать `StrictHostKeyChecking=no`. Первый pre-cutover deploy запускают
+вручную через workflow **Deploy static site to VPS** с `action=deploy`.
 
 Workflow делает `npm ci`, `npm run check`, `npm run build:site`, проверяет
 артефакт и отправляет его в `/srv/wedesignerz/incoming/<40-char-sha>/`.
 Локальный helper повторно проверяет артефакт, переносит его в
 `releases/<sha>` и атомарно меняет symlink `current`; старый active release
-сохраняется symlink `previous`. Автодеплой из `main` не включать до полной
-живой приёмки.
+сохраняется symlink `previous`. После живой приёмки 2026-07-18 workflow включён
+на push в `main`; manual `action=deploy|rollback` остаётся аварийным каналом.
 
 ### 3. Internal smoke до DNS
 
