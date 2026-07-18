@@ -12,12 +12,14 @@
 
 1. `AGENTS.md`.
 2. `docs/08-workflow.md`.
-3. `docs/18-project-roadmap.md`.
-4. `docs/05-launch.md`.
-5. `docs/14-ru-compliance.md`.
-6. `docs/16-security-status.md`.
-7. `docs/17-operator-support.md`.
-8. Релевантные разделы `docs/04-tasks-sonnet.md`: T-FRONT-VPS, T-IMG и
+3. `docs/19-rkn-submission.md` — **точка правды по РКН и текущему порядку
+   этапов (обновлена 2026-07-18)**.
+4. `docs/18-project-roadmap.md`.
+5. `docs/05-launch.md`.
+6. `docs/14-ru-compliance.md`.
+7. `docs/16-security-status.md`.
+8. `docs/17-operator-support.md`.
+9. Релевантные разделы `docs/04-tasks-sonnet.md`: T-FRONT-VPS, T-IMG и
    «Порядок и зависимости».
 
 Не опирайся только на этот промпт: документация и фактический production
@@ -42,9 +44,16 @@
 
 ## Главная цель этой сессии
 
-Начни с **этапа 1 — уведомление РКН** из `18-project-roadmap.md`. После
-подтверждённой подачи подготовь отдельный самодостаточный промпт T-FRONT-VPS,
-но не начинай DNS/VPS-cutover без прямого разрешения Тёмы.
+**Обновлено 2026-07-18.** Порядок инвертирован (путь B по трансграничной
+передаче, решение Тёмы): сначала зачистка иностранных зависимостей и
+T-FRONT-VPS, затем подача РКН. Черновик формы РКН уже заполнен и проверен;
+статус и чек-лист — `docs/19-rkn-submission.md`.
+
+Текущая очередь: промпты Sonnet для **T-RKN-FONTS**, **T-RKN-CAPTCHA**,
+**T-RKN-IMG** (критерии приёмки — в `19-rkn-submission.md`), затем промпт
+Terra **T-FRONT-VPS**. DNS/VPS-cutover не начинать без прямого разрешения
+Тёмы. Ручные шаги Тёмы (справки Timeweb, Yandex Cloud, контур Unisender Go) —
+напоминать, не выполнять за него.
 
 ## Неприкосновенные правила
 
