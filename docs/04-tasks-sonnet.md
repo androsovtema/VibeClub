@@ -205,7 +205,7 @@ Onest + JetBrains Mono.
 - Убрать/переформулировать оставшиеся выдуманные цифры (hero-цифры уже реальные, T-D2 —
   проверить, не осталось ли фейка в других местах).
 - Telegram: убрать личную `t.me/androsovart` из community-кнопок на about/projects/404
-  (на index уже сделано). Канал: `https://t.me/wedesignerz`; чат: `https://t.me/+98-s06KjbuNhM2Zi`.
+  (на index уже сделано). Канал: `https://t.me/wedesignerz`; чат: `https://t.me/wdzclub`.
   Развести «Telegram-канал» / «Чат сообщества». Hire-CTA на `projects/*.html` не трогать (T6).
 - CTA «Вступить» (`[data-join]`) → открывает модалку логина/регистрации (см. T1), не тост —
   на страницах, где ещё тост/старое поведение.

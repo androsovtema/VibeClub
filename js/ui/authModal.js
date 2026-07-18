@@ -153,7 +153,7 @@ function buildMarkup() {
             </a>
           </li>
           <li>
-            <a class="auth-welcome-step" href="https://t.me/+98-s06KjbuNhM2Zi" target="_blank" rel="noopener noreferrer">
+            <a class="auth-welcome-step" href="https://t.me/wdzclub" target="_blank" rel="noopener noreferrer">
               <span class="auth-welcome-step-num" aria-hidden="true">2</span>
               <span class="auth-welcome-step-text">${t('auth.welcome.step2')}</span>
             </a>
