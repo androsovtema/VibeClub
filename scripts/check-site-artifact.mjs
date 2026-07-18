@@ -99,6 +99,9 @@ for (const required of requiredDirectories) {
 try {
   const robots = await readFile(resolve(root, 'robots.txt'), 'utf8');
   if (!robots.split(/\r?\n/).includes('Disallow: /')) errors.push('robots.txt: обязателен Disallow: /.');
+  if (!/User-agent:\s*TelegramBot\s*[\r\n]+Allow:\s*\//i.test(robots)) {
+    errors.push('robots.txt: TelegramBot должен быть разрешён для OG-превью.');
+  }
 } catch {
   // Отсутствие файла уже добавлено выше.
 }
