@@ -63,11 +63,12 @@ Opus выдаёт Тёме ссылку, Тёма вносит правки фо
 
 ### Зачистка иностранных зависимостей (код — Sonnet, промпты пишет Opus)
 
-- [ ] **T-RKN-FONTS** — self-host шрифтов. Скачать woff2 Onest +
-      JetBrains Mono, положить в репо (`fonts/`), переписать подключение в
-      CSS, убрать `fonts.googleapis.com`/`fonts.gstatic.com` из CSP-meta всех
-      HTML. Приёмка: на живом сайте нет запросов к `*.google*`, шрифты
-      рендерятся, `npm run check` зелёный.
+- [x] **T-RKN-FONTS** — закрыт 2026-07-18: шрифты вендорены в `fonts/`
+      (8 variable woff2, 128 КБ), `css/fonts.css` с unicode-range, Google
+      убран из `<link>` и CSP-meta всех 18 HTML. Проверено локально
+      (Network без `*.google*`, веса рендерятся, `npm run check` зелёный);
+      после deploy перепроверить на живом сайте — входит в финальную
+      сетевую инвентаризацию.
 - [ ] **T-RKN-CAPTCHA** — замена Cloudflare Turnstile на Yandex SmartCaptcha.
       Тёма: завести Yandex Cloud, получить client/server ключи. Sonnet: виджет
       в auth-модалке; Terra/Тёма: серверная проверка в GoTrue/self-host

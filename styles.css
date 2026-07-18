@@ -1,6 +1,7 @@
 /* stylelint-disable no-descending-specificity */
 
 @import url('./css/tokens.css');
+@import url('./css/fonts.css');
 
 /*************************
  *  RESET & BASE STYLES  *
