@@ -1,6 +1,6 @@
 /**
  * Проверяет CSP всех публикуемых HTML-страниц.
- * Новая страница в корне или projects/ должна иметь CSP с cloud- и cutover-источниками.
+ * Новая страница в корне или projects/ должна иметь тот же полный CSP-контракт.
  */
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
@@ -10,15 +10,18 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const EXPECTED_PAGE_COUNT = 18;
 const EXCLUDED_DIRECTORIES = new Set(['.git', 'audits', 'docs', 'infra', 'node_modules', 'supabase']);
 const REQUIRED_SOURCES = {
+  'script-src': ['https://smartcaptcha.yandexcloud.net', 'https://stats.wedesignerz.com'],
   'connect-src': [
     'https://ndhyvspgkelxgqmfmmry.supabase.co',
     'wss://ndhyvspgkelxgqmfmmry.supabase.co',
     'https://api.wedesignerz.com',
     'wss://api.wedesignerz.com',
-    'https://stats.wedesignerz.com'
+    'https://stats.wedesignerz.com',
+    'https://smartcaptcha.yandexcloud.net'
   ],
-  'script-src': ['https://stats.wedesignerz.com']
+  'frame-src': ['https://smartcaptcha.yandexcloud.net']
 };
+const FORBIDDEN_SOURCE = 'https://challenges.cloudflare.com';
 
 async function collectHtmlFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -44,6 +47,7 @@ function getDirectiveSources(policy, directive) {
 
 const pages = await collectHtmlFiles(ROOT);
 const errors = [];
+let expectedPolicy = null;
 
 if (pages.length !== EXPECTED_PAGE_COUNT) {
   errors.push(`Ожидалось HTML-страниц сайта: ${EXPECTED_PAGE_COUNT}; найдено: ${pages.length}.`);
@@ -59,8 +63,13 @@ for (const page of pages.sort()) {
     continue;
   }
 
+  const policy = match[2];
+  if (expectedPolicy === null) expectedPolicy = policy;
+  else if (policy !== expectedPolicy) errors.push(`${relativePath}: CSP отличается от остальных страниц.`);
+  if (policy.includes(FORBIDDEN_SOURCE)) errors.push(`${relativePath}: CSP всё ещё содержит ${FORBIDDEN_SOURCE}.`);
+
   for (const [directive, sources] of Object.entries(REQUIRED_SOURCES)) {
-    const values = getDirectiveSources(match[2], directive);
+    const values = getDirectiveSources(policy, directive);
     for (const source of sources) {
       if (!values.has(source)) errors.push(`${relativePath}: в ${directive} нет ${source}.`);
     }
@@ -72,5 +81,5 @@ if (errors.length) {
   for (const error of errors) console.error(`- ${error}`);
   process.exitCode = 1;
 } else {
-  console.log(`✓ CSP: ${pages.length} HTML-страниц содержат cloud- и cutover-источники.`);
+  console.log(`✓ CSP: ${pages.length} HTML-страниц имеют идентичный SmartCaptcha-контракт без Cloudflare.`);
 }

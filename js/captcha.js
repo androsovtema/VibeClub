@@ -1,17 +1,17 @@
 /**
- * We Designerz — Cloudflare Turnstile (SEC-10, защита Auth от ботов).
+ * We Designerz — Yandex SmartCaptcha (SEC-10, защита Auth от ботов).
  *
- * Supabase Auth с включённым CAPTCHA protection требует captchaToken на signup/
- * signin/reset/magic-link. Токен одноразовый — перед каждым запросом виджет
- * ресетится и выполняется заново.
+ * Auth-сценарии передают captchaToken на signup/signin/reset/magic-link, а
+ * внутренний captcha-bridge проверяет его до GoTrue. Токен одноразовый — перед
+ * каждым запросом виджет ресетится и выполняется заново.
  *
- * Режим: execution='execute' + appearance='interaction-only' — виджет невидим и
- * показывает челлендж только если Cloudflare реально засомневался в посетителе.
- * Site key публичный по дизайну (secret живёт в настройках Supabase).
+ * Режим: invisible — виджет невидим и показывает челлендж (шилд снизу справа)
+ * только если SmartCaptcha реально засомневался в посетителе. Site key
+ * публичный по дизайну (secret живёт на сервере, токен проверяет captcha-bridge).
  */
 
-const SITE_KEY = '0x4AAAAAAD1s8mvl49yX42qW';
-const SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+const SITE_KEY = 'ysc1_3IEnmBJ5FxKEBWM2bhCbKoyxliT6JggB1KvQkQDF4c168c4e';
+const SCRIPT_URL = 'https://smartcaptcha.yandexcloud.net/captcha.js';
 const TIMEOUT_MS = 30000;
 
 let scriptPromise = null;
@@ -37,7 +37,7 @@ function loadScript() {
 }
 
 function removeWidget() {
-  if (widgetId !== null && window.turnstile?.remove) window.turnstile.remove(widgetId);
+  if (widgetId !== null && window.smartCaptcha?.destroy) window.smartCaptcha.destroy(widgetId);
   widgetId = null;
   widgetHost?.remove();
   widgetHost = null;
@@ -46,8 +46,8 @@ function removeWidget() {
 async function requestToken() {
   await loadScript();
 
-  // Turnstile-токены одноразовые. Новый виджет на каждую Auth-операцию
-  // надёжнее reset уже использованного экземпляра и не оставляет iframe в DOM.
+  // Токены одноразовые. Новый виджет на каждую Auth-операцию надёжнее
+  // reset уже использованного экземпляра и не оставляет iframe в DOM.
   removeWidget();
   widgetHost = document.createElement('div');
   widgetHost.className = 'captcha-host';
@@ -56,31 +56,60 @@ async function requestToken() {
   return new Promise((resolve, reject) => {
     let settled = false;
     let timer = null;
+    const unsubscribers = [];
 
     const finish = (fn, value) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
       removeWidget();
       fn(value);
     };
 
-    widgetId = window.turnstile.render(widgetHost, {
+    widgetId = window.smartCaptcha.render(widgetHost, {
       sitekey: SITE_KEY,
-      execution: 'execute',
-      appearance: 'interaction-only',
-      callback: (token) => finish(resolve, token),
-      'error-callback': () => {
-        finish(reject, new Error('captcha_error'));
-        return true;
-      },
-      'expired-callback': () => finish(reject, new Error('captcha_expired')),
-      'timeout-callback': () => finish(reject, new Error('captcha_timeout'))
+      invisible: true,
+      hl: 'ru',
+      shieldPosition: 'bottom-right',
+      callback: (token) => finish(resolve, `smart:${token}`)
     });
 
+    // Стартовый таймаут короткий, но пазл человек решает долго: как только
+    // челлендж стал виден, таймаут отменяем — не обрубать решающего человека.
     timer = setTimeout(() => finish(reject, new Error('captcha_timeout')), TIMEOUT_MS);
+
+    unsubscribers.push(
+      window.smartCaptcha.subscribe(widgetId, 'challenge-visible', () => {
+        clearTimeout(timer);
+        timer = null;
+      })
+    );
+    // Челлендж скрылся без полученного токена — человек закрыл его сам.
+    // Если токен уже получен, finish уже settled и этот вызов — no-op.
+    unsubscribers.push(
+      window.smartCaptcha.subscribe(widgetId, 'challenge-hidden', () => {
+        finish(reject, new Error('captcha_cancelled'));
+      })
+    );
+    unsubscribers.push(
+      window.smartCaptcha.subscribe(widgetId, 'token-expired', () => {
+        finish(reject, new Error('captcha_expired'));
+      })
+    );
+    unsubscribers.push(
+      window.smartCaptcha.subscribe(widgetId, 'network-error', () => {
+        finish(reject, new Error('captcha_error'));
+      })
+    );
+    unsubscribers.push(
+      window.smartCaptcha.subscribe(widgetId, 'javascript-error', () => {
+        finish(reject, new Error('captcha_error'));
+      })
+    );
+
     try {
-      window.turnstile.execute(widgetId);
+      window.smartCaptcha.execute(widgetId);
     } catch (error) {
       finish(reject, error);
     }
@@ -88,7 +117,7 @@ async function requestToken() {
 }
 
 /**
- * Возвращает одноразовый captcha-токен. Кидает Error, если Turnstile не
+ * Возвращает одноразовый captcha-токен. Кидает Error, если SmartCaptcha не
  * загрузился (блокировщик/сеть) или челлендж не пройден — вызывающий код
  * показывает человеку понятное сообщение.
  */

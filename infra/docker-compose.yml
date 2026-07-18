@@ -63,6 +63,9 @@ services:
     container_name: vibeclub-kong
     image: kong/kong:3.9.3@sha256:9a2ae6699a2ce0d60592eb176555d3594a22782c20cc6557a61ff3a7e8b559a3
     restart: unless-stopped
+    depends_on:
+      captcha-bridge:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 5s
@@ -110,7 +113,9 @@ services:
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
       GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
-      GOTRUE_SECURITY_CAPTCHA_ENABLED: "true"
+      # CAPTCHA проверяет внутренний captcha-bridge перед GoTrue. Provider и
+      # secret оставлены рядом только для точного rollback из RUNBOOK.md.
+      GOTRUE_SECURITY_CAPTCHA_ENABLED: "false"
       GOTRUE_SECURITY_CAPTCHA_PROVIDER: turnstile
       GOTRUE_SECURITY_CAPTCHA_SECRET: ${CAPTCHA_SECRET}
       GOTRUE_PASSWORD_MIN_LENGTH: "12"
@@ -177,6 +182,32 @@ services:
       GOTRUE_HOOK_SEND_EMAIL_ENABLED: "true"
       GOTRUE_HOOK_SEND_EMAIL_URI: http://127.0.0.1:9998/
       GOTRUE_HOOK_SEND_EMAIL_SECRETS: ${SEND_EMAIL_HOOK_SECRET}
+
+  captcha-bridge:
+    # Внутренний gateway CAPTCHA -> GoTrue. Порт не публикуется: снаружи
+    # доступен только Kong, который направляет сюда secure Auth routes.
+    container_name: vibeclub-captcha-bridge
+    image: node:22.23.1-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
+    restart: unless-stopped
+    depends_on:
+      auth:
+        condition: service_healthy
+    command: ["node", "/app/server.mjs"]
+    volumes:
+      - ./captcha-bridge/server.mjs:/app/server.mjs:ro,z
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9997/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    environment:
+      PORT: 9997
+      AUTH_UPSTREAM_URL: http://auth:9999
+      CAPTCHA_SECRET: ${CAPTCHA_SECRET}
+      SMARTCAPTCHA_SERVER_KEY: ${SMARTCAPTCHA_SERVER_KEY}
+      SMARTCAPTCHA_ALLOWED_HOSTS: ${SMARTCAPTCHA_ALLOWED_HOSTS}
+      CAPTCHA_VERIFY_TIMEOUT_MS: ${CAPTCHA_VERIFY_TIMEOUT_MS:-6000}
 
   mail-bridge:
     # Мост GoTrue send-email hook → Unisender Go Web API (RUNBOOK.md шаг 6).

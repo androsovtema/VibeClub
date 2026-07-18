@@ -13,7 +13,8 @@
     "security-check": "node scripts/security-check.mjs",
     "check:csp": "node scripts/check-csp.mjs",
     "check:consent": "node scripts/check-consent-version.mjs",
-    "check": "npm run lint && npm run check:csp && npm run check:consent && echo '\\n✓ Линтеры, CSP и версия согласия чисты. Отдельно: WDZ_TEST_JWT=<access_token> npm run security-check (после миграций RLS и при включённой CAPTCHA).'"
+    "test:captcha-bridge": "node --test infra/captcha-bridge/server.test.mjs",
+    "check": "npm run lint && npm run test:captcha-bridge && npm run check:csp && npm run check:consent && echo '\\n✓ Линтеры, CAPTCHA bridge, CSP и версия согласия чисты. Отдельно: WDZ_TEST_JWT=<access_token> npm run security-check (после миграций RLS и при включённой CAPTCHA).'"
   },
   "devDependencies": {
     "eslint": "^9.0.0",

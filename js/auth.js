@@ -6,7 +6,7 @@ import { supabase } from './supabase.js';
 import { getCaptchaToken } from './captcha.js';
 import { PRIVACY_POLICY_VERSION } from './consent.js';
 
-// Turnstile может не отдать токен (блокировщик, offline, отказ челленджа).
+// CAPTCHA может не отдать токен (блокировщик, offline, отказ челленджа).
 // Возвращаем ошибку в форме Supabase ({ data, error }), а не кидаем исключение:
 // вызывающие формы ждут именно такой контракт, иначе повиснут в setLoading(true).
 async function captcha() {

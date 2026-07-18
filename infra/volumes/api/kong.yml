@@ -76,8 +76,8 @@ services:
 
   ## Secure Auth routes
   - name: auth-v1
-    _comment: 'Auth: /auth/v1/* -> http://auth:9999/*'
-    url: http://auth:9999/
+    _comment: 'Auth: /auth/v1/* -> internal captcha-bridge -> http://auth:9999/*'
+    url: http://captcha-bridge:9997/
     routes:
       - name: auth-v1-all
         strip_path: true

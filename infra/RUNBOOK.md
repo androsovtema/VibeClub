@@ -13,6 +13,59 @@
 
 ---
 
+## T-RKN-CAPTCHA-BRIDGE — SmartCaptcha перед GoTrue
+
+Это отдельный controlled deploy для замены Turnstile. До начала в
+`/root/vibeclub/.env` должны быть `CAPTCHA_SECRET` (нужен только для временной
+dual-mode поддержки старого фронта) и `SMARTCAPTCHA_SERVER_KEY`. Не печатай их
+и не копируй `.env` в Git. Проверь конфиг без вывода значений:
+
+```bash
+cd /root/vibeclub
+docker compose config -q
+```
+
+Порядок обязателен: сначала подними здоровый `auth`, затем
+`captcha-bridge`, затем Kong. Обычный безопасный вариант после обновления
+файлов — Compose сам соблюдёт зависимости:
+
+```bash
+docker compose up -d auth
+docker compose up -d captcha-bridge
+docker compose up -d kong
+docker compose ps
+docker compose exec captcha-bridge wget -qO- http://localhost:9997/health; echo
+```
+
+Ожидаются `auth`, `captcha-bridge` и `kong` в состоянии `healthy`. Проверяй
+только агрегированные статусы/коды: в логах не искать и не печатать email,
+IP, пароли, CAPTCHA-токены или request body.
+
+Приёмка dual-mode: новый фронт шлёт `smart:<token>` и bridge отправляет raw
+token только в Yandex SmartCaptcha; ещё закэшированный старый фронт шлёт raw
+Turnstile token и bridge отправляет его только в Cloudflare. После успеха
+проверяется signup, а запрос без токена должен вернуть `400 captcha_failed`.
+Refresh-token, PKCE и id-token должны обновляться без CAPTCHA. Внешние Auth
+маршруты `/verify`, `/callback`, `/authorize` и `/.well-known/jwks` остаются
+напрямую на GoTrue.
+
+### Точный rollback
+
+Если приёмка не зелёная, верни secure Auth service в Kong на
+`http://auth:9999/`, установи `GOTRUE_SECURITY_CAPTCHA_ENABLED: "true"` в
+`docker-compose.yml`, затем пересоздай только auth и Kong:
+
+```bash
+docker compose up -d --force-recreate auth kong
+```
+
+После этого откати фронт на Turnstile отдельным проверенным изменением. Не
+делай rollback фронта раньше серверного: иначе SmartCaptcha-токен попадёт в
+GoTrue Turnstile validator. Ни при deploy, ни при rollback не выводи секреты
+или PII.
+
+---
+
 ## Шаг 1 — секреты и подготовка VPS
 
 ### 1.1 Сгенерировать секреты (локально, на своей машине — Node уже стоит)
