@@ -1,21 +1,15 @@
-# We Designerz — reverse proxy + авто-TLS (T-LOC).
-# Caddy сам получает и обновляет сертификаты Let's Encrypt (ACME HTTP-01),
-# нужны только A-записи api.wedesignerz.com и stats.wedesignerz.com → IP VPS
-# (см. RUNBOOK.md, шаг 1) и открытые 80/443 в ufw.
+# We Designerz — reverse proxy + static frontend на RU-VPS.
 {
 	email veteristema@gmail.com
-	# Не отдавать наружу «Server: Caddy» — на одну зацепку меньше при фингерпринте.
 	servers {
 		trusted_proxies static private_ranges
 	}
 }
 
-# Общий набор security-заголовков для обоих доменов.
+# Общие security-заголовки для API и Umami.
 (security_headers) {
 	header {
-		# HSTS: браузер год ходит только по HTTPS (кэш ACME уже валиден).
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
-		# Не давать угадывать MIME и встраивать в чужие фреймы.
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
@@ -23,21 +17,68 @@
 	}
 }
 
+# CSP совпадает с meta-CSP по origin allowlist; meta остаётся вторым слоем.
+(frontend_security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://smartcaptcha.yandexcloud.net https://stats.wedesignerz.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://api.wedesignerz.com; connect-src 'self' https://api.wedesignerz.com wss://api.wedesignerz.com https://stats.wedesignerz.com https://smartcaptcha.yandexcloud.net; frame-src https://smartcaptcha.yandexcloud.net; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'"
+		-Server
+	}
+}
+
+# Одинаковый static handler для публичного apex и pre-cutover smoke внутри
+# контейнера. file_server без browse отключает directory listing.
+(frontend_static) {
+	encode zstd gzip
+	import frontend_security_headers
+	root * /srv/wedesignerz/current
+	@internal_paths path /docs /docs/* /audits /audits/* /supabase /supabase/* /infra /infra/* /scripts /scripts/* /.git /.git/* /.github /.github/* /.env /.env* /AGENTS.md /CLAUDE.md /package.json /package-lock.json /eslint.config.js /.stylelintrc.json /.stylelintignore /.gitignore
+	handle @internal_paths {
+		import frontend_security_headers
+		respond 404
+	}
+	try_files {path} {path}/ =404
+	file_server
+}
+
+(frontend_404) {
+	handle_errors {
+		import frontend_security_headers
+		@not_found expression {err.status_code} == 404
+		rewrite @not_found /404.html
+		file_server
+	}
+}
+
+wedesignerz.com {
+	import frontend_static
+	import frontend_404
+}
+
+www.wedesignerz.com {
+	import frontend_security_headers
+	redir https://wedesignerz.com{uri} permanent
+}
+
+# Не публикуется в docker-compose: доступен только docker compose exec caddy.
+http://:8080 {
+	import frontend_static
+	import frontend_404
+}
+
 api.wedesignerz.com {
 	encode gzip
 	import security_headers
 
-	# Шаблоны писем для GoTrue: GOTRUE_MAILER_TEMPLATES_* принимает только
-	# HTTP(S)-URL (файловый путь GoTrue не читает), поэтому Caddy раздаёт
-	# ./mail-templates статикой — auth забирает их отсюда.
 	handle_path /mail-templates/* {
 		root * /srv/mail-templates
 		file_server
 	}
 
-	# Этот marker появляется только после успешной выгрузки backup в S3.
-	# backup-watchdog удаляет его, если backup старше 26 часов; тогда
-	# внешний монитор получит 404 и создаст инцидент.
 	@backup_health path /health/backup
 	handle @backup_health {
 		root * /srv/backup-health

@@ -1,0 +1,109 @@
+name: Deploy static site to VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Deploy a newly built artifact or activate an existing release
+        required: true
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - rollback
+      release:
+        description: Full 40-character lowercase SHA for rollback
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-vps:
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: inputs.action == 'deploy'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: inputs.action == 'deploy'
+        run: npm ci
+
+      - name: Verify source
+        if: inputs.action == 'deploy'
+        run: npm run check
+
+      - name: Build site artifact
+        if: inputs.action == 'deploy'
+        run: npm run build:site
+
+      - name: Verify site artifact
+        if: inputs.action == 'deploy'
+        run: npm run check:site-artifact
+
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          chmod 644 "$HOME/.ssh/known_hosts"
+
+      - name: Validate deploy release id
+        if: inputs.action == 'deploy'
+        run: printf '%s' "$GITHUB_SHA" | grep -Eq '^[0-9a-f]{40}$'
+
+      - name: Copy release to incoming
+        if: inputs.action == 'deploy'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          if ssh -i "$HOME/.ssh/id_ed25519" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$VPS_USER@$VPS_HOST" \
+            "test -d /srv/wedesignerz/releases/$GITHUB_SHA"; then
+            echo "Release $GITHUB_SHA уже загружен; повторно активируем проверенный каталог."
+          else
+            ssh -i "$HOME/.ssh/id_ed25519" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$VPS_USER@$VPS_HOST" \
+              "rm -rf -- /srv/wedesignerz/incoming/$GITHUB_SHA && mkdir -p /srv/wedesignerz/incoming/$GITHUB_SHA"
+            rsync -a --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+              -e "ssh -i $HOME/.ssh/id_ed25519 -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
+              _site/ "$VPS_USER@$VPS_HOST:/srv/wedesignerz/incoming/$GITHUB_SHA/"
+          fi
+
+      - name: Activate release
+        if: inputs.action == 'deploy'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: ssh -i "$HOME/.ssh/id_ed25519" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$VPS_USER@$VPS_HOST" "/usr/local/bin/wedesignerz-deploy activate $GITHUB_SHA"
+
+      - name: Validate rollback release
+        if: inputs.action == 'rollback'
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: |
+          if ! printf '%s' "$RELEASE" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo 'Для rollback требуется полный 40-символьный lowercase SHA.' >&2
+            exit 1
+          fi
+
+      - name: Roll back release
+        if: inputs.action == 'rollback'
+        env:
+          RELEASE: ${{ inputs.release }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: ssh -i "$HOME/.ssh/id_ed25519" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" "$VPS_USER@$VPS_HOST" "/usr/local/bin/wedesignerz-deploy rollback $RELEASE"

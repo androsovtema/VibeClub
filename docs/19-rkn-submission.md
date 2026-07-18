@@ -69,13 +69,10 @@ Opus выдаёт Тёме ссылку, Тёма вносит правки фо
       (Network без `*.google*`, веса рендерятся, `npm run check` зелёный);
       после deploy перепроверить на живом сайте — входит в финальную
       сетевую инвентаризацию.
-- [ ] **T-RKN-CAPTCHA** — замена Cloudflare Turnstile на Yandex SmartCaptcha.
-      Тёма: завести Yandex Cloud, получить client/server ключи. Sonnet: виджет
-      в auth-модалке; Terra/Тёма: серверная проверка в GoTrue/self-host
-      (сейчас капча принуждается на бэкенде — заменить проверку токена),
-      CSP: убрать `challenges.cloudflare.com`, добавить
-      `smartcaptcha.yandexcloud.net`. Приёмка: регистрация с капчей работает,
-      без токена — отбивается, запросов к Cloudflare нет.
+- [x] **T-RKN-CAPTCHA** — закрыт 2026-07-18: Yandex SmartCaptcha принята
+      end-to-end, server bridge fail-closed без токена; Cloudflare/Turnstile
+      отсутствуют в собранном фронте и CSP. В браузерной финальной сетевой
+      инвентаризации после cutover это перепроверяется отдельно.
 - [x] **T-RKN-IMG** (2026-07-18) — `img-src` сужен во всех 18 HTML до
       `'self' data: blob: https://api.wedesignerz.com`. Итог инвентаризации:
       YouTube-превью не используются (grep по `ytimg`/`youtube` пуст);
@@ -106,7 +103,8 @@ Opus выдаёт Тёме ссылку, Тёма вносит правки фо
       ЛК не отображаются — опираемся на публичную оферту (акцепт по ней
       заключается с ООО «Юнисендер Смарт»); принято, оставлено как есть.
       Это техническая инвентаризация, не юридическое заключение.
-- [ ] Завести Yandex Cloud + ключи SmartCaptcha (для T-RKN-CAPTCHA).
+- [x] Yandex Cloud и client/server keys SmartCaptcha заведены и применены
+      2026-07-18; значения ключей остаются только в секретном контуре.
 
 ### Финальный гейт перед отправкой
 

@@ -1,0 +1,124 @@
+#!/bin/sh
+# Root-owned helper; запускается только непривилегированным deploy-user.
+set -eu
+
+ROOT=/srv/wedesignerz
+DEPLOY_USER=wedesignerz-deploy
+INCOMING="$ROOT/incoming"
+RELEASES="$ROOT/releases"
+CURRENT="$ROOT/current"
+PREVIOUS="$ROOT/previous"
+
+die() {
+  echo "wedesignerz-deploy: $*" >&2
+  exit 1
+}
+
+valid_sha() {
+  [ "${#1}" -eq 40 ] && printf '%s' "$1" | grep -Eq '^[0-9a-f]{40}$'
+}
+
+validate_release_path() {
+  release_path=$1
+  [ -d "$release_path" ] && [ ! -L "$release_path" ] || die "release не является обычным каталогом."
+
+  for required in index.html 404.html robots.txt styles.css; do
+    [ -f "$release_path/$required" ] && [ ! -L "$release_path/$required" ] || die "нет обязательного файла: $required"
+  done
+  for required in js css fonts; do
+    [ -d "$release_path/$required" ] && [ ! -L "$release_path/$required" ] || die "нет обязательного каталога: $required"
+  done
+  for forbidden in .git .github .claude node_modules docs audits supabase infra scripts _site CLAUDE.md AGENTS.md package.json package-lock.json eslint.config.js; do
+    [ ! -e "$release_path/$forbidden" ] || die "в release найден внутренний путь: $forbidden"
+  done
+  if find "$release_path" -type l -print -quit | grep -q .; then die 'symlink в release запрещён.'; fi
+  if find "$release_path" -name '.*' -print -quit | grep -q .; then die 'dotfile или .env в release запрещён.'; fi
+  if find "$release_path" -type f \( -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' \) -print -quit | grep -q .; then
+    die 'ключ или сертификат в release запрещён.'
+  fi
+  if grep -R -I -E -q \
+    -e '-----BEGIN [A-Z ]*PRIVATE KEY-----' \
+    -e '(^|[^[:alnum:]_])(SUPABASE_)?SERVICE_ROLE(_KEY)?[[:space:]]*[:=]' \
+    "$release_path"; then
+    die 'секрет или service_role-маркер в release запрещён.'
+  fi
+  html_count=$(find "$release_path" -type f -name '*.html' | wc -l | tr -d '[:space:]')
+  [ "$html_count" -eq 18 ] || die "ожидалось 18 HTML-страниц, найдено: $html_count"
+  grep -F -x -q 'Disallow: /' "$release_path/robots.txt" || die 'robots.txt должен содержать Disallow: /.'
+}
+
+current_target() {
+  [ -L "$CURRENT" ] || return 1
+  target=$(readlink "$CURRENT") || die 'не удалось прочитать current.'
+  case "$target" in
+    "$RELEASES"/*) ;;
+    *) die 'current указывает вне allowlisted releases.' ;;
+  esac
+  release_id=${target##*/}
+  valid_sha "$release_id" || die 'current содержит невалидный release id.'
+  [ -d "$target" ] && [ ! -L "$target" ] || die 'current указывает на отсутствующий release.'
+  printf '%s\n' "$target"
+}
+
+replace_link() {
+  link_path=$1
+  target=$2
+  temporary="${link_path}.$$"
+  rm -f -- "$temporary"
+  ln -s -- "$target" "$temporary"
+  # -T обязателен: без него current/previous, если это symlink на каталог,
+  # может быть интерпретирован как каталог назначения вместо замены ссылки.
+  mv -Tf -- "$temporary" "$link_path"
+}
+
+activate_target() {
+  new_target=$1
+  if old_target=$(current_target); then
+    [ "$old_target" = "$new_target" ] || replace_link "$PREVIOUS" "$old_target"
+  fi
+  # replace_link использует target как внутреннюю POSIX-shell переменную,
+  # поэтому активируемый путь храним отдельно от её побочного эффекта.
+  replace_link "$CURRENT" "$new_target"
+}
+
+activate() {
+  release_id=$1
+  valid_sha "$release_id" || die 'release должен быть 40-символьным lowercase SHA.'
+  source="$INCOMING/$release_id"
+  target="$RELEASES/$release_id"
+  if [ -d "$target" ] && [ ! -L "$target" ]; then
+    validate_release_path "$target"
+    activate_target "$target"
+    echo "Повторно активирован существующий release $release_id"
+    return
+  fi
+  [ -d "$source" ] && [ ! -L "$source" ] || die 'incoming release отсутствует.'
+  [ ! -e "$target" ] || die 'путь release с таким SHA уже существует и не является обычным каталогом.'
+  validate_release_path "$source"
+  mv -- "$source" "$target"
+  validate_release_path "$target"
+  activate_target "$target"
+  echo "Активирован release $release_id"
+}
+
+rollback() {
+  release_id=$1
+  valid_sha "$release_id" || die 'release должен быть 40-символьным lowercase SHA.'
+  target="$RELEASES/$release_id"
+  [ -d "$target" ] && [ ! -L "$target" ] || die 'запрошенный release отсутствует.'
+  validate_release_path "$target"
+  activate_target "$target"
+  echo "Выполнен rollback на release $release_id"
+}
+
+[ "$(id -u)" -ne 0 ] || die 'скрипт не предназначен для запуска root.'
+[ "$(id -un)" = "$DEPLOY_USER" ] || die "скрипт предназначен только для $DEPLOY_USER."
+[ "$#" -eq 2 ] || die 'использование: wedesignerz-deploy activate|rollback <40-char-sha>'
+[ -d "$ROOT" ] && [ -d "$INCOMING" ] && [ -d "$RELEASES" ] || die 'ожидаемая структура /srv/wedesignerz отсутствует.'
+cd "$ROOT"
+
+case "$1" in
+  activate) activate "$2" ;;
+  rollback) rollback "$2" ;;
+  *) die 'доступны только activate и rollback.' ;;
+esac

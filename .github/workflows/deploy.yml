@@ -24,35 +24,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify source
+        run: npm run check
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # На Pages уходят только файлы сайта. Внутреннее (docs/, audits/,
-      # supabase/, infra/, CLAUDE.md, конфиги) не публикуется.
       - name: Build site artifact
-        run: |
-          mkdir -p _site
-          rsync -a \
-            --exclude='_site' \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.claude' \
-            --exclude='node_modules' \
-            --exclude='docs' \
-            --exclude='audits' \
-            --exclude='supabase' \
-            --exclude='infra' \
-            --exclude='CLAUDE.md' \
-            --exclude='AGENTS.md' \
-            --exclude='scripts' \
-            --exclude='package.json' \
-            --exclude='package-lock.json' \
-            --exclude='eslint.config.js' \
-            --exclude='.stylelintrc.json' \
-            --exclude='.stylelintignore' \
-            --exclude='.gitignore' \
-            --exclude='.DS_Store' \
-            ./ _site/
+        run: npm run build:site
+
+      - name: Verify site artifact
+        run: npm run check:site-artifact
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -389,6 +389,9 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./mail-templates:/srv/mail-templates:ro
       - ./volumes/backup-health:/srv/backup-health:ro
+      # Static releases приходят только через непривилегированного deploy-user.
+      # 8080 остаётся только внутренним listener Caddy и не публикуется на host.
+      - /srv/wedesignerz:/srv/wedesignerz:ro
       - caddy-data:/data
       - caddy-config:/config
 

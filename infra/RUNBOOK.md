@@ -13,6 +13,87 @@
 
 ---
 
+## T-FRONT-VPS — статический origin на RU-VPS
+
+Этот раздел выполняется только после ревью repo-prep. До DNS-cutover GitHub
+Pages остаётся rollback-origin, а `robots.txt` остаётся с `Disallow: /`.
+Ниже нет реальных ключей: не копируй их в Git, терминал или issue.
+
+### 1. Provisioning deploy-user (root, однократно)
+
+Перед запуском создай отдельную SSH-пару для GitHub Environment и передай на
+VPS **только public key** защищённым каналом. На VPS, после копирования новых
+`infra/scripts/` в `/root/vibeclub/scripts/`:
+
+```bash
+cd /root/vibeclub
+chmod 0755 scripts/wedesignerz-deploy scripts/provision-frontend-deploy.sh
+sudo ./scripts/provision-frontend-deploy.sh /root/wedesignerz-deploy.pub
+```
+
+Скрипт создаёт системного `wedesignerz-deploy`, `/srv/wedesignerz/{incoming,releases}`
+и root-owned `/usr/local/bin/wedesignerz-deploy`. Он не меняет firewall, sshd,
+DNS, Docker или Caddy. Проверка без вывода ключа:
+
+```bash
+id wedesignerz-deploy
+stat -c '%U:%G %a %n' /srv/wedesignerz /srv/wedesignerz/incoming /srv/wedesignerz/releases /usr/local/bin/wedesignerz-deploy
+```
+
+Ожидание: deploy-user владеет каталогами releases/incoming, helper принадлежит
+`root:root` и имеет режим `755`; root SSH и `sudo` для CI не нужны.
+
+### 2. GitHub Environment и ручной deploy
+
+В репозитории создай Environment `production`, включи требуемое ревью и положи
+туда только `VPS_HOST`, `VPS_USER` (`wedesignerz-deploy`), `VPS_SSH_KEY` и
+`VPS_KNOWN_HOSTS`. Значение known_hosts снять из проверенного fingerprint VPS,
+не использовать `StrictHostKeyChecking=no`. Затем вручную запускается только
+workflow **Deploy static site to VPS** с `action=deploy`.
+
+Workflow делает `npm ci`, `npm run check`, `npm run build:site`, проверяет
+артефакт и отправляет его в `/srv/wedesignerz/incoming/<40-char-sha>/`.
+Локальный helper повторно проверяет артефакт, переносит его в
+`releases/<sha>` и атомарно меняет symlink `current`; старый active release
+сохраняется symlink `previous`. Автодеплой из `main` не включать до полной
+живой приёмки.
+
+### 3. Internal smoke до DNS
+
+После `docker compose config -q` применить только конфиг Caddy и проверить
+static handler изнутри контейнера; 8080 **не публикуется** на host:
+
+```bash
+cd /root/vibeclub
+docker compose up -d caddy
+docker compose exec caddy wget -S -O /dev/null http://127.0.0.1:8080/
+docker compose exec caddy wget -S -O /dev/null http://127.0.0.1:8080/docs/
+docker compose exec caddy wget -S -O /dev/null http://127.0.0.1:8080/missing-page
+```
+
+Проверить `200` для `/`, `404` для внутренних и отсутствующих путей, отсутствие
+listing, а также HSTS, `nosniff`, frame protection, Referrer/Permissions Policy
+и header-CSP. Затем на desktop и 375 px пройти Auth, Storage, SmartCaptcha,
+письма и Umami с чистой консолью.
+
+### 4. DNS-cutover, приёмка и rollback
+
+Сначала сохранить baseline DNS/TTL, понизить TTL и убедиться, что Pages ещё
+отдаёт тот же проверенный release. Затем Тёма меняет apex и `www` на VPS:
+`www` должен постоянно редиректить на `https://wedesignerz.com` с URI. После
+распространения DNS проверить TLS, headers, ключевые страницы, `404.html`,
+внутренние пути, Auth/Storage/CAPTCHA/Umami и Network без Pages/Fastly,
+Google или Cloudflare. Только после этой приёмки фиксируется T-FRONT-VPS;
+`robots.txt` не открывать.
+
+Для rollback приложения вручную запусти тот же workflow с `action=rollback`
+и полным 40-символьным lowercase SHA из `releases/`; helper валидирует путь и
+атомарно переключает `current`, оставляя прежний release в `previous`. При
+критической сетевой регрессии DNS возвращает только заранее сохранённый Pages
+origin. Не держать два разных release публичными одновременно.
+
+---
+
 ## T-RKN-CAPTCHA-BRIDGE — SmartCaptcha перед GoTrue
 
 Это отдельный controlled deploy для замены Turnstile. До начала в

@@ -8,12 +8,10 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const EXPECTED_PAGE_COUNT = 18;
-const EXCLUDED_DIRECTORIES = new Set(['.git', 'audits', 'docs', 'infra', 'node_modules', 'supabase']);
+const EXCLUDED_DIRECTORIES = new Set(['.git', '_site', 'audits', 'docs', 'infra', 'node_modules', 'supabase']);
 const REQUIRED_SOURCES = {
   'script-src': ['https://smartcaptcha.yandexcloud.net', 'https://stats.wedesignerz.com'],
   'connect-src': [
-    'https://ndhyvspgkelxgqmfmmry.supabase.co',
-    'wss://ndhyvspgkelxgqmfmmry.supabase.co',
     'https://api.wedesignerz.com',
     'wss://api.wedesignerz.com',
     'https://stats.wedesignerz.com',
@@ -21,7 +19,11 @@ const REQUIRED_SOURCES = {
   ],
   'frame-src': ['https://smartcaptcha.yandexcloud.net']
 };
-const FORBIDDEN_SOURCE = 'https://challenges.cloudflare.com';
+const FORBIDDEN_SOURCES = [
+  'https://challenges.cloudflare.com',
+  'https://ndhyvspgkelxgqmfmmry.supabase.co',
+  'wss://ndhyvspgkelxgqmfmmry.supabase.co'
+];
 
 async function collectHtmlFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -66,7 +68,9 @@ for (const page of pages.sort()) {
   const policy = match[2];
   if (expectedPolicy === null) expectedPolicy = policy;
   else if (policy !== expectedPolicy) errors.push(`${relativePath}: CSP отличается от остальных страниц.`);
-  if (policy.includes(FORBIDDEN_SOURCE)) errors.push(`${relativePath}: CSP всё ещё содержит ${FORBIDDEN_SOURCE}.`);
+  for (const source of FORBIDDEN_SOURCES) {
+    if (policy.includes(source)) errors.push(`${relativePath}: CSP всё ещё содержит запрещённый ${source}.`);
+  }
 
   for (const [directive, sources] of Object.entries(REQUIRED_SOURCES)) {
     const values = getDirectiveSources(policy, directive);
@@ -81,5 +85,5 @@ if (errors.length) {
   for (const error of errors) console.error(`- ${error}`);
   process.exitCode = 1;
 } else {
-  console.log(`✓ CSP: ${pages.length} HTML-страниц имеют идентичный SmartCaptcha-контракт без Cloudflare.`);
+  console.log(`✓ CSP: ${pages.length} HTML-страниц имеют идентичный SmartCaptcha-контракт без Cloudflare и legacy cloud Supabase.`);
 }
