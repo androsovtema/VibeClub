@@ -114,6 +114,9 @@ services:
       GOTRUE_SECURITY_CAPTCHA_PROVIDER: turnstile
       GOTRUE_SECURITY_CAPTCHA_SECRET: ${CAPTCHA_SECRET}
       GOTRUE_PASSWORD_MIN_LENGTH: "12"
+      # Дефолт GoTrue — 30 писем/час на весь инстанс: при наплыве с YouTube
+      # 31-я регистрация за час падает. Поднято перед анонсом 2026-07-18.
+      GOTRUE_RATELIMIT_EMAIL_SENT: "360"
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
